@@ -21,7 +21,7 @@ const BasicAside = ({
     if (clickedItem.children && clickedItem.children.length) {
       setMenuList && setMenuList((prevItems: any[] = []) =>
         prevItems.map((item: any) =>
-          item.key === clickedItem.key ? { ...item, slider: !item.slider } : item
+          item.id === clickedItem.id ? { ...item, slider: !item.slider } : item
         )
       )
     } else {
@@ -32,10 +32,11 @@ const BasicAside = ({
   }
   // 子菜单
   const subContent = (item: any) => (
+    item.children?.length ? (
     <div className='overflow-hidden transition-all duration-300 ease-in-out'>
       {item.children.map((child: any) => (
         <div
-          key={child.key}
+          key={child.id}
           className={`${collapsed ? 'pl-14' : ''} ${currentMenu === child.path ? 'bg-#e5f4ff' : ''} text-13px flex min-w-0 items-center hover:bg-gray/15 px-4 gap-4 h-32px cursor-pointer overflow-hidden whitespace-nowrap transition-all duration-200`}
           onClick={() => onClick(child)}
         >
@@ -43,7 +44,7 @@ const BasicAside = ({
         </div>
       ))}
     </div>
-  )
+  ) : null)
   return (
     <div className={`
       border-r-1 border-r-solid border-[#e6e6e6] py-1 transition-all duration-300 ease-in-out overflow-hidden bg-white
@@ -71,7 +72,7 @@ const BasicAside = ({
       {/* 菜单 */}
       <div className='select-none'>
         {menuList?.map((item: any) => (
-          <div key={item.key} className='text-13px rounded-2px'>
+          <div key={item.id} className='text-13px rounded-2px'>
             <div
               className={`flex min-w-0 items-center hover:bg-gray/15 cursor-pointer overflow-hidden transition-all duration-200 ${collapsed ? 'gap-4 px-4 h-32px' : 'justify-center px-2 h-12'
                 } ${currentMenu === item.path ? 'bg-#e5f4ff' : ''}`}
@@ -90,7 +91,7 @@ const BasicAside = ({
               {collapsed && (
                 <>
                   <span className='leading-none flex-1 truncate whitespace-nowrap opacity-100 transition-opacity duration-300'>{item.name}</span>
-                  {item.children?.length && (
+                  {item.children?.length ? (
                     <span className='opacity-100 transition-opacity duration-300'>
                       {item.slider ? (
                         <AppIcon name="DownOutlined" className='text-gray-500 text-8px' />
@@ -98,12 +99,12 @@ const BasicAside = ({
                         <AppIcon name="RightOutlined" className='text-gray-500 text-8px' />
                       )}
                     </span>
-                  )}
+                  ) : null}
                 </>
               )}
             </div>
             {/* 子菜单 - 只在展开状态显示 */}
-            {collapsed && item.children?.length && item.slider && (
+            {collapsed && item.slider && (
               subContent(item)
             )}
           </div>

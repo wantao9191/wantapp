@@ -5,7 +5,7 @@ import { Form, Row, Col, Tooltip, Space } from 'antd'
 import { QuestionCircleOutlined } from '@ant-design/icons'
 import type { FormInstance } from 'antd/es/form'
 import type { FormConfig, FormItemConfig } from '@/types/form-config'
-import FormItemRenderer from './form/FormItemRenderer'
+import FormItemRenderer from './Form/FormItemRenderer'
 import { removeUndefined } from '@/lib/utils'
 export interface ConfigFormProps {
   config: FormConfig

@@ -1,9 +1,10 @@
 'use client'
-import React from 'react'
+import React, { useEffect } from 'react'
 import BasicAside from './BasicAside'
 import BasicHeader from './BasicHeader'
 import BasicTabs from './BasicTabs'
 import { useSlider, useTheme, useTabs } from '@/hooks'
+import { http } from '@/lib/https'
 
 interface BasicLayoutProps {
   children: React.ReactNode
@@ -13,7 +14,31 @@ const BasicLayout: React.FC<BasicLayoutProps> = ({ children }) => {
   const { collapsed, toggleCollapsed, menuList, currentMenu, setCurrentMenu, setMenuList } = useSlider()
   const { theme, toggleTheme } = useTheme()
   const { tabs, addTab, setTabs, removeTab } = useTabs()
-  
+  useEffect(() => {
+    const getMenuList = async () => {
+      const menuList = sessionStorage.getItem('menu_list')
+      if (menuList) {
+        const contents = JSON.parse(menuList).map((item: any) => ({
+          ...item,
+          slider: item.children?.find((child: any) => child.path === currentMenu) ? true : false
+        }))
+        setMenuList(contents)
+        return
+      }
+      const res = await http.get('/admin/menus', {
+        page: 1,
+        pageSize: 1000,
+        status: 1
+      })
+      sessionStorage.setItem('menu_list', JSON.stringify(res.data.contents))
+      const contents = res.data.contents.map((item: any) => ({
+        ...item,
+        slider: item.children?.find((child: any) => child.path === currentMenu) ? true : false
+      }))
+      setMenuList(contents)
+    }
+    getMenuList()
+  }, [currentMenu])
   return (
     <div className='flex h-screen'>
       {/* 侧边栏 - 设置 flex-shrink-0 防止被挤压 */}

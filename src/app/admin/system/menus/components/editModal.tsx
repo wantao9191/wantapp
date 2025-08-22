@@ -39,10 +39,10 @@ export default function EditModal({
         const params = formRef.current?.getFieldsValue()
         try {
           setSubmitLoading(true)
-          if (formData?.id) {
-            await http.put(`/admin/roles/${formData.id}`, params)
+          if (formData.id) {
+            await http.put(`/admin/organizations/${formData.id}`, params)
           } else {
-            await http.post('/admin/roles', params)
+            await http.post('/admin/organizations', params)
           }
           message.success('操作成功')
           onSubmit?.()

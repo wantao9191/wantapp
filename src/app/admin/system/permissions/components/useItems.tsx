@@ -1,0 +1,70 @@
+import { FormItemConfig } from "@/types/form-config"
+
+const useItems = () => {
+  const searchFormSchema: FormItemConfig[] = [
+    {
+      label: '权限名称',
+      name: 'name',
+      type: 'input',
+      placeholder: '请输入权限名称',
+      span: 24,
+      rules: [
+        { required: true, message: '请输入权限名称' },
+        { min: 2, max: 50, message: '权限名称长度在2-50个字符之间' }
+      ]
+    },
+    {
+      label: '权限编码',
+      name: 'code',
+      type: 'input',
+      placeholder: '请输入权限编码',
+      span: 12,
+      required: true,
+    },
+    {
+      label: '所属菜单',
+      name: 'menuId',
+      type: 'apiSelect',
+      placeholder: '请选择所属菜单',
+      span: 12,
+      required: true,
+      api: '/admin/menus',
+      dataPath: 'data.contents',
+      labelField: 'name',
+      valueField: 'id',
+      params: {
+        status: 1,
+        page: 1,
+        pageSize: 1000,
+        noParent:'1'
+      }
+    },
+    {
+      label: '备注',
+      name: 'description',
+      type: 'textarea',
+      placeholder: '请输入备注',
+      span: 24,
+      rows: 3,
+      rules: [
+        { max: 200, message: '备注长度不能超过200个字符' }
+      ]
+    },
+    {
+      label: '状态',
+      name: 'status',
+      type: 'radio',
+      required: true,
+      span: 24,
+      options: [
+        { label: '启用', value: 1 },
+        { label: '禁用', value: 0 },
+      ]
+    }
+  ]
+  return {
+    searchFormSchema,
+  }
+}
+
+export default useItems 

@@ -29,6 +29,27 @@
       "when": 1755746031766,
       "tag": "0003_awesome_mandroid",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1755839918966,
+      "tag": "0004_happy_viper",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1755843054241,
+      "tag": "0005_free_namorita",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1755849725497,
+      "tag": "0006_boring_spiral",
+      "breakpoints": true
     }
   ]
 }

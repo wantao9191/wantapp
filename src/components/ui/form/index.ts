@@ -1,6 +1,6 @@
 // 表单组件导出
-export { default as ConfigForm } from './ConfigForm'
-export type { ConfigFormProps, ConfigFormRef } from './ConfigForm'
+export { default as ConfigForm } from '../ConfigForm'
+export type { ConfigFormProps, ConfigFormRef } from '../ConfigForm'
 
 export { default as FormItemRenderer } from './FormItemRenderer'
 
@@ -25,7 +25,8 @@ export type {
   ColorPickerConfig,
   CustomConfig,
   FormItemConfig,
-  FormConfig
+  FormConfig,
+  ApiSelectConfig
 } from '@/types/form-config'
 
 // 工具函数导出

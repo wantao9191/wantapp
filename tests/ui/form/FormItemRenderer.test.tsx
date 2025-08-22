@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
-import FormItemRenderer from '@/components/ui/form/FormItemRenderer'
+import FormItemRenderer from '@/components/ui/Form/FormItemRenderer'
 import type { FormItemConfig } from '@/types/form-config'
 
 // Mock 所有表单项组件
-vi.mock('@/components/ui/form/items', () => ({
+vi.mock('@/components/ui/Form/Items', () => ({
   InputItem: ({ config, value, onChange, disabled }: any) => (
     <input
       data-testid={`input-${config.name}`}

@@ -5,7 +5,7 @@ import ConfigForm from '@/components/ui/ConfigForm'
 import type { FormConfig, FormItemConfig } from '@/types/form-config'
 
 // Mock FormItemRenderer
-vi.mock('@/components/ui/form/FormItemRenderer', () => ({
+vi.mock('@/components/ui/Form/FormItemRenderer', () => ({
   default: ({ config, disabled }: { config: FormItemConfig; disabled: boolean }) => {
     const { type, name } = config
     if (type === 'input') {

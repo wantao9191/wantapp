@@ -1,5 +1,5 @@
 import { db } from './index';
-import { organizations, roles, users } from './schema';
+import { menus, organizations, roles, users } from './schema';
 import bcrypt from 'bcryptjs';
 
 export async function seedDatabase() {
@@ -74,7 +74,6 @@ export async function seedDatabase() {
       roles: [1],
     });
     console.log('超级管理员用户创建成功');
-
     console.log('数据库初始化完成！');
     console.log('超级管理员账号: admin');
     console.log('超级管理员密码: 12345@Aa');

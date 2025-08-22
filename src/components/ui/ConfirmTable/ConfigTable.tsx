@@ -240,7 +240,7 @@ export const ConfigTable: React.FC<ConfigTableProps> = ({
         </div>
 
         {/* 自定义分页组件 */}
-        {total && total > 0 && (
+        {total && total > 0 ? (
           <div className="pt-4 border-t border-gray-200">
             <ConfigPagination
               current={currentPage}
@@ -256,7 +256,7 @@ export const ConfigTable: React.FC<ConfigTableProps> = ({
               className="w-full"
             />
           </div>
-        )}
+        ) : ''}
       </div>
     </>
   )

@@ -203,3 +203,9 @@ body {
   scrollbar-gutter: stable;
   font-size: inherit !important;
 }
+
+.builterful-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #eaeaea transparent;
+  scrollbar-gutter: stable;
+}

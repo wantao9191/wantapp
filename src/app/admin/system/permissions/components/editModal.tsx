@@ -40,9 +40,9 @@ export default function EditModal({
         try {
           setSubmitLoading(true)
           if (formData?.id) {
-            await http.put(`/admin/roles/${formData.id}`, params)
+            await http.put(`/admin/permissions/${formData.id}`, params)
           } else {
-            await http.post('/admin/roles', params)
+            await http.post('/admin/permissions', params)
           }
           message.success('操作成功')
           onSubmit?.()

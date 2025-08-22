@@ -78,7 +78,42 @@ export function safeJsonParse<T>(str: string, fallback: T): T {
 }
 /**
  * 移除对象中的undefined/null
- */ 
+ */
 export function removeUndefined(obj: Record<string, any>): Record<string, any> {
   return Object.fromEntries(Object.entries(obj).filter(([_, value]) => value !== undefined && value !== null))
+}
+/**
+ * 根据 parentCode 关联数组，构建树形结构
+ * @param menuData 菜单数据数组
+ */
+export function buildMenuTree(menuData: any[]) {
+  // 创建菜单映射表
+  const menuMap = new Map<string, any>()
+  const rootMenus: any[] = []
+
+  // 第一步：创建所有菜单的映射，并初始化 children 数组
+  menuData.forEach(menu => {
+    menuMap.set(menu.code, {
+      ...menu,
+      children: []
+    })
+  })
+
+  // 第二步：构建父子关系
+  menuData.forEach(menu => {
+    if (menu.parentCode) {
+      // 子菜单：找到父菜单，添加到其 children 中
+      const parent = menuMap.get(menu.parentCode)
+      if (parent) {
+        parent.children.push(menuMap.get(menu.code))
+      } else {
+        console.warn(`⚠️ 未找到父菜单: ${menu.parentCode}，菜单: ${menu.name}`)
+      }
+    } else {
+      // 根菜单：没有 parentCode 的菜单
+      rootMenus.push(menuMap.get(menu.code))
+    }
+  })
+
+  return rootMenus
 }

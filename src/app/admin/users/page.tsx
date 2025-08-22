@@ -140,7 +140,7 @@ const UsersPage = () => {
           </Popconfirm>
         </Space>
       ),
-    },
+    }
   ]
 
   const handleAdd = () => {

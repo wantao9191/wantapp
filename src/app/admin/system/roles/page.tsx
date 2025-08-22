@@ -4,13 +4,12 @@ import React, { useState } from 'react'
 import { ConfigTable, ActionConfig } from '@/components/ui/ConfirmTable'
 import useItems from './useItems'
 import { http } from '@/lib/https'
-import { Button, message, Modal } from 'antd'
-import { PlusOutlined,  } from '@ant-design/icons'
+import { Button, Modal } from 'antd'
+import { PlusOutlined, } from '@ant-design/icons'
 import EditModal from './components/editModal'
 export default function OrganizationsPage() {
-  const { confirm } = Modal
   const [reload, setReload] = useState(false)
-  const { tableColumns, searchFormSchema } = useItems()
+  const { tableColumns, searchFormSchema } = useItems(setReload)
   const [open, setOpen] = useState(false)
   const [formData, setFormData] = useState<any>(null)
   // 组织管理的操作按钮

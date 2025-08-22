@@ -46,6 +46,7 @@ export const permissions = pgTable('permissions', {
   id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
   name: varchar('name', { length: 50 }).notNull(),
   code: varchar('code', { length: 50 }).unique().notNull(),
+  menuId: integer('menu_id').references(() => menus.id),
   description: text('description'),
   status: integer('status').default(1), // 0: 禁用, 1: 启用
   createTime: timestamp('create_time').defaultNow(),
@@ -57,6 +58,10 @@ export const menus = pgTable('menus', {
   id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
   name: varchar('name', { length: 50 }).notNull(),
   code: varchar('code', { length: 50 }).unique().notNull(),
+  parentCode: varchar('parent_code', { length: 50 }),
+  path: varchar('path', { length: 200 }),
+  icon: varchar('icon', { length: 50 }),
+  sort: integer('sort').default(0),
   description: text('description'),
   status: integer('status').default(1), // 0: 禁用, 1: 启用
   createTime: timestamp('create_time').defaultNow(),
@@ -82,3 +87,15 @@ export const dicts = pgTable('dicts', {
   createTime: timestamp('create_time').defaultNow(),
   deleted: boolean('deleted').default(false),
 })
+
+// 菜单表自引用关系通过 parentId 字段实现
+
+export default {
+  organizations,
+  roles,
+  users,
+  permissions,
+  menus,
+  apiPermissions,
+  dicts,
+}

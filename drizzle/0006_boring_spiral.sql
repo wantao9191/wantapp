@@ -1,0 +1,2 @@
+ALTER TABLE "permissions" ADD COLUMN "menu_id" integer;--> statement-breakpoint
+ALTER TABLE "permissions" ADD CONSTRAINT "permissions_menu_id_menus_id_fk" FOREIGN KEY ("menu_id") REFERENCES "public"."menus"("id") ON DELETE no action ON UPDATE no action;

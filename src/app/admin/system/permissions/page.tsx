@@ -4,11 +4,10 @@ import React, { useState } from 'react'
 import { ConfigTable, ActionConfig } from '@/components/ui/ConfirmTable'
 import useItems from './useItems'
 import { http } from '@/lib/https'
-import { Button, message, Modal } from 'antd'
-import { PlusOutlined, ExclamationCircleFilled } from '@ant-design/icons'
+import { Button, Modal } from 'antd'
+import { PlusOutlined } from '@ant-design/icons'
 import EditModal from './components/editModal'
 export default function OrganizationsPage() {
-  const { confirm } = Modal
   const [reload, setReload] = useState(false)
   const { tableColumns, searchFormSchema } = useItems(setReload)
   const [open, setOpen] = useState(false)
@@ -28,23 +27,13 @@ export default function OrganizationsPage() {
         onClick: (record: any) => {
           setFormData(record)
           setOpen(true)
-          console.log('编辑组织:', record)
-        }
-      },
-      {
-        key: 'delete',
-        label: '删除',
-        type: 'link',
-        danger: true,
-        onClick: (record: any) => {
-          handleDelete(record)
         }
       }
     ]
   }
 
-  const getOrganizationList = (params: Record<string, any>) => {
-    return http.get('/admin/organizations', params)
+  const getPermissionList = (params: Record<string, any>) => {
+    return http.get('/admin/permissions', params)
   }
   const handleAdd = () => {
     setFormData(null)
@@ -53,25 +42,6 @@ export default function OrganizationsPage() {
   const onSubmit = () => {
     setReload(true)
     setOpen(false)
-  }
-  const handleDelete = (record: any) => {
-    confirm({
-      title: '删除机构后，该机构下的用户将无法正常使用，确定删除该机构吗？',
-      icon: <ExclamationCircleFilled />,
-      okText: '确定',
-      cancelText: '取消',
-      onOk: () => {
-        return new Promise((resolve, reject) => {
-          http.delete(`/admin/organizations/${record.id}`).then(() => {
-            message.success('删除成功', 1)
-            setReload(true)
-            resolve(true)
-          }).catch(() => {
-            reject(false)
-          })
-        })
-      }
-    })
   }
   return (
     <>
@@ -88,12 +58,12 @@ export default function OrganizationsPage() {
             新增
           </Button>
         }}
-        api={getOrganizationList}
+        api={getPermissionList}
         reload={reload}
         setReload={setReload}
       />
       <Modal
-        title={formData?.id ? '编辑机构' : '新增机构'}
+        title={formData?.id ? '编辑权限' : '新增权限'}
         open={open}
         footer={null}
         destroyOnHidden={true}

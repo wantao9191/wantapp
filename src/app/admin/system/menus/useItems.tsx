@@ -1,13 +1,14 @@
 import { FormItemConfig } from '@/types/form-config'
 import { TableColumnConfig } from '@/components/ui/ConfirmTable/ConfigTable'
 import { Switch } from 'antd'
-import { http } from '@/lib/https'
 import { useState } from 'react'
+import { http } from '@/lib/https'
+import { removeUndefined } from '@/lib/utils'
 const useItems = (setReload: (reload: boolean) => void) => {
   const [loading, setLoading] = useState(false)
   const searchFormSchema: FormItemConfig[] = [
     {
-      label: '角色名称',
+      label: '菜单名称',
       name: 'name',
       type: 'input',
     },
@@ -24,16 +25,34 @@ const useItems = (setReload: (reload: boolean) => void) => {
   ]
   const tableColumns: TableColumnConfig[] = [
     {
-      title: '角色名称',
+      title: '菜单名称',
       dataIndex: 'name',
       key: 'name',
       width: 150,
     },
     {
-      title: '编码',
-      dataIndex: 'code',
-      key: 'code',
-      width: 150,
+      title: '菜单路径',
+      dataIndex: 'path',
+      key: 'path',
+      width: 200,
+    },
+    {
+      title: '菜单图标',
+      dataIndex: 'icon',
+      key: 'icon',
+      width: 130,
+    },
+    {
+      title: '排序',
+      dataIndex: 'sort',
+      key: 'sort',
+      width: 180,
+    },
+    {
+      title: '父级菜单',
+      dataIndex: 'parentId',
+      key: 'parentId',
+      width: 100,
     },
     {
       title: '备注',
@@ -50,22 +69,15 @@ const useItems = (setReload: (reload: boolean) => void) => {
       render: (status: number, record: any) => {
         const handleStatusChange = async (checked: boolean) => {
           setLoading(true)
-          await http.put(`/admin/roles/${record.id}`, {
-            ...record,
+          await http.put(`/admin/menus/${record.id}`, {
+            ...removeUndefined(record),
             status: checked ? 1 : 0
           })
           setLoading(false)
           setReload(true)
         }
         return (
-          <Switch
-            checked={status === 1}
-            size="small"
-            checkedChildren="启用"
-            unCheckedChildren="禁用"
-            onChange={handleStatusChange}
-            loading={loading}
-          />
+          <Switch checked={status === 1} size="small" checkedChildren="启用" unCheckedChildren="禁用" onChange={handleStatusChange} loading={loading} />
         )
       }
     },

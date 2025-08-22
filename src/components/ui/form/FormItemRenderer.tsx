@@ -17,8 +17,9 @@ import {
   RateItem,
   SliderItem,
   ColorPickerItem,
-  CustomItem
-} from './items'
+  CustomItem,
+  ApiSelectItem
+} from './Items'
 
 interface FormItemRendererProps {
   config: FormItemConfig
@@ -64,7 +65,8 @@ const FormItems = {
   rate: RateItem,
   slider: SliderItem,
   colorPicker: ColorPickerItem,
-  custom: CustomItem
+  custom: CustomItem,
+  apiSelect: ApiSelectItem
 }
 
 const FormItemRenderer: React.FC<FormItemRendererProps> = ({

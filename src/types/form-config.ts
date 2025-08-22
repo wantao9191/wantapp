@@ -6,6 +6,7 @@ export type FormItemType =
   | 'number'
   | 'select'
   | 'multiSelect'
+  | 'apiSelect'
   | 'radio'
   | 'checkbox'
   | 'switch'
@@ -77,6 +78,41 @@ export interface SelectConfig extends BaseFormItemConfig {
   onSearch?: (value: string) => void
   onFocus?: () => void
   onBlur?: () => void
+}
+
+export interface ApiSelectConfig extends BaseFormItemConfig {
+  type: 'apiSelect'
+  // API 相关配置
+  api?: string // API 接口地址
+  method?: 'GET' | 'POST' // 请求方法，默认 GET
+  params?: Record<string, any> // 请求参数
+  headers?: Record<string, string> // 请求头
+  
+  // 数据处理配置
+  dataPath?: string // 数据路径，如 'data.list' 或 'result'
+  labelField?: string // 显示字段名，默认 'label'
+  valueField?: string // 值字段名，默认 'value'
+  disabledField?: string // 禁用字段名，默认 'disabled'
+  
+  // Select 配置
+  allowClear?: boolean
+  showSearch?: boolean
+  filterOption?: boolean | ((input: string, option: any) => boolean)
+  mode?: 'multiple' | 'tags'
+  maxTagCount?: number
+  size?: 'large' | 'middle' | 'small'
+  
+  // 缓存配置
+  cache?: boolean // 是否缓存数据，默认 true
+  cacheKey?: string // 缓存键名，默认使用 api 地址
+  
+  // 事件回调
+  onSearch?: (value: string) => void
+  onFocus?: () => void
+  onBlur?: () => void
+  beforeRequest?: (params: any) => any // 请求前的参数处理
+  afterResponse?: (data: any) => any // 响应后的数据处理
+  onError?: (error: any) => void // 错误处理
 }
 
 export interface RadioConfig extends BaseFormItemConfig {
@@ -191,6 +227,7 @@ export type FormItemConfig =
   | InputConfig
   | NumberConfig
   | SelectConfig
+  | ApiSelectConfig
   | RadioConfig
   | CheckboxConfig
   | SwitchConfig

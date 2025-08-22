@@ -1,6 +1,11 @@
 import { FormItemConfig } from '@/types/form-config'
 import { TableColumnConfig } from '@/components/ui/ConfirmTable/ConfigTable'
-const useItems = () => {
+import { Switch } from 'antd'
+import { useState } from 'react'
+import { http } from '@/lib/https'
+import { removeUndefined } from '@/lib/utils'
+const useItems = (setReload: (reload: boolean) => void) => {
+  const [loading, setLoading] = useState(false)
   const searchFormSchema: FormItemConfig[] = [
     {
       label: '机构名称',
@@ -66,6 +71,21 @@ const useItems = () => {
       dataIndex: 'status',
       key: 'status',
       width: 100,
+      align: 'center',
+      render: (status: number, record: any) => {
+        const handleStatusChange = async (checked: boolean) => {
+          setLoading(true)
+          await http.put(`/admin/organizations/${record.id}`, {
+            ...removeUndefined(record),
+            status: checked ? 1 : 0
+          })
+          setLoading(false)
+          setReload(true)
+        }
+        return (
+          <Switch checked={status === 1} size="small" checkedChildren="启用" unCheckedChildren="禁用" onChange={handleStatusChange} loading={loading} />
+        )
+      }
     },
     {
       title: '创建时间',

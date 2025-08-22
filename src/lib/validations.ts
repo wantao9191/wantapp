@@ -24,8 +24,25 @@ export const roleSchema = z.object({
   status: z.number().optional(),
   description: z.string().optional(),
 })
-
+export const menuSchema = z.object({
+  name: z.string().trim().min(1, { message: '请输入菜单名称' }),
+  status: z.number().optional(),
+  description: z.string().optional(),
+  parentId: z.number().optional(),
+  path: z.string().optional(),
+  icon: z.string().optional(),
+  sort: z.number().optional(),
+})
+export const permissionSchema = z.object({
+  name: z.string().trim().min(1, { message: '请输入权限名称' }),
+  status: z.number().optional(),
+  code: z.string().trim().min(1, { message: '请输入权限编码' }),
+  menuId: z.number().min(1, { message: '请选择菜单' }),
+  description: z.string().optional(),
+})
 export type LoginSchema = z.infer<typeof loginSchema>
 export type PageSchema = z.infer<typeof pageSchema>
 export type OrganizationSchema = z.infer<typeof organizationSchema>
 export type RoleSchema = z.infer<typeof roleSchema>
+export type MenuSchema = z.infer<typeof menuSchema>
+export type PermissionSchema = z.infer<typeof permissionSchema>
