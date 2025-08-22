@@ -1,4 +1,5 @@
 import { FormItemConfig } from "@/types/form-config"
+import Permissions from "@/components/ui/Permissions";
 
 const useItems = () => {
   const searchFormSchema: FormItemConfig[] = [
@@ -12,6 +13,15 @@ const useItems = () => {
         { required: true, message: '请输入角色名称' },
         { min: 2, max: 50, message: '角色名称长度在2-50个字符之间' }
       ]
+    },
+    {
+      label: '菜单权限',
+      name: 'menus',
+      type: 'custom',
+      component: Permissions,
+      placeholder: '请选择菜单权限',
+      span: 24,
+      required: false,
     },
     {
       label: '备注',
