@@ -1,0 +1,175 @@
+// src/app/api/_utils/handler.ts (增强版)
+
+import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
+import { ok, error, unauthorized } from './response'
+import { checkPermission, getUserIdFromHeaders } from '@/lib/auth-helper'
+
+// 修复类型定义：适配 Next.js App Router 的参数传递方式
+export type HandlerWithParams = (req: NextRequest, params: { id: string }, context?: { userId: number }) => Promise<any> | any
+export type Handler = (req: NextRequest, context?: { userId: number }) => Promise<any> | any
+export type Handlers = Partial<Record<'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', Handler | HandlerWithParams>>
+
+export interface HandlerOptions {
+  permission?: string
+  requireAuth?: boolean
+  hasParams?: boolean
+}
+
+export interface HandlerParams {
+  id: string  // 改为必需属性，因为 hasParams 为 true 时必须有 id
+}
+
+// 验证参数是否有效
+function validateParams(params?: HandlerParams): boolean {
+  if (!params?.id) return false
+  const id = parseInt(params.id)
+  return !isNaN(id) && id > 0
+}
+
+// 检查处理器是否支持参数
+function supportsParams(handler: Function): boolean {
+  // 检查函数是否接受 params 参数
+  // 通过检查函数字符串表示来判断
+  const handlerStr = handler.toString()
+  return handlerStr.includes('params') || handlerStr.includes('(request, params')
+}
+
+// 修复 Next.js 15 类型兼容性
+type RouteContext = { params?: HandlerParams | Promise<HandlerParams> }
+
+// 增强的处理器创建函数 - 修复参数传递方式
+export function createHandler(handler: Handler | HandlerWithParams, options?: HandlerOptions): (req: NextRequest, context?: RouteContext) => Promise<NextResponse>
+export function createHandler(handlers: Handlers, options?: HandlerOptions): (req: NextRequest, context?: RouteContext) => Promise<NextResponse>
+export function createHandler(arg: Handler | HandlerWithParams | Handlers, options: HandlerOptions = {}) {
+  const { permission, requireAuth = true, hasParams = false } = options
+
+  if (typeof arg === 'function') {
+    const handler = arg as Handler | HandlerWithParams
+    return async function route(request: NextRequest, context?: RouteContext) {
+      try {
+        // 处理 Next.js App Router 的参数结构
+        let resolvedParams: HandlerParams | undefined
+        
+        // 从 context 中提取 params
+        if (context?.params) {
+          if (context.params instanceof Promise) {
+            resolvedParams = await context.params
+          } else {
+            resolvedParams = context.params
+          }
+        }
+        // 验证参数
+        if (hasParams && (!resolvedParams || !validateParams(resolvedParams))) {
+          return error('Invalid parameters', 400)
+        }
+
+        const authResult = await checkAuth(request, permission, requireAuth)
+        if (authResult.error) {
+          return authResult.error
+        }
+
+        // 安全地调用处理器 - 修复参数传递顺序
+        if (hasParams && resolvedParams) {
+          // 检查处理器是否支持参数
+          if (supportsParams(handler)) {
+            const data = await (handler as HandlerWithParams)(request, resolvedParams, authResult.context)
+            if (data instanceof NextResponse) return data
+            return ok(data)
+          } else {
+            return error('Handler does not support parameters', 500)
+          }
+        } else {
+          const data = await (handler as Handler)(request, authResult.context)
+          if (data instanceof NextResponse) return data
+          return ok(data)
+        }
+      } catch (e: any) {
+        console.error('API Error:', e)
+        return error(e?.message || 'Internal Server Error', e?.status || 500)
+      }
+    }
+  }
+
+  const handlers = arg as Handlers
+  return async function route(request: NextRequest, context?: RouteContext) {
+    const method = request.method as keyof Handlers
+    const handle = handlers[method]
+    if (!handle) {
+      return error('Method Not Allowed', 405, { headers: { Allow: Object.keys(handlers).join(', ') } })
+    }
+
+    try {
+      // 处理 Next.js App Router 的参数结构
+      let resolvedParams: HandlerParams | undefined
+      
+      // 从 context 中提取 params
+      if (context?.params) {
+        if (context.params instanceof Promise) {
+          resolvedParams = await context.params
+        } else {
+          resolvedParams = context.params
+        }
+      }
+      
+      // 验证参数
+      if (hasParams && (!resolvedParams || !validateParams(resolvedParams))) {
+        return error('Invalid parameters', 400)
+      }
+
+      const authResult = await checkAuth(request, permission, requireAuth)
+      if (authResult.error) {
+        return authResult.error
+      }
+
+      if (hasParams && resolvedParams) {
+        if (supportsParams(handle)) {
+          const data = await (handle as HandlerWithParams)(request, resolvedParams, authResult.context)
+          if (data instanceof NextResponse) return data
+          return ok(data)
+        } else {
+          return error('Handler does not support parameters', 500)
+        }
+      } else {
+        const data = await (handle as Handler)(request, authResult.context)
+        if (data instanceof NextResponse) return data
+        return ok(data)
+      }
+    } catch (e: any) {
+      console.error('API Error:', e)
+      return error(e?.message || 'Internal Server Error', e?.status || 500)
+    }
+  }
+}
+
+// 认证检查辅助函数
+async function checkAuth(request: NextRequest, permission?: string, requireAuth = true) {
+  if (!requireAuth) {
+    return { context: undefined, error: null }
+  }
+
+  // 获取用户ID
+  const userId = getUserIdFromHeaders(request)
+  if (!userId) {
+    return {
+      context: undefined,
+      error: unauthorized('Authentication required')
+    }
+  }
+
+  // 权限检查
+  if (permission) {
+    const permissionError = await checkPermission(request, permission)
+    if (permissionError) {
+      return {
+        context: undefined,
+        error: permissionError
+      }
+    }
+  }
+
+  return {
+    context: { userId },
+    error: null
+  }
+}

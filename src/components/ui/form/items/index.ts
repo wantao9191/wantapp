@@ -1,0 +1,12 @@
+// 表单项组件统一导出
+export { default as InputItem } from './InputItem'
+export { default as NumberItem } from './NumberItem'
+export { default as SelectItem } from './SelectItem'
+export { default as RadioItem } from './RadioItem'
+export { default as CheckboxItem } from './CheckboxItem'
+export { default as SwitchItem } from './SwitchItem'
+export { default as DateItem } from './DateItem'
+export { default as UploadItem } from './UploadItem'
+export { default as CascaderItem } from './CascaderItem'
+export { default as TreeSelectItem } from './TreeSelectItem'
+export { RateItem, SliderItem, ColorPickerItem, CustomItem } from './OtherItems'

@@ -1,0 +1,205 @@
+@unocss;
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* 美观的loading动画效果 */
+.loading {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  margin-bottom: 30px;
+}
+
+.loading::before,
+.loading::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+.loading::before {
+  width: 60px;
+  height: 60px;
+  border: 3px solid rgba(30, 41, 59, 0.2);
+  animation: spin 2s linear infinite;
+}
+
+.loading::after {
+  width: 40px;
+  height: 40px;
+  top: 10px;
+  left: 10px;
+  border: 2px solid rgba(30, 41, 59, 0.4);
+  animation: spin 1.5s linear infinite reverse;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+    border-top-color: rgba(30, 41, 59, 0.8);
+    border-right-color: rgba(30, 41, 59, 0.2);
+  }
+
+  25% {
+    border-top-color: rgba(30, 41, 59, 0.2);
+    border-right-color: rgba(30, 41, 59, 0.8);
+  }
+
+  50% {
+    border-right-color: rgba(30, 41, 59, 0.2);
+    border-bottom-color: rgba(30, 41, 59, 0.8);
+  }
+
+  75% {
+    border-bottom-color: rgba(30, 41, 59, 0.2);
+    border-left-color: rgba(30, 41, 59, 0.8);
+  }
+
+  100% {
+    transform: rotate(360deg);
+    border-left-color: rgba(30, 41, 59, 0.2);
+    border-top-color: rgba(30, 41, 59, 0.8);
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.1);
+    opacity: 0.7;
+  }
+
+  100% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+}
+
+/* 加载文字动画效果 */
+.loading-text {
+  animation: fade-pulse 2s ease-in-out infinite;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), 0 0 20px rgba(255, 255, 255, 0.8);
+  color: #1e293b;
+}
+
+@keyframes fade-pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  50% {
+    opacity: 0.7;
+    transform: translateY(-2px);
+  }
+}
+
+/* BasicTabs 浏览器标签页样式 */
+.tabs-browser .ant-tabs-nav {
+  margin-bottom: 0 !important;
+}
+
+.tabs-browser .ant-tabs-tab {
+  border-radius: 6px 6px 0 0 !important;
+  margin: 0 -1px 0 0 !important;
+  padding: 4px 12px !important;
+  background: #fff !important;
+  font-size: 12px !important;
+  color: #666 !important;
+  position: relative !important;
+  min-width: auto !important;
+  transition: all 0.2s ease !important;
+  height: 28px !important;
+  line-height: 20px !important;
+  top: 4px !important;
+}
+
+.tabs-browser .ant-tabs-tab:hover {
+  background: #f0f0f0 !important;
+  color: #333 !important;
+  z-index: 2 !important;
+}
+
+.tabs-browser .ant-tabs-tab-active {
+  background: rgba(0, 107, 230, 0.15) !important;
+  color: #006be6 !important;
+  z-index: 3 !important;
+  margin-bottom: -1px !important;
+}
+
+.tabs-browser .ant-tabs-tab+.ant-tabs-tab {
+  margin-left: -1px !important;
+}
+
+.tabs-browser .ant-tabs-ink-bar {
+  display: none !important;
+}
+
+.tabs-browser .ant-tabs-content-holder {
+  display: none !important;
+}
+
+.tabs-browser .ant-tabs-nav-wrap {
+  overflow: hidden !important;
+}
+
+/* .ant-table-body::-webkit-scrollbar {
+  display: none;
+}
+.ant-table-body {
+  scrollbar-width: none;
+} */
+.ant-table-wrapper>div,
+.ant-spin-container,
+.ant-table,
+.ant-table-container {
+  height: 100%;
+  font-size: 13px !important;
+}
+
+.ant-table-thead {
+  font-size: 13px !important;
+}
+
+.ant-table-cell-fix-right {
+  right: 0 !important;
+}
+
+.ant-table-body {
+  height: calc(100% - 55px);
+  overflow-y: hidden !important;
+  scrollbar-width: thin;
+  scrollbar-color: #eaeaea transparent;
+  scrollbar-gutter: stable;
+  font-size: inherit !important;
+}
