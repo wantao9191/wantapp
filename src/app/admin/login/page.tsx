@@ -1,12 +1,14 @@
 'use client'
 import { Button, Form, Input, Row, Col, Checkbox, message } from 'antd'
-import { UserOutlined, LockOutlined, CodeOutlined } from '@ant-design/icons'
+import { UserOutlined, LockOutlined, CodeOutlined, SafetyOutlined } from '@ant-design/icons'
 import { useAuth } from '@/hooks'
 import { useEffect, useState } from 'react'
+
 export default function Login() {
   const [btnLoading, setBtnLoading] = useState(false)
   const { checked, setChecked, captcha, getCaptcha, login } = useAuth()
   const [form] = Form.useForm()
+  
   const onFinish = async (values: any) => {
     try {
       setBtnLoading(true)
@@ -17,6 +19,7 @@ export default function Login() {
       setBtnLoading(false)
     }
   }
+  
   const initLoginInfo = () => {
     const loginInfo = localStorage.getItem('login_info')
     if (loginInfo) {
@@ -27,60 +30,172 @@ export default function Login() {
       }
     }
   }
+  
   useEffect(() => {
     initLoginInfo()
     getCaptcha()
   }, [])
+
   return (
-    <div className="min-h-screen w-full flex">
-      {/* 左侧背景区域 */}
-      <div
-        className="w-3/5 relative flex items-center justify-center bg-cover bg-center bg-no-repeat after:content-[''] after:absolute after:inset-0 after:bg-blue-500/50"
-        style={{ backgroundImage: 'url(/login-cover.jpg)' }}
-      >
-        <div className="bg-white/20 backdrop-blur-md bg-opacity-50 text-white p-8 rounded-lg text-center max-w-md relative z-10">
-          <h1 className="text-3xl font-bold mb-4">专业照护，让家人更放心</h1>
-          <p className="text-lg">为每一位老人提供贴心的照护服务</p>
-        </div>
+    <div className="login-page min-h-screen w-full gradient-bg relative overflow-hidden">
+      {/* 装饰性背景元素 */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary-200/30 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-primary-300/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-primary-100/40 rounded-full blur-2xl animate-float" style={{ animationDelay: '4s' }}></div>
       </div>
 
-      {/* 右侧登录区域 */}
-      <div className="w-2/5 bg-[#fff] flex items-center justify-center">
-        <div className="w-[80%] max-w-480px text-left p-10px">
-          <div className="text-2xl text-blue-500 font-bold">欢迎登录长护系统</div>
-          <div className="text-sm text-gray-500">专业的长期护理评估与管理平台</div>
-          <div className='mt-[20px] w-[80%]'>
-            <Form name='login' form={form} onFinish={onFinish} >
-              <Form.Item name="username" rules={[{ required: true, message: '请输入用户名' }]}>
-                <Input prefix={<UserOutlined />} placeholder='请输入用户名' />
-              </Form.Item>
-              <Form.Item name="password" rules={[{ required: true, message: '请输入密码' }]}>
-                <Input.Password prefix={<LockOutlined />} placeholder='请输入密码' />
-              </Form.Item>
-              <Form.Item name='code' rules={[{ required: true, message: '请输入验证码' }]}>
-                <Row>
-                  <Col span={16}>
-                    <Input prefix={<CodeOutlined />} placeholder='请输入验证码' />
-                  </Col>
-                  <Col span={8}>
-                    <div className='text-center h-full pl-2'>
-                      {captcha && <img className='w-full h-32px cursor-pointer' src={captcha} alt="验证码" onClick={getCaptcha} />}
-                    </div>
-                  </Col>
-                </Row>
-              </Form.Item>
-              <Form.Item>
-                <Row>
-                  <Col span={12}>
-                    <Checkbox checked={checked} onChange={() => setChecked(!checked)}>记住密码</Checkbox>
-                  </Col>
-                  {/* <Col span={12} className='text-right'>
-                    <a href="javascript:void(0)">忘记密码？</a>
-                  </Col> */}
-                </Row>
-              </Form.Item>
-              <Button type="primary" htmlType="submit" block loading={btnLoading}>登录</Button>
-            </Form>
+      <div className="relative z-10 min-h-screen flex">
+        {/* 左侧品牌展示区域 */}
+        <div className="w-3/5 relative flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: 'url(/login-cover.jpg)' }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-primary-600/80 via-primary-500/70 to-primary-700/80"></div>
+          
+          <div className="relative z-20 text-center text-white px-8 max-w-lg animate-fade-in">
+            <div className="mb-8">
+              <SafetyOutlined className="text-6xl mb-4 text-white/90" />
+            </div>
+            <h1 className="text-5xl font-bold mb-6 leading-tight">
+              专业照护
+              <span className="block text-primary-200">让家人更放心</span>
+            </h1>
+            <p className="text-xl text-white/90 mb-8 leading-relaxed">
+              为每一位老人提供贴心的照护服务，用科技守护温暖
+            </p>
+            <div className="flex justify-center space-x-8 text-white/80">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-white">1000+</div>
+                <div className="text-sm">服务家庭</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-white">24/7</div>
+                <div className="text-sm">全天守护</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-white">99%</div>
+                <div className="text-sm">满意度</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 右侧登录区域 */}
+        <div className="w-2/5 flex items-center justify-center p-8">
+          <div className="w-full max-w-md animate-slide-up">
+            {/* 登录卡片 */}
+            <div className="card p-8">
+              {/* 头部信息 */}
+              <div className="text-center mb-6">
+                <div className="logo-container inline-flex items-center justify-center w-16 h-16 rounded-3xl mb-4 shadow-glow border border-primary-200/50">
+                  <img src="/logo.png" alt="logo" className="w-10 h-8 object-contain filter drop-shadow-sm" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">欢迎回来</h2>
+                <p className="text-gray-500 text-sm">登录您的长护系统账户</p>
+              </div>
+
+              {/* 登录表单 */}
+              <Form 
+                name="login" 
+                form={form} 
+                onFinish={onFinish}
+                layout="vertical"
+                size="middle"
+                className="space-y-1"
+              >
+                <Form.Item 
+                  name="username" 
+                  rules={[{ required: true, message: '请输入用户名' }]}
+                  className="mb-4"
+                >
+                  <Input 
+                    prefix={<UserOutlined className="text-gray-400" />} 
+                    placeholder="请输入用户名"
+                    className="input-modern h-10 text-sm"
+                  />
+                </Form.Item>
+
+                <Form.Item 
+                  name="password" 
+                  rules={[{ required: true, message: '请输入密码' }]}
+                  className="mb-4"
+                >
+                  <Input.Password 
+                    prefix={<LockOutlined className="text-gray-400" />} 
+                    placeholder="请输入密码"
+                    className="input-modern h-10 text-sm"
+                  />
+                </Form.Item>
+
+                <Form.Item 
+                  name="code" 
+                  rules={[{ required: true, message: '请输入验证码' }]}
+                  className="mb-4"
+                >
+                  <Row gutter={8}>
+                    <Col span={14}>
+                      <Input 
+                        prefix={<CodeOutlined className="text-gray-400" />} 
+                        placeholder="请输入验证码"
+                        className="input-modern h-10 text-sm"
+                      />
+                    </Col>
+                    <Col span={10}>
+                      <div className="captcha-container h-10">
+                        {captcha && (
+                          <img 
+                            className="w-full h-full object-cover" 
+                            src={captcha} 
+                            alt="验证码" 
+                            onClick={getCaptcha} 
+                          />
+                        )}
+                      </div>
+                    </Col>
+                  </Row>
+                </Form.Item>
+
+                <Form.Item className="mb-4">
+                  <div className="flex items-center justify-between">
+                    <Checkbox 
+                      checked={checked} 
+                      onChange={() => setChecked(!checked)}
+                      className="text-gray-600 text-sm"
+                    >
+                      记住密码
+                    </Checkbox>
+                    <a 
+                      href="javascript:void(0)" 
+                      className="text-primary-500 hover:text-primary-600 text-xs font-medium transition-colors"
+                    >
+                      忘记密码？
+                    </a>
+                  </div>
+                </Form.Item>
+
+                <Button 
+                  type="primary" 
+                  htmlType="submit" 
+                  block 
+                  loading={btnLoading}
+                  className="btn-primary h-10 text-sm font-medium shadow-lg"
+                >
+                  {btnLoading ? '登录中...' : '立即登录'}
+                </Button>
+              </Form>
+
+              {/* 底部信息 */}
+              <div className="mt-6 pt-4 border-t border-gray-100 text-center">
+                <p className="text-xs text-gray-400">
+                  登录即表示您同意我们的
+                  <a href="#" className="text-primary-500 hover:text-primary-600 mx-1">服务条款</a>
+                  和
+                  <a href="#" className="text-primary-500 hover:text-primary-600 mx-1">隐私政策</a>
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

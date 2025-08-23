@@ -209,3 +209,153 @@ body {
   scrollbar-color: #eaeaea transparent;
   scrollbar-gutter: stable;
 }
+
+/* 登录页面现代化样式 */
+
+.login-page .ant-form-item {
+  margin-bottom: 16px !important;
+}
+
+.login-page .ant-form-item-label {
+  display: none !important;
+}
+
+.login-page .ant-input,
+.login-page .ant-input-password .ant-input {
+  border-radius: 10px !important;
+  border: none !important;
+  padding: 8px 12px !important;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.login-page .ant-input:hover,
+.login-page .ant-input-password .ant-input:hover {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.login-page .ant-input:focus,
+.login-page .ant-input-password .ant-input:focus,
+.login-page .ant-input-focused,
+.login-page .ant-input-password .ant-input-focused {
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.login-page .ant-input-prefix {
+  margin-right: 12px !important;
+  color: #9ca3af !important;
+}
+
+.login-page .ant-input-suffix {
+  color: #9ca3af !important;
+}
+
+.login-page .ant-btn {
+  border-radius: 10px !important;
+  font-weight: 500 !important;
+  font-size: 14px !important;
+  height: 40px !important;
+  border: none !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.login-page .ant-btn-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+}
+
+.login-page .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.login-page .ant-btn-primary:active {
+  transform: translateY(0) !important;
+}
+
+.login-page .ant-checkbox-wrapper {
+  color: #6b7280 !important;
+  font-size: 14px !important;
+}
+
+.login-page .ant-checkbox-checked .ant-checkbox-inner {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+}
+
+.login-page .ant-checkbox:hover .ant-checkbox-inner {
+  border-color: #3b82f6 !important;
+}
+
+.login-page .ant-form-item-has-error .ant-input,
+.login-page .ant-form-item-has-error .ant-input:hover,
+.login-page .ant-form-item-has-error .ant-input-password .ant-input,
+.login-page .ant-form-item-has-error .ant-input-password .ant-input:hover {
+  background: transparent !important;
+}
+
+.login-page .ant-form-item-has-error .ant-input:focus,
+.login-page .ant-form-item-has-error .ant-input-focused,
+.login-page .ant-form-item-has-error .ant-input-password .ant-input:focus,
+.login-page .ant-form-item-has-error .ant-input-password .ant-input-focused {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.login-page .ant-form-item-explain-error {
+  color: #ef4444 !important;
+  font-size: 14px !important;
+  margin-top: 4px !important;
+}
+
+/* 验证码容器样式 */
+.login-page .captcha-container {
+  border-radius: 10px !important;
+  overflow: hidden !important;
+  border: none !important;
+  background: transparent !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.login-page .captcha-container:hover {
+  background: transparent !important;
+}
+
+/* 加载状态样式 */
+.login-page .ant-btn-loading-icon {
+  margin-right: 8px !important;
+}
+
+/* Logo容器样式 */
+.login-page .logo-container {
+  position: relative;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  backdrop-filter: blur(10px);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.login-page .logo-container:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.15), 0 10px 10px -5px rgba(59, 130, 246, 0.1);
+}
+
+.login-page .logo-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(147, 197, 253, 0.1));
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: xor;
+  -webkit-mask-composite: xor;
+  pointer-events: none;
+}
+
