@@ -11,29 +11,14 @@ import { removeUndefined } from '@/lib/utils'
 // 工具函数：处理数组name的表单数据
 const processFormData = (formData: any, items: FormItemConfig[]) => {
   const processedData = { ...formData }
-  
   items.forEach(item => {
     if (Array.isArray(item.name)) {
       // 如果name是数组，需要为每个字段复制值
-      const fieldValue = formData[item.name[0]] // 使用第一个字段作为主值
-      
-      // 如果字段值是对象且包含menus和permissions属性，则展开为扁平结构
-      if (fieldValue && typeof fieldValue === 'object' && fieldValue.menus && fieldValue.permissions) {
-        item.name.forEach(fieldName => {
-          if (fieldName === 'menus') {
-            processedData[fieldName] = fieldValue.menus
-          } else if (fieldName === 'permissions') {
-            processedData[fieldName] = fieldValue.permissions
-          } else {
-            processedData[fieldName] = fieldValue
-          }
-        })
-      } else {
-        // 普通值直接复制
-        item.name.forEach(fieldName => {
-          processedData[fieldName] = fieldValue
-        })
+      const fieldValue = formData[item.name.join('_')] // 使用第一个字段作为主值
+      for(let key in fieldValue) {
+        processedData[key] = fieldValue[key]
       }
+      delete processedData[item.name.join('_')]
     }
   })
   
@@ -45,30 +30,16 @@ const processInitialValues = (initialValues: any, items: FormItemConfig[]) => {
   if (!initialValues) return initialValues
   
   const processedValues = { ...initialValues }
-  
   items.forEach(item => {
     if (Array.isArray(item.name)) {
-      // 如果name是数组，检查是否有任何一个字段有值
-      let hasValue = false
-      let value = undefined
-      
-      for (const fieldName of item.name) {
-        if (processedValues[fieldName] !== undefined) {
-          value = processedValues[fieldName]
-          hasValue = true
-          break
-        }
-      }
-      
-      // 如果找到值，为所有字段设置相同的值
-      if (hasValue) {
-        item.name.forEach(fieldName => {
-          processedValues[fieldName] = value
-        })
-      }
+      const values: any = {}
+      item.name.forEach(fieldName => {
+        values[fieldName] = processedValues[fieldName]
+        delete processedValues[fieldName]
+      })
+      processedValues[item.name.join('_')] = values
     }
   })
-  
   return processedValues
 }
 
@@ -158,7 +129,7 @@ const ConfigForm = forwardRef<ConfigFormRef, ConfigFormProps>(({
     }
 
     // 处理数组name的情况
-    const itemName = Array.isArray(item.name) ? item.name[0] : item.name
+    const itemName = Array.isArray(item.name) ? item.name.join('_') : item.name
     // 使用传入的index确保key的唯一性
     const itemKey = Array.isArray(item.name) ? `${item.name.join('_')}_${index}` : `${item.name}_${index}`
 

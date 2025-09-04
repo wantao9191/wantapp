@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react'
-import { Tree, Tabs, Spin, Card, App, Checkbox } from 'antd'
+import { Spin, Checkbox } from 'antd'
 import { http } from '@/lib/https'
 import type { DataNode } from 'antd/es/tree'
 import type { CheckboxChangeEvent } from 'antd/es/checkbox'
@@ -44,37 +44,52 @@ const fetchMenuPermissions = async () => {
 }
 
 const Permissions: React.FC<PermissionsProps> = (props) => {
-  const {onChange,value} = props
+  const { onChange, value } = props
   const [loading, setLoading] = useState(false)
   const [menuTree, setMenuTree] = useState<MenuNode[]>([])
+  const [initFlag, setInitFlag] = useState(false)
   const CheckboxGroup = Checkbox.Group
   // 初始化
-  const init = async () => {
-    setLoading(true)
-    console.log(value, 'value------Permissions')
+  const init = async (propsMenus: number[], propsPermissions: number[]) => {
+    try {
+      setLoading(true)
+      const { menus, permissions } = await fetchMenuPermissions()
+      const trees = menus.data.contents.map((menu: MenuNode) => {
+        if (menu.children && menu.children.length) {
+          menu.children.map((child: MenuNode) => {
+            child.permissions = permissions.data.contents
+              .filter((permission: PermissionItem) => permission.menuId === child.id)
+              .map((permission: PermissionItem) => ({
+                label: permission.name,
+                value: permission.id
+              }))
+            child.checkedList = propsPermissions.filter((permission: number) => child.permissions?.find((p: PermissionItem) => p.value === permission))
+            child.checkAll = child.checkedList.length === (child.permissions?.length || 0)
+            child.indeterminate = child.checkedList.length > 0 && child.checkedList.length < (child.permissions?.length || 0)
+            return child
+          })
+        }
+        menu.permissions = permissions.data.contents
+          .filter((permission: PermissionItem) => permission.menuId === menu.id)
+          .map((permission: PermissionItem) => ({
+            label: permission.name,
+            value: permission.id
+          }))
+        const hasCheckedList = menu.children?.filter(child => child.checkedList?.length ?? 0 > 0)
+        return {
+          ...menu,
+          label: menu.name,
+          value: menu.id,
+          checkAll: menu.children?.every(child => child.checkAll),
+          indeterminate: menu.children?.filter(child => child.checkAll).length !== menu.children?.length
+            && (hasCheckedList?.length ?? 0) > 0
+        }
+      })
+      setMenuTree(trees)
+      setLoading(false)
+    } catch (error) {
+    }
 
-    const { menus, permissions } = await fetchMenuPermissions()
-    const trees = menus.data.contents.map((menu: MenuNode) => {
-      if (menu.children && menu.children.length) {
-        menu.children.map((child: MenuNode) => {
-          child.permissions = permissions.data.contents
-            .filter((permission: PermissionItem) => permission.menuId === child.id)
-            .map((permission: PermissionItem) => ({
-              label: permission.name,
-              value: permission.id
-            }))
-        })
-      }
-      menu.permissions = permissions.data.contents
-        .filter((permission: PermissionItem) => permission.menuId === menu.id)
-        .map((permission: PermissionItem) => ({
-          label: permission.name,
-          value: permission.id
-        }))
-      return { ...menu, label: menu.name, value: menu.id }
-    })
-    setMenuTree(trees)
-    setLoading(false)
   }
   // 父级菜单change
   const onCheckAllChange = (e: CheckboxChangeEvent, menu: MenuNode) => {
@@ -178,20 +193,30 @@ const Permissions: React.FC<PermissionsProps> = (props) => {
       })
     }
     traverse(menuTree)
+    onChange?.({
+      menus: selectedMenus,
+      permissions: selectedPermissions
+    })
     return {
       menus: selectedMenus,
       permissions: selectedPermissions
     }
   }
   useEffect(() => {
-    init()
-  }, [])
+    if (value && !initFlag) {
+      const menus = value?.menus || []
+      const permissions = value?.permissions || []
+      init(menus, permissions)
+      setInitFlag(true)
+    }
+  }, [value])
   useEffect(() => {
-    if (menuTree.length > 0) {
+    if (menuTree.length > 0 && initFlag) {
       const { menus, permissions } = collectSelectedData(menuTree)
       onChange?.({ menus, permissions })
     }
-  }, [menuTree])
+  }, [menuTree, initFlag])
+
   return (
     <Spin spinning={loading} tip="加载权限数据中...">
       <div className="flex flex-col bg-#fff rounded-4px p-12px">
@@ -203,9 +228,9 @@ const Permissions: React.FC<PermissionsProps> = (props) => {
               </Checkbox>
             </div>
             <div className='flex flex-col ml-24px mt-6px'>
-              {menu?.children?.map((child: MenuNode) => (
+              {menu?.children?.map((child: MenuNode,index:number) => (
                 <div key={child.id}>
-                  <div className='mt-6px'>
+                  <div className={`${index === 0 ? '' : 'mt-6px'}`}>
                     <Checkbox indeterminate={child.indeterminate} value={child.id} onChange={(e) => handleChange(e, child)} checked={child.checkAll}>
                       {child.name}
                     </Checkbox>

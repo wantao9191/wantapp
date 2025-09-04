@@ -23,6 +23,8 @@ export const roleSchema = z.object({
   name: z.string().trim().min(1, { message: '请输入角色名称' }),
   status: z.number().optional(),
   description: z.string().optional(),
+  menus: z.array(z.number()).optional(),
+  permissions: z.array(z.number()).optional(),
 })
 export const menuSchema = z.object({
   name: z.string().trim().min(1, { message: '请输入菜单名称' }),

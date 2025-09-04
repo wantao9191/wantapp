@@ -1,5 +1,5 @@
 import { FormItemConfig } from "@/types/form-config"
-import Permissions from "@/components/ui/Permissions";
+import Permissions from "./permissions";
 
 const useItems = () => {
   const searchFormSchema: FormItemConfig[] = [

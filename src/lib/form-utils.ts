@@ -42,7 +42,7 @@ export class FormConfigBuilder {
   /**
    * 通用添加表单项方法
    */
-  addItem(type: FormItemType, name: string, label: string, extraProps: any = {}, options: Partial<FormItemConfig> = {}) {
+  addItem(type: FormItemType, name: string | string[], label: string, extraProps: any = {}, options: Partial<FormItemConfig> = {}) {
     this.items.push({
       name,
       label,
@@ -58,7 +58,7 @@ export class FormConfigBuilder {
    */
   addItems(items: Array<{
     type: FormItemType
-    name: string
+    name: string | string[]
     label: string
     [key: string]: any
   }>) {
@@ -99,12 +99,7 @@ export const createFormConfig = () => new FormConfigBuilder()
 export const createQuickForm = (config: {
   layout?: 'horizontal' | 'vertical' | 'inline'
   size?: 'small' | 'middle' | 'large'
-  items: Array<{
-    type: FormItemType
-    name: string
-    label: string
-    [key: string]: any
-  }>
+  items: FormItemConfig[]
 }) => {
   const builder = createFormConfig()
 

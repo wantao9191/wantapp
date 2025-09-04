@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react'
-import { message, Button } from 'antd'
+import { Button, App } from 'antd'
 import ConfigForm from '@/components/ui/ConfigForm'
 import ConfigModal from '@/components/ui/ConfigModal'
 import useItems from './useItems'
@@ -24,6 +24,7 @@ export default function EditModal({
   const { searchFormSchema } = useItems()
   const formRef = useRef<ConfigFormRef>(null)
   const [submitLoading, setSubmitLoading] = useState(false)
+  const { message } = App.useApp()
 
   // 构建表单配置
   const formConfig = createQuickForm({
@@ -37,18 +38,12 @@ export default function EditModal({
     formRef.current?.validateFields().then(async (values) => {
       if (values) {
         const params = formRef.current?.getFieldsValue()
-       console.log(params, 'params------handleSubmit')
-       return
         try {
           setSubmitLoading(true)
           if (formData?.id) {
-            await http.put(`/admin/roles/${formData.id}`, {
-              ...params
-            })
+            await http.put(`/admin/roles/${formData.id}`, params)
           } else {
-            await http.post('/admin/roles', {
-              ...params
-            })
+            await http.post('/admin/roles', params)
           }
           message.success('操作成功')
           onSubmit?.()
