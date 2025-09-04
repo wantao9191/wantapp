@@ -1,16 +1,15 @@
 import { useEffect, useState } from "react"
 export const useTabs = () => {
   const [tabs, setTabs] = useState<any[]>([])
-  const sessionTabs = sessionStorage.getItem('nav_tabs')
+
   const addTab = (tab: any) => {
-    console.log(tab, 'tab')
-    if (tabs.length > 1 && tabs.find((t: any) => t.key === tab.key)) {
-      return
+    if (!tabs.some((t: any) => t.id === tab.id)) {
+      tab.key = tab.id
+      const newTabs = [...tabs, tab]
+      setTabs(newTabs)
+      sessionStorage.setItem('nav_tabs', JSON.stringify(newTabs))
     }
-    const newTabs = [...tabs, tab]
-    setTabs(newTabs)
-    console.log(newTabs, 'newTabs')
-    sessionStorage.setItem('nav_tabs', JSON.stringify(newTabs))
+
   }
   const removeTab = (key: string) => {
     const newTabs = tabs?.filter((tab: any) => tab.key !== key)
@@ -18,6 +17,7 @@ export const useTabs = () => {
     sessionStorage.setItem('nav_tabs', JSON.stringify(newTabs))
   }
   useEffect(() => {
+    const sessionTabs = sessionStorage.getItem('nav_tabs')
     if (sessionTabs) {
       const tabValues = JSON.parse(sessionTabs)
       setTabs(tabValues)

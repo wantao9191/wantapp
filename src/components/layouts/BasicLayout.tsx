@@ -30,11 +30,12 @@ const BasicLayout: React.FC<BasicLayoutProps> = ({ children }) => {
         pageSize: 1000,
         status: 1
       })
-      sessionStorage.setItem('menu_list', JSON.stringify(res.data.contents))
       const contents = res.data.contents.map((item: any) => ({
+        key: item.id,
         ...item,
         slider: item.children?.find((child: any) => child.path === currentMenu) ? true : false
       }))
+      sessionStorage.setItem('menu_list', JSON.stringify(contents))
       setMenuList(contents)
     }
     getMenuList()
@@ -63,7 +64,7 @@ const BasicLayout: React.FC<BasicLayoutProps> = ({ children }) => {
           toggleTheme={toggleTheme}
           theme={theme}
         />
-        <BasicTabs currentMenu={currentMenu} tabs={tabs} removeTab={removeTab} addTab={addTab} />
+        <BasicTabs currentMenu={currentMenu} tabs={tabs} removeTab={removeTab} addTab={addTab} menuList={menuList} />
         <div className='p-8px bg-#f0f2f5 flex-1 w-full overflow-x-hidden h-0 overflow-y-auto flex flex-col'>
           {children}
         </div>

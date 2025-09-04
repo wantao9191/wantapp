@@ -22,7 +22,7 @@ export type FormItemType =
   | 'custom'
 
 export interface BaseFormItemConfig {
-  name: string
+  name: string | string[] // 支持单个字段名或字段名数组
   label: string
   type: FormItemType
   required?: boolean

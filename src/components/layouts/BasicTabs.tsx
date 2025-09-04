@@ -4,12 +4,11 @@ import { Tabs } from 'antd'
 import { LayoutProps } from '@/types'
 import { useRouter, usePathname } from 'next/navigation'
 import { useSlider } from '@/hooks/useSlider'
-const BasicTabs = ({ currentMenu, tabs, addTab, removeTab }: LayoutProps) => {
+const BasicTabs = ({ currentMenu, tabs, addTab, removeTab, menuList }: LayoutProps) => {
   const router = useRouter()
   const pathname = usePathname()
   const [activeKey, setActiveKey] = useState(currentMenu)
   const [items, setItems] = useState<any[]>([])
-  const { menuList } = useSlider()
   const clickTab = (key: string) => {
     const path = tabs?.find((tab: any) => tab.key === key)?.path
     router.push(path)
@@ -47,13 +46,14 @@ const BasicTabs = ({ currentMenu, tabs, addTab, removeTab }: LayoutProps) => {
 
   const resetItems = () => {
     const newItems = tabs?.map((tab: any) => {
-      const {icon:_icon,...rest} = tab
+      const { icon: _icon, id, ...rest } = tab
       return {
         label: (
           <div className='flex items-center gap-2'>
-            <span>{tab.name}</span>
+            <span>{tab.name}-{id}</span>
           </div>
         ),
+        key: id,
         ...rest
       }
     })
@@ -78,22 +78,23 @@ const BasicTabs = ({ currentMenu, tabs, addTab, removeTab }: LayoutProps) => {
 
   useEffect(() => {
     if (currentMenu) {
+      console.log(1)
       const newItems = resetItems()
-      console.log(newItems)
       setItems(newItems as any)
       const foundItem = newItems?.find((item: any) => item.path === currentMenu)
       if (foundItem) {
+        console.log(2,newItems)
         setActiveKey(foundItem.key)
       }
       //如果没有tabs，则从menuList中找到匹配当前路径的item
       if (!newItems || newItems.length === 0) {
-        const defaultItem = findMenuItemByPath(menuList, pathname)
+        const defaultItem = findMenuItemByPath(menuList || [], pathname)
         if (defaultItem) {
           addTab?.(defaultItem)
         }
       }
     }
-  }, [currentMenu, tabs])
+  }, [currentMenu])
 
   return (
     <div className='h-32px border-b-1 border-b-solid border-[#d9d9d9]'>

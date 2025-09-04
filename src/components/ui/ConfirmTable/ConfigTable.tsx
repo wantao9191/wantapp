@@ -127,9 +127,8 @@ export const ConfigTable: React.FC<ConfigTableProps> = ({
     layout: 'horizontal',
     size: size,
     items: formColumns.filter((col: FormItemConfig) => !col.hidden).map(col => ({
+      ...col,
       type: col.type as FormItemType,
-      name: col.name,
-      label: col.label,
       options: 'options' in col ? col.options : [],
       span: col.span || 24 / formColumns.length,
       offset: col.offset || 0,

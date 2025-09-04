@@ -2,7 +2,7 @@
 import React from 'react'
 import { Avatar, Popover } from 'antd'
 import { UserOutlined } from '@ant-design/icons'
-import { useRouter } from 'next/navigation'
+import { useRouter,usePathname } from 'next/navigation'
 import { LayoutProps } from '@/types'
 import { useAuth } from '@/hooks'
 import AppIcon from '../ui/AppIcons'
@@ -17,7 +17,11 @@ const BasicAside = ({
 }: LayoutProps) => {
   const { userInfo } = useAuth()
   const router = useRouter()
+  const pathname = usePathname()
   const onClick = (clickedItem: any) => {
+    if(pathname === clickedItem.path){
+      return
+    }
     if (clickedItem.children && clickedItem.children.length) {
       setMenuList && setMenuList((prevItems: any[] = []) =>
         prevItems.map((item: any) =>
@@ -25,6 +29,7 @@ const BasicAside = ({
         )
       )
     } else {
+      console.log(clickedItem.path)
       setCurrentMenu && setCurrentMenu(clickedItem.path)
       addTab?.(clickedItem)
       router.push(clickedItem.path)
@@ -34,9 +39,9 @@ const BasicAside = ({
   const subContent = (item: any) => (
     item.children?.length ? (
     <div className='overflow-hidden transition-all duration-300 ease-in-out'>
-      {item.children.map((child: any) => (
+      {item.children.map((child: any, index: number) => (
         <div
-          key={child.id}
+          key={`${child.id}-${index}`}
           className={`${collapsed ? 'pl-14' : ''} ${currentMenu === child.path ? 'bg-#e5f4ff' : ''} text-13px flex min-w-0 items-center hover:bg-gray/15 px-4 gap-4 h-32px cursor-pointer overflow-hidden whitespace-nowrap transition-all duration-200`}
           onClick={() => onClick(child)}
         >
@@ -71,8 +76,8 @@ const BasicAside = ({
       </div>
       {/* 菜单 */}
       <div className='select-none'>
-        {menuList?.map((item: any) => (
-          <div key={item.id} className='text-13px rounded-2px'>
+        {menuList?.map((item: any,index: number) => (
+          <div key={`${item.id}-${index}`} className='text-13px rounded-2px'>
             <div
               className={`flex min-w-0 items-center hover:bg-gray/15 cursor-pointer overflow-hidden transition-all duration-200 ${collapsed ? 'gap-4 px-4 h-32px' : 'justify-center px-2 h-12'
                 } ${currentMenu === item.path ? 'bg-#e5f4ff' : ''}`}

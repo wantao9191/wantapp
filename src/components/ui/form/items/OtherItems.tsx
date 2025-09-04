@@ -76,15 +76,15 @@ export const ColorPickerItem: React.FC<OtherItemProps> = ({ config, value, onCha
 export const CustomItem: React.FC<OtherItemProps> = ({ config, value, onChange, disabled }) => {
   const customConfig = config as any
   const CustomComponent = customConfig.component
-
-  return (
-    <CustomComponent
-      disabled={disabled || config.disabled}
-      style={config.style}
-      className={config.className}
-      {...customConfig.componentProps}
-      value={value}
-      onChange={onChange}
-    />
-  )
+  
+  // 合并属性，componentProps 中的属性优先级更高
+  const mergedProps = {
+    disabled: disabled || config.disabled,
+    style: config.style,
+    className: config.className,
+    ...customConfig.componentProps, // componentProps 中的属性
+    value: value, // Form 传递的 value 优先级最高
+    onChange: onChange, // Form 传递的 onChange 优先级最高
+  }
+  return <CustomComponent {...mergedProps} />
 }

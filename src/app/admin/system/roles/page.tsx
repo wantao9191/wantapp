@@ -27,7 +27,7 @@ export default function OrganizationsPage() {
         onClick: (record: any) => {
           setFormData(record)
           setOpen(true)
-          console.log('编辑组织:', record)
+          console.log('编辑角色:', record)
         }
       }
     ]

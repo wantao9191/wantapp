@@ -37,12 +37,18 @@ export default function EditModal({
     formRef.current?.validateFields().then(async (values) => {
       if (values) {
         const params = formRef.current?.getFieldsValue()
+       console.log(params, 'params------handleSubmit')
+       return
         try {
           setSubmitLoading(true)
           if (formData?.id) {
-            await http.put(`/admin/roles/${formData.id}`, params)
+            await http.put(`/admin/roles/${formData.id}`, {
+              ...params
+            })
           } else {
-            await http.post('/admin/roles', params)
+            await http.post('/admin/roles', {
+              ...params
+            })
           }
           message.success('操作成功')
           onSubmit?.()

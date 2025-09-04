@@ -16,12 +16,12 @@ const useItems = () => {
     },
     {
       label: '菜单权限',
-      name: 'menus',
+      name: ['menus', 'permissions'], // 支持数组name，提交时会同时设置两个字段
       type: 'custom',
       component: Permissions,
       placeholder: '请选择菜单权限',
       span: 24,
-      required: false,
+      required: false
     },
     {
       label: '备注',
@@ -29,10 +29,7 @@ const useItems = () => {
       type: 'textarea',
       placeholder: '请输入备注',
       span: 24,
-      rows: 3,
-      rules: [
-        { max: 200, message: '地址长度不能超过200个字符' }
-      ]
+      rows: 3
     },
     {
       label: '状态',
