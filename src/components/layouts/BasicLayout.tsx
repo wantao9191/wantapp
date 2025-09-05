@@ -39,7 +39,7 @@ const BasicLayout: React.FC<BasicLayoutProps> = ({ children }) => {
   return (
     <div className='flex h-screen'>
       {/* 侧边栏 - 设置 flex-shrink-0 防止被挤压 */}
-      <div className='flex-shrink-0'>
+      <div className='flex-shrink-0 border-slate-300 bg-gradient-to-b from-slate-100 to-blue-50 shadow-lg'>
         <BasicAside
           collapsed={collapsed}
           toggleCollapsed={toggleCollapsed}
@@ -51,7 +51,7 @@ const BasicLayout: React.FC<BasicLayoutProps> = ({ children }) => {
           setTabs={setTabs}
         />
       </div>
-      
+
       {/* 主内容区域 */}
       <div className='flex-1 flex flex-col min-w-0'>
         <BasicHeader

@@ -66,11 +66,11 @@ const BasicAside = ({
 
   return (
     <div className={`
-      border-r border-gray-200 bg-white shadow-sm transition-all duration-300 ease-in-out overflow-hidden
+      border-r border-gray-200 transition-all duration-300 ease-in-out overflow-hidden
       ${collapsed ? 'w-56 min-w-56' : 'w-14 min-w-14'}
     `}>
       {/* 用户头像区域 */}
-      <div className='flex justify-between items-center px-2 py-3 border-b border-gray-100'>
+      <div className='flex justify-between items-center px-2 py-3 '>
         {collapsed ? (
           <>
             <div className='flex items-center gap-2 hover:bg-gray-50 px-1.5 py-1.5 rounded-lg transition-all duration-200 min-w-0 group'>

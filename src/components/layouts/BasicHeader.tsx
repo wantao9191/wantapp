@@ -13,7 +13,7 @@ const BasicHeader = ({ collapsed, toggleCollapsed, toggleTheme, theme, isMobile 
     window.location.reload()
   }
   return (
-    <div className='h-48px px-4 bg-white border-b-1 border-b-solid border-[#e6e6e6]'>
+    <div className='h-48px px-4 bg-white border-b-1 border-b-solid border-[#e6e6e6] '>
       <div className='h-full flex items-center justify-between'>
         <div className='flex items-center gap-2'>
           {isMobile ? (
