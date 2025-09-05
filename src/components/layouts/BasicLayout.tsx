@@ -25,11 +25,7 @@ const BasicLayout: React.FC<BasicLayoutProps> = ({ children }) => {
         setMenuList(contents)
         return
       }
-      const res = await http.get('/admin/menus', {
-        page: 1,
-        pageSize: 1000,
-        status: 1
-      })
+      const res = await http.get('/admin/menus/all')
       const contents = res.data.contents.map((item: any) => ({
         key: item.id,
         ...item,

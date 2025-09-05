@@ -31,6 +31,46 @@ global.IntersectionObserver = vi.fn().mockImplementation(() => ({
   disconnect: vi.fn(),
 }))
 
+// Mock Ant Design 的 ConfigProvider
+vi.mock('antd', async () => {
+  const actual = await vi.importActual('antd')
+  return {
+    ...actual,
+    ConfigProvider: ({ children }: any) => children,
+    App: {
+      useApp: () => ({
+        message: {
+          success: vi.fn(),
+          error: vi.fn(),
+          warning: vi.fn(),
+          info: vi.fn(),
+        },
+        modal: {
+          confirm: vi.fn(),
+          info: vi.fn(),
+          success: vi.fn(),
+          error: vi.fn(),
+          warning: vi.fn(),
+        },
+      }),
+    },
+  }
+})
+
+// Mock Next.js 的 useRouter
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    refresh: vi.fn(),
+    prefetch: vi.fn(),
+  }),
+  usePathname: () => '/test',
+  useSearchParams: () => new URLSearchParams(),
+}))
+
 // 每个测试后清理 DOM
 afterEach(() => {
   cleanup()

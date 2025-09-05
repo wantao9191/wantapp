@@ -21,21 +21,28 @@ export type FormItemType =
   | 'colorPicker'
   | 'custom'
 
+// 函数参数类型定义
+export interface FormContext {
+  formData: Record<string, any> // 当前表单数据
+  config: FormConfig // 表单配置
+  item: FormItemConfig // 当前表单项配置
+}
+
 export interface BaseFormItemConfig {
   name: string | string[] // 支持单个字段名或字段名数组
   label: string
   type: FormItemType
-  required?: boolean
-  disabled?: boolean
-  hidden?: boolean
-  placeholder?: string
-  tooltip?: string
-  rules?: any[]
+  required?: boolean | ((context: FormContext) => boolean)
+  disabled?: boolean | ((context: FormContext) => boolean)
+  hidden?: boolean | ((context: FormContext) => boolean)
+  placeholder?: string | ((context: FormContext) => string)
+  tooltip?: string | ((context: FormContext) => string)
+  rules?: any[] | ((context: FormContext) => any[])
   dependencies?: string[]
-  className?: string
-  style?: React.CSSProperties
-  span?: number // 栅格占位格数
-  offset?: number // 栅格左侧的间隔格数
+  className?: string | ((context: FormContext) => string)
+  style?: React.CSSProperties | ((context: FormContext) => React.CSSProperties)
+  span?: number | ((context: FormContext) => number) // 栅格占位格数
+  offset?: number | ((context: FormContext) => number) // 栅格左侧的间隔格数
 }
 
 export interface InputConfig extends BaseFormItemConfig {

@@ -3,7 +3,7 @@
 import React from 'react'
 import { Upload, Button } from 'antd'
 import { UploadOutlined, InboxOutlined } from '@ant-design/icons'
-import type { FormItemConfig } from '@/types/form-config'
+import type { FormItemConfig, FormContext } from '@/types/form-config'
 
 const { Dragger } = Upload
 
@@ -12,13 +12,19 @@ interface UploadItemProps {
   value?: any
   onChange?: (value: any) => void
   disabled?: boolean
+  formContext?: FormContext
 }
 
-const UploadItem: React.FC<UploadItemProps> = ({ config, value, onChange, disabled }) => {
+const UploadItem: React.FC<UploadItemProps> = ({ config, value, onChange, disabled, formContext }) => {
+  // 解析函数参数
+  const resolvedDisabled = formContext && typeof config.disabled === 'function' 
+    ? (config.disabled as any)(formContext) 
+    : config.disabled
+
   const uploadConfig = config as any
 
   const uploadProps = {
-    disabled: disabled || config.disabled,
+    disabled: disabled || (resolvedDisabled as boolean),
     action: uploadConfig.action,
     accept: uploadConfig.accept,
     multiple: uploadConfig.multiple,
@@ -41,7 +47,7 @@ const UploadItem: React.FC<UploadItemProps> = ({ config, value, onChange, disabl
   } else if (uploadConfig.listType === 'picture') {
     return (
       <Upload {...uploadProps} listType="picture">
-        <Button icon={<UploadOutlined />} disabled={disabled || config.disabled}>
+        <Button icon={<UploadOutlined />} disabled={disabled || (resolvedDisabled as boolean)}>
           上传文件
         </Button>
       </Upload>

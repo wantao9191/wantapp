@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { Select } from 'antd'
-import type { FormItemConfig } from '@/types/form-config'
+import type { FormItemConfig, FormContext } from '@/types/form-config'
 
 const { Option } = Select
 
@@ -11,16 +11,31 @@ interface SelectItemProps {
   value?: any
   onChange?: (value: any) => void
   disabled?: boolean
+  formContext?: FormContext
 }
 
-const SelectItem: React.FC<SelectItemProps> = ({ config, value, onChange, disabled }) => {
+const SelectItem: React.FC<SelectItemProps> = ({ config, value, onChange, disabled, formContext }) => {
+  // 解析函数参数
+  const resolvedPlaceholder = formContext && typeof config.placeholder === 'function' 
+    ? config.placeholder(formContext) 
+    : config.placeholder
+  const resolvedDisabled = formContext && typeof config.disabled === 'function' 
+    ? config.disabled(formContext) 
+    : config.disabled
+  const resolvedStyle = formContext && typeof config.style === 'function' 
+    ? config.style(formContext) 
+    : config.style
+  const resolvedClassName = formContext && typeof config.className === 'function' 
+    ? config.className(formContext) 
+    : config.className
+
   const selectConfig = config as any
   return (
     <Select
-      placeholder={config.placeholder}
-      disabled={disabled || config.disabled}
-      style={config.style}
-      className={config.className}
+      placeholder={resolvedPlaceholder as string}
+      disabled={disabled || (resolvedDisabled as boolean)}
+      style={resolvedStyle as React.CSSProperties}
+      className={resolvedClassName as string}
       mode={config.type === 'multiSelect' ? (selectConfig.mode || 'multiple') : undefined}
       allowClear={selectConfig.allowClear}
       showSearch={selectConfig.showSearch}

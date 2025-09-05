@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { hashPassword, verifyPassword } from '@/lib/password'
+import { hashPassword, verifyPassword } from '../../src/lib/password'
 
 describe('password', () => {
   it('hash and verify success', async () => {

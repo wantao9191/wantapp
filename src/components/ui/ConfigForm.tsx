@@ -4,9 +4,20 @@ import React, { useEffect, useImperativeHandle, forwardRef } from 'react'
 import { Form, Row, Col, Tooltip, Space } from 'antd'
 import { QuestionCircleOutlined } from '@ant-design/icons'
 import type { FormInstance } from 'antd/es/form'
-import type { FormConfig, FormItemConfig } from '@/types/form-config'
+import type { FormConfig, FormItemConfig, FormContext } from '@/types/form-config'
 import FormItemRenderer from './Form/FormItemRenderer'
 import { removeUndefined } from '@/lib/utils'
+
+// 工具函数：解析函数参数
+function resolveFunctionValue<T>(
+  value: T | ((context: FormContext) => T) | undefined,
+  context: FormContext
+): T | undefined {
+  if (typeof value === 'function') {
+    return (value as (context: FormContext) => T)(context)
+  }
+  return value
+}
 
 // 工具函数：处理数组name的表单数据
 const processFormData = (formData: any, items: FormItemConfig[]) => {
@@ -21,14 +32,12 @@ const processFormData = (formData: any, items: FormItemConfig[]) => {
       delete processedData[item.name.join('_')]
     }
   })
-  
   return processedData
 }
 
 // 工具函数：处理数组name的初始值
 const processInitialValues = (initialValues: any, items: FormItemConfig[]) => {
   if (!initialValues) return initialValues
-  
   const processedValues = { ...initialValues }
   items.forEach(item => {
     if (Array.isArray(item.name)) {
@@ -109,7 +118,16 @@ const ConfigForm = forwardRef<ConfigFormRef, ConfigFormProps>(({
 
   // 检查表单项是否应该显示
   const shouldShowItem = (item: FormItemConfig, formValues: any) => {
-    if (item.hidden) return false
+    // 创建表单上下文
+    const context: FormContext = {
+      formData: formValues,
+      config,
+      item
+    }
+    
+    // 解析 hidden 属性
+    const isHidden = resolveFunctionValue(item.hidden, context)
+    if (isHidden) return false
     
     // 这里可以添加更复杂的显示逻辑
     // 比如根据其他字段的值来决定是否显示当前字段
@@ -128,29 +146,46 @@ const ConfigForm = forwardRef<ConfigFormRef, ConfigFormProps>(({
       return null
     }
 
+    // 创建表单上下文
+    const context: FormContext = {
+      formData: formValues,
+      config,
+      item
+    }
+
     // 处理数组name的情况
     const itemName = Array.isArray(item.name) ? item.name.join('_') : item.name
     // 使用传入的index确保key的唯一性
     const itemKey = Array.isArray(item.name) ? `${item.name.join('_')}_${index}` : `${item.name}_${index}`
+
+    // 解析函数参数
+    const resolvedRequired = resolveFunctionValue(item.required, context)
+    const resolvedRules = resolveFunctionValue(item.rules, context)
+    const resolvedTooltip = resolveFunctionValue(item.tooltip, context)
+    const resolvedDisabled = resolveFunctionValue(item.disabled, context)
+    const resolvedClassName = resolveFunctionValue(item.className, context)
+    const resolvedStyle = resolveFunctionValue(item.style, context)
+    const resolvedSpan = resolveFunctionValue(item.span, context)
+    const resolvedOffset = resolveFunctionValue(item.offset, context)
 
     const formItemProps: any = {
       name: itemName,
       label: (
         <Space size={4}>
           {item.label}
-          {item.tooltip && (
-            <Tooltip title={item.tooltip}>
+          {resolvedTooltip && (
+            <Tooltip title={resolvedTooltip}>
               <QuestionCircleOutlined style={{ color: '#999' }} />
             </Tooltip>
           )}
         </Space>
       ),
       rules: [
-        ...(item.required ? [{ required: true, message: `请输入${item.label}` }] : []),
-        ...(item.rules || [])
+        ...(resolvedRequired ? [{ required: true, message: `请输入${item.label}` }] : []),
+        ...(resolvedRules || [])
       ],
       dependencies: item.dependencies,
-      hidden: item.hidden
+      hidden: false // 已经在 shouldShowItem 中处理了
     }
 
     // 特殊处理 checkbox 类型（单个复选框）
@@ -175,8 +210,8 @@ const ConfigForm = forwardRef<ConfigFormRef, ConfigFormProps>(({
     }
 
     const colProps = {
-      span: item.span || 24,
-      offset: item.offset || 0
+      span: resolvedSpan || 24,
+      offset: resolvedOffset || 0
     }
 
     return (
@@ -185,11 +220,13 @@ const ConfigForm = forwardRef<ConfigFormRef, ConfigFormProps>(({
           key={itemKey}
           {...formItemProps} 
           size={config.size || 'middle'} 
-          className={`${item.className}`}
+          className={resolvedClassName}
+          style={resolvedStyle}
         >
           <FormItemRenderer
             config={item}
-            disabled={disabled || item.disabled || loading}
+            disabled={disabled || resolvedDisabled || loading}
+            formContext={context}
           />
         </Form.Item>
       </Col>

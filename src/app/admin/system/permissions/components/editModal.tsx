@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react'
-import { message, Button } from 'antd'
+import { App, Button } from 'antd'
 import ConfigForm from '@/components/ui/ConfigForm'
 import ConfigModal from '@/components/ui/ConfigModal'
 import useItems from './useItems'
@@ -7,7 +7,6 @@ import { createQuickForm } from '@/lib/form-utils'
 import { FormItemConfig } from '@/types/form-config'
 import type { ConfigFormRef } from '@/components/ui/ConfigForm'
 import { http } from '@/lib/https'
-
 interface EditModalProps {
   initialValues?: Record<string, any>
   onCancel?: () => void
@@ -21,6 +20,7 @@ export default function EditModal({
   onCancel,
   onSubmit
 }: EditModalProps) {
+  const { message } = App.useApp()
   const { searchFormSchema } = useItems()
   const formRef = useRef<ConfigFormRef>(null)
   const [submitLoading, setSubmitLoading] = useState(false)

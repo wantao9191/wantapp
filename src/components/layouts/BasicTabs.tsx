@@ -50,7 +50,7 @@ const BasicTabs = ({ currentMenu, tabs, addTab, removeTab, menuList }: LayoutPro
       return {
         label: (
           <div className='flex items-center gap-2'>
-            <span>{tab.name}-{id}</span>
+            <span>{tab.name}</span>
           </div>
         ),
         key: id,
@@ -78,12 +78,10 @@ const BasicTabs = ({ currentMenu, tabs, addTab, removeTab, menuList }: LayoutPro
 
   useEffect(() => {
     if (currentMenu) {
-      console.log(1)
       const newItems = resetItems()
       setItems(newItems as any)
       const foundItem = newItems?.find((item: any) => item.path === currentMenu)
       if (foundItem) {
-        console.log(2,newItems)
         setActiveKey(foundItem.key)
       }
       //如果没有tabs，则从menuList中找到匹配当前路径的item

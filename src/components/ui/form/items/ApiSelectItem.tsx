@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { Select, message } from 'antd'
 import { http } from '@/lib/https'
-import type { FormItemConfig } from '@/types/form-config'
+import type { FormItemConfig, FormContext } from '@/types/form-config'
 
 const { Option } = Select
 
@@ -12,6 +12,7 @@ interface ApiSelectItemProps {
   value?: any
   onChange?: (value: any) => void
   disabled?: boolean
+  formContext?: FormContext
 }
 
 // API Select 配置接口
@@ -57,7 +58,8 @@ const ApiSelectItem: React.FC<ApiSelectItemProps> = ({
   config, 
   value, 
   onChange, 
-  disabled 
+  disabled,
+  formContext
 }) => {
   const [options, setOptions] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
@@ -256,12 +258,26 @@ const ApiSelectItem: React.FC<ApiSelectItemProps> = ({
     return label.toLowerCase().includes(input.toLowerCase())
   }, [filterOption])
 
+  // 解析函数参数
+  const resolvedPlaceholder = formContext && typeof config.placeholder === 'function' 
+    ? (config.placeholder as any)(formContext) 
+    : config.placeholder
+  const resolvedDisabled = formContext && typeof config.disabled === 'function' 
+    ? (config.disabled as any)(formContext) 
+    : config.disabled
+  const resolvedStyle = formContext && typeof config.style === 'function' 
+    ? (config.style as any)(formContext) 
+    : config.style
+  const resolvedClassName = formContext && typeof config.className === 'function' 
+    ? (config.className as any)(formContext) 
+    : config.className
+
   return (
     <Select
-      placeholder={config.placeholder || '请选择'}
-      disabled={disabled || config.disabled}
-      style={config.style}
-      className={config.className}
+      placeholder={resolvedPlaceholder as string || '请选择'}
+      disabled={disabled || (resolvedDisabled as boolean)}
+      style={resolvedStyle as React.CSSProperties}
+      className={resolvedClassName as string}
       mode={config.type === 'multiSelect' ? (mode || 'multiple') : mode}
       allowClear={allowClear}
       showSearch={showSearch}

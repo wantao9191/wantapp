@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import HttpRequest from '@/lib/https'
+import HttpRequest from '../../src/lib/https'
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),

@@ -65,7 +65,7 @@
 		"@unocss/postcss": "^66.4.2",
 		"@unocss/preset-icons": "^66.4.2",
 		"@unocss/preset-uno": "^66.4.2",
-		"@vitest/coverage-v8": "^2.0.5",
+		"@vitest/coverage-v8": "^3.2.4",
 		"autoprefixer": "^10.4.16",
 		"concurrently": "^8.2.2",
 		"cross-env": "^10.0.0",
@@ -79,6 +79,6 @@
 		"tsx": "^4.20.3",
 		"typescript": "^5.0.0",
 		"unocss": "^66.4.2",
-		"vitest": "^2.0.5"
+		"vitest": "^3.2.4"
 	}
 }

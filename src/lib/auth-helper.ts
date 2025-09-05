@@ -2,6 +2,9 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { hasPermission, getUserPermissions, isSuperAdmin } from '@/lib/permissions'
+import { db } from '@/db'
+import { users } from '@/db/schema'
+import { eq } from 'drizzle-orm'
 
 /**
  * 从请求头获取用户ID
@@ -33,6 +36,37 @@ export function getUserRolesFromHeaders(request: NextRequest): number[] {
 }
 
 /**
+ * 从请求头获取用户机构ID
+ */
+export function getUserOrganizationIdFromHeaders(request: NextRequest): number | null {
+  const orgIdHeader = request.headers.get('X-User-Organization-Id')
+  if (!orgIdHeader) {
+    return null
+  }
+
+  const orgId = parseInt(orgIdHeader)
+  return isNaN(orgId) ? null : orgId
+}
+
+/**
+ * 从数据库获取用户机构ID
+ */
+export async function getUserOrganizationIdFromDb(userId: number): Promise<number | null> {
+  try {
+    const user = await db
+      .select({ organizationId: users.organizationId })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1)
+
+    return user[0]?.organizationId || null
+  } catch (error) {
+    console.error('Failed to get user organization ID:', error)
+    return null
+  }
+}
+
+/**
  * 获取用户上下文信息
  */
 export interface UserContext {
@@ -40,12 +74,27 @@ export interface UserContext {
   roles: number[]
   permissions: string[]
   isSuperAdmin: boolean
+  organizationId?: number
+}
+
+export interface UserContextResult {
+  success: boolean
+  data?: UserContext
+  error?: 'unauthorized' | 'server_error'
 }
 
 export async function getUserContext(request: NextRequest): Promise<UserContext | null> {
+  const result = await getUserContextWithErrorType(request)
+  return result.success ? result.data! : null
+}
+
+export async function getUserContextWithErrorType(request: NextRequest): Promise<UserContextResult> {
   const userId = getUserIdFromHeaders(request)
   if (!userId) {
-    return null
+    return {
+      success: false,
+      error: 'unauthorized'
+    }
   }
 
   try {
@@ -55,16 +104,29 @@ export async function getUserContext(request: NextRequest): Promise<UserContext 
     ])
 
     const roles = getUserRolesFromHeaders(request)
+    
+    // 优先从请求头获取机构ID，如果没有则从数据库获取
+    let organizationId = getUserOrganizationIdFromHeaders(request)
+    if (!organizationId) {
+      organizationId = await getUserOrganizationIdFromDb(userId)
+    }
 
     return {
-      userId,
-      roles,
-      permissions,
-      isSuperAdmin: isAdmin
+      success: true,
+      data: {
+        userId,
+        roles,
+        permissions,
+        isSuperAdmin: isAdmin,
+        organizationId: organizationId || undefined
+      }
     }
   } catch (error) {
     console.error('Failed to get user context:', error)
-    return null
+    return {
+      success: false,
+      error: 'server_error'
+    }
   }
 }
 

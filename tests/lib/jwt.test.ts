@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { signAccessToken, verifyAccessToken, signRefreshToken, verifyRefreshToken } from '@/lib/jwt'
+import { signAccessToken, verifyAccessToken, signRefreshToken, verifyRefreshToken } from '../../src/lib/jwt'
 
 function setJwtEnv() {
   process.env.JWT_SECRET = 'test-secret'

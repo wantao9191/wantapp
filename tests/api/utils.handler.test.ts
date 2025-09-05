@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { createHandler, type Handler, type HandlerWithParams, type Handlers } from '@/app/api/_utils/handler'
+import { createHandler, type Handler, type HandlerWithParams, type Handlers } from '../../src/app/api/_utils/handler'
 import { NextResponse } from 'next/server'
 
 // Mock NextRequest
@@ -33,7 +33,8 @@ class MockRequest {
 // Mock auth helper functions
 vi.mock('@/lib/auth-helper', () => ({
   checkPermission: vi.fn(),
-  getUserIdFromHeaders: vi.fn()
+  getUserIdFromHeaders: vi.fn(),
+  getUserContextWithErrorType: vi.fn()
 }))
 
 import { checkPermission, getUserIdFromHeaders } from '@/lib/auth-helper'

@@ -40,6 +40,8 @@ export const users = pgTable('users', {
   roles: json('roles').$type<number[]>(),
   organizationId: integer('organization_id').references(() => organizations.id), // 修改这里
   deleted: boolean('deleted').default(false),
+  description: text('description'),
+  email: varchar('email', { length: 50 }),
 })
 //  权限表
 export const permissions = pgTable('permissions', {

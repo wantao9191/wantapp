@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { ok, error, methodNotAllowed, badRequest, unauthorized, forbidden, notFound } from '@/app/api/_utils/response'
+import { ok, error, methodNotAllowed, badRequest, unauthorized, forbidden, notFound } from '../../src/app/api/_utils/response'
 
 function readJson(res: Response) { return res.json() as Promise<any> }
 

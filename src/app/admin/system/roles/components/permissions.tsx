@@ -37,8 +37,8 @@ interface PermissionItem {
 
 const fetchMenuPermissions = async () => {
   const [menus, permissions] = await Promise.all([
-    http.get('/admin/menus', { page: 1, pageSize: 1000 }),
-    http.get('/admin/permissions', { page: 1, pageSize: 1000 })
+    http.get('/admin/menus/dicts'),
+    http.get('/admin/permissions/dicts')
   ])
   return { menus, permissions }
 }
@@ -50,7 +50,7 @@ const Permissions: React.FC<PermissionsProps> = (props) => {
   const [initFlag, setInitFlag] = useState(false)
   const CheckboxGroup = Checkbox.Group
   // 初始化
-  const init = async (propsMenus: number[], propsPermissions: number[]) => {
+  const init = async (propsPermissions: number[]) => {
     try {
       setLoading(true)
       const { menus, permissions } = await fetchMenuPermissions()
@@ -193,10 +193,6 @@ const Permissions: React.FC<PermissionsProps> = (props) => {
       })
     }
     traverse(menuTree)
-    onChange?.({
-      menus: selectedMenus,
-      permissions: selectedPermissions
-    })
     return {
       menus: selectedMenus,
       permissions: selectedPermissions
@@ -204,9 +200,8 @@ const Permissions: React.FC<PermissionsProps> = (props) => {
   }
   useEffect(() => {
     if (value && !initFlag) {
-      const menus = value?.menus || []
       const permissions = value?.permissions || []
-      init(menus, permissions)
+      init(permissions)
       setInitFlag(true)
     }
   }, [value])
@@ -228,7 +223,7 @@ const Permissions: React.FC<PermissionsProps> = (props) => {
               </Checkbox>
             </div>
             <div className='flex flex-col ml-24px mt-6px'>
-              {menu?.children?.map((child: MenuNode,index:number) => (
+              {menu?.children?.map((child: MenuNode, index: number) => (
                 <div key={child.id}>
                   <div className={`${index === 0 ? '' : 'mt-6px'}`}>
                     <Checkbox indeterminate={child.indeterminate} value={child.id} onChange={(e) => handleChange(e, child)} checked={child.checkAll}>
@@ -236,7 +231,9 @@ const Permissions: React.FC<PermissionsProps> = (props) => {
                     </Checkbox>
                   </div>
                   <div className='mt-6px ml-24px'>
-                    <CheckboxGroup options={child.permissions?.map(p => ({ label: p.label, value: p.value })) || []} value={child.checkedList} onChange={(e) => handleCheckboxChange(e, child)}></CheckboxGroup>
+                    <CheckboxGroup
+                      options={child.permissions?.map(p => ({ label: p.label, value: p.value })) || []}
+                      value={child.checkedList} onChange={(e) => handleCheckboxChange(e, child)} />
                   </div>
                 </div>
               ))}

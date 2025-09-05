@@ -3,17 +3,18 @@
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { ok, error, unauthorized } from './response'
-import { checkPermission, getUserIdFromHeaders } from '@/lib/auth-helper'
+import { checkPermission, getUserIdFromHeaders, getUserContext, getUserContextWithErrorType } from '@/lib/auth-helper'
 
 // 修复类型定义：适配 Next.js App Router 的参数传递方式
-export type HandlerWithParams = (req: NextRequest, params: { id: string }, context?: { userId: number }) => Promise<any> | any
-export type Handler = (req: NextRequest, context?: { userId: number }) => Promise<any> | any
+export type HandlerWithParams = (req: NextRequest, params: { id: string }, context?: { userId: number; organizationId?: number; isSuperAdmin?: boolean }) => Promise<any> | any
+export type Handler = (req: NextRequest, context?: { userId: number; organizationId?: number; isSuperAdmin?: boolean }) => Promise<any> | any
 export type Handlers = Partial<Record<'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', Handler | HandlerWithParams>>
 
 export interface HandlerOptions {
   permission?: string
   requireAuth?: boolean
   hasParams?: boolean
+  organizationFilter?: boolean // 是否启用机构过滤
 }
 
 export interface HandlerParams {
@@ -148,14 +149,23 @@ async function checkAuth(request: NextRequest, permission?: string, requireAuth 
     return { context: undefined, error: null }
   }
 
-  // 获取用户ID
-  const userId = getUserIdFromHeaders(request)
-  if (!userId) {
-    return {
-      context: undefined,
-      error: unauthorized('Authentication required')
+  // 获取用户上下文
+  const userContextResult = await getUserContextWithErrorType(request)
+  if (!userContextResult.success) {
+    if (userContextResult.error === 'server_error') {
+      return {
+        context: undefined,
+        error: error('Server connection failed', 500)
+      }
+    } else {
+      return {
+        context: undefined,
+        error: unauthorized('Authentication required')
+      }
     }
   }
+  
+  const userContext = userContextResult.data!
 
   // 权限检查
   if (permission) {
@@ -169,7 +179,69 @@ async function checkAuth(request: NextRequest, permission?: string, requireAuth 
   }
 
   return {
-    context: { userId },
+    context: { 
+      userId: userContext.userId,
+      organizationId: userContext.organizationId,
+      isSuperAdmin: userContext.isSuperAdmin
+    },
     error: null
   }
+}
+
+/**
+ * 机构过滤辅助函数
+ * 用于在API处理器中应用机构过滤逻辑
+ */
+export function applyOrganizationFilter(
+  context: { organizationId?: number; isSuperAdmin?: boolean } | undefined,
+  data: any,
+  organizationIdField: string = 'organizationId'
+): any {
+  // 如果没有上下文或用户是超级管理员，不进行过滤
+  if (!context || context.isSuperAdmin) {
+    return data
+  }
+
+  // 如果用户没有机构ID，返回空数据
+  if (!context.organizationId) {
+    return Array.isArray(data) ? [] : null
+  }
+
+  // 对数据进行机构过滤
+  if (Array.isArray(data)) {
+    return data.filter(item => {
+      if (typeof item === 'object' && item !== null) {
+        return item[organizationIdField] === context.organizationId
+      }
+      return false
+    })
+  } else if (typeof data === 'object' && data !== null) {
+    // 单个对象的情况
+    if (data[organizationIdField] !== context.organizationId) {
+      return null
+    }
+  }
+
+  return data
+}
+
+/**
+ * 检查数据是否属于用户机构
+ */
+export function checkOrganizationAccess(
+  context: { organizationId?: number; isSuperAdmin?: boolean } | undefined,
+  targetOrganizationId: number | undefined
+): boolean {
+  // 超级管理员可以访问所有数据
+  if (!context || context.isSuperAdmin) {
+    return true
+  }
+
+  // 如果用户没有机构ID，拒绝访问
+  if (!context.organizationId) {
+    return false
+  }
+
+  // 检查目标数据是否属于用户机构
+  return targetOrganizationId === context.organizationId
 }

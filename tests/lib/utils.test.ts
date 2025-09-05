@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { cn, formatDate, generateRandomString, delay, truncate, slugify, isValidEmail, safeJsonParse } from '@/lib/utils'
+import { cn, formatDate, generateRandomString, delay, truncate, slugify, isValidEmail, safeJsonParse } from '../../src/lib/utils'
 
 describe('utils', () => {
   it('cn merges class names', () => {

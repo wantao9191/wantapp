@@ -20,6 +20,7 @@ export interface CommonActionConfig {
   onClick: (record: any) => void
   confirm?: boolean
   confirmText?: string
+  hidden?: boolean | ((record: any) => boolean)
 }
 export interface TableColumnConfig {
   title: string
@@ -43,6 +44,7 @@ export interface ActionConfig {
   fixed?: 'left' | 'right'
   align?: 'left' | 'center' | 'right'
   actions: Array<CommonActionConfig>
+  hidden?: boolean | ((record: any) => boolean)
 }
 export interface ConfigTableProps {
   columns: TableColumnConfig[]
@@ -106,7 +108,7 @@ export const ConfigTable: React.FC<ConfigTableProps> = ({
       align: actions.align || 'center',
       render: (_: any, record: any) => (
         <Space size={size}>
-          {actions.actions?.map((action: any) => (
+          {actions.actions?.filter((action: any) => !action.hidden || (typeof action.hidden === 'function' ? !action.hidden(record) : true)).map((action: any) => (
             <Button
               key={action.key}
               type={action.type}
@@ -133,7 +135,7 @@ export const ConfigTable: React.FC<ConfigTableProps> = ({
       span: col.span || 24 / formColumns.length,
       offset: col.offset || 0,
       className: col.className || '!mb-0'
-    }))
+    })) as FormItemConfig[]
   })
   const formConfigActions: CommonActionConfig[] = formActions && formActions.length > 0 ? formActions : [{
     label: '查询',
@@ -239,7 +241,7 @@ export const ConfigTable: React.FC<ConfigTableProps> = ({
         </div>
 
         {/* 自定义分页组件 */}
-        {total && total > 0 ? (
+        {total && total > pageSize ? (
           <div className="pt-4 border-t border-gray-200">
             <ConfigPagination
               current={currentPage}

@@ -72,6 +72,8 @@ export async function seedDatabase() {
       status: 1,
       organizationId: orgId,
       roles: [1],
+      email: 'admin@admin.com',
+      description: '超级管理员',
     });
     console.log('超级管理员用户创建成功');
     console.log('数据库初始化完成！');
