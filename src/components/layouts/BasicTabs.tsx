@@ -15,7 +15,8 @@ const BasicTabs = ({ currentMenu, tabs, addTab, removeTab, menuList }: LayoutPro
   }
 
   // 处理关闭tab的逻辑
-  const handleRemoveTab = (tabKey: string,) => {
+  const handleRemoveTab = (tabKey: string) => {
+    console.log(tabKey)
     // 判断是否为当前激活的tab
     const isCurrentTab = tabKey === activeKey
     if (isCurrentTab && tabs && tabs.length > 1) {

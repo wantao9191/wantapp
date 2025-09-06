@@ -163,7 +163,7 @@ const ApiSelectItem: React.FC<ApiSelectItemProps> = ({
     }
 
     // 检查缓存（仅在非搜索状态下）
-    if (!searchParams.search && !searchValue) {
+    if (!searchParams.search) {
       const cachedData = getFromCache()
       if (cachedData) {
         setOptions(cachedData)
@@ -193,7 +193,7 @@ const ApiSelectItem: React.FC<ApiSelectItemProps> = ({
       setOptions(processedData)
       
       // 缓存数据（仅在非搜索状态下）
-      if (!searchParams.search && !searchValue) {
+      if (!searchParams.search) {
         setToCache(processedData)
       }
       
@@ -218,8 +218,7 @@ const ApiSelectItem: React.FC<ApiSelectItemProps> = ({
     processResponseData, 
     getFromCache, 
     setToCache, 
-    onError,
-    searchValue
+    onError
   ])
 
   // 搜索处理
@@ -242,7 +241,7 @@ const ApiSelectItem: React.FC<ApiSelectItemProps> = ({
   // 组件挂载时加载数据
   useEffect(() => {
     fetchData()
-  }, [fetchData])
+  }, [api, JSON.stringify(params)]) // 只依赖关键参数
 
   // 自定义过滤选项
   const customFilterOption = useCallback((input: string, option: any) => {

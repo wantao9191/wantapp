@@ -46,7 +46,7 @@ export async function signAccessToken(payload: AccessTokenPayload) {
   const secret = encoder().encode(getEnv('JWT_SECRET'))
   const issuer = process.env.JWT_ISSUER || 'my-fullstack-app'
   const audience = process.env.JWT_AUDIENCE || 'api'
-  const ttlSeconds = Number(process.env.ACCESS_TOKEN_TTL || 180000) // 3000m
+  const ttlSeconds = Number(process.env.ACCESS_TOKEN_TTL || 1800) // 30分钟
 
   return new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })

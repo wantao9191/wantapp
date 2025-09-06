@@ -4,7 +4,10 @@ import { AccessTokenPayload, verifyAccessToken } from '@/lib/jwt'
 // 公共API路径配置
 const PUBLIC_API_PATHS = [
   '/api/captcha',
-  '/api/admin/login'
+  '/api/admin/login',
+  '/api/admin/auth/login',
+  '/api/admin/auth/refresh',
+  '/api/admin/auth/revoke'
 ] as const
 
 // 检查是否为公共API
@@ -94,7 +97,7 @@ export async function middleware(request: NextRequest) {
       if (payload.roles) {
         response.headers.set('X-User-Roles', JSON.stringify(payload.roles))
       }
-      console.log(payload)
+      console.log(payload,'-----')
       return setCorsHeaders(response, origin)
     } catch (error: any) {
       // 根据错误类型返回不同的错误信息
@@ -103,6 +106,8 @@ export async function middleware(request: NextRequest) {
         message = 'Token expired'
       } else if (error.code === 'ERR_JWS_INVALID') {
         message = 'Invalid token format'
+      } else if (error.code === 'ERR_JWT_CLAIM_VALIDATION_FAILED') {
+        message = 'Token validation failed'
       }
 
       console.warn(`[Auth] Token verification failed for ${pathname}:`, error.message)

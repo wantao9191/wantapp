@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { POST } from '../../src/app/api/admin/login/route'
+import { POST } from '../../src/app/api/admin/auth/login/route'
 
 const cookieStore = new Map<string, string>()
 vi.mock('next/headers', () => ({

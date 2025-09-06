@@ -1,0 +1,29 @@
+# 复制此文件为 .env.local 并填入实际值
+
+# 数据库配置
+DATABASE_URL=postgresql://postgres:!Wantao9191@118.195.188.242:5432/wantapp
+# DATABASE_URL="postgresql://postgres:!Wantao9191@localhost:5433/wantapp"
+
+
+# Next.js 配置
+NEXTAUTH_SECRET="your-nextauth-secret-here"
+NEXTAUTH_URL=http://localhost:3000
+# JWT 配置
+JWT_SECRET=v4xCufXu4s
+
+# API 密钥（如果需要）
+API_SECRET_KEY=v4xCufXu4s
+
+# 应用配置
+NODE_ENV=development
+PORT=3000
+NEXT_DEV_MEMORY_MODE=true
+# 数据加密（AES-GCM，16/24/32字节原始密钥，需以 base64url 编码）
+# 生成示例：node -e "console.log(require('crypto').randomBytes(32).toString('base64').replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''))"
+DATA_ENCRYPTION_KEY="6MtTCD3v4_rladjXFdBREdaW4O6T248JR7Dr3Wu4wY4"
+
+# 第三方服务配置（示例）
+# STRIPE_SECRET_KEY="sk_test_..."
+# STRIPE_PUBLISHABLE_KEY="pk_test_..."
+# GOOGLE_CLIENT_ID="your-google-client-id"
+# GOOGLE_CLIENT_SECRET="your-google-client-secret"

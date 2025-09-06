@@ -43,12 +43,12 @@ class HttpRequest {
   private config: RequestConfig;
   private baseURL: string;
   private static ACCESS_TOKEN_KEY = 'access_token';
-  private static REFRESH_TOKEN_KEY = 'refreshToken';
+  private static REFRESH_TOKEN_KEY = 'refresh_token';
 
   constructor(config: RequestConfig = {}) {
     this.config = {
       baseURL: config.baseURL || '/api',
-      timeout: config.timeout || 10000,
+      timeout: config.timeout || 20000,
       headers: {
         'Content-Type': 'application/json',
         ...config.headers,
@@ -306,25 +306,74 @@ class HttpRequest {
     }
   }
 
-  // 使用 refresh token 刷新 access token
-  private async refreshAccessToken(): Promise<boolean> {
-    const refreshToken = this.getRefreshToken();
-    if (!refreshToken) return false;
+  // 判断业务层面401错误是否为token过期
+  private isTokenExpiredFromBody(body: any): boolean {
+    const errorMessage = body?.message || '';
+    const isExpiredMessage = 
+      errorMessage.includes('expired') ||
+      errorMessage.includes('过期') ||
+      errorMessage.includes('Token expired') ||
+      errorMessage.includes('JWT expired') ||
+      errorMessage.includes('登录已过期');
+    
+    return isExpiredMessage;
+  }
+
+  // 判断401错误是否为token过期
+  private async isTokenExpiredError(response: Response): Promise<boolean> {
     try {
-      const res = await fetch(`${this.baseURL}/auth/refresh`, {
+      const contentType = response.headers.get('content-type');
+      if (contentType?.includes('application/json')) {
+        const cloned = response.clone();
+        const body = await cloned.json();
+        
+        // 检查错误消息是否包含token过期相关的关键词
+        const errorMessage = body?.message || '';
+        const isExpiredMessage = 
+          errorMessage.includes('expired') ||
+          errorMessage.includes('过期') ||
+          errorMessage.includes('Token expired') ||
+          errorMessage.includes('JWT expired');
+        
+        return isExpiredMessage;
+      }
+    } catch (error) {
+      console.warn('无法解析401响应内容:', error);
+    }
+    
+    // 默认情况下，如果是401且无法确定具体原因，尝试刷新
+    return true;
+  }
+
+  // 使用 refresh token 刷新 access token
+  private async refreshAccessToken(): Promise<{ success: boolean; reason?: string }> {
+    const refreshToken = this.getRefreshToken();
+    if (!refreshToken) {
+      return { success: false, reason: 'no_refresh_token' };
+    }
+    
+    try {
+      const res = await fetch(`${this.baseURL}/admin/auth/refresh`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refreshToken }),
         credentials: 'include',
       });
+      
       const data = await res.json();
-      if (res.ok && (data?.data?.accessToken || data?.accessToken)) {
-        const accessToken = data.data?.accessToken || data.accessToken;
-        this.setToken(accessToken, true);
-        return true;
+      
+      if (res.ok && data?.data) {
+        const { accessToken, refreshToken: newRefreshToken } = data.data;
+        this.setTokens({ accessToken, refreshToken: newRefreshToken }, true);
+        return { success: true };
+      } else {
+        // 刷新令牌也过期或无效
+        return { success: false, reason: 'refresh_token_invalid' };
       }
-    } catch { }
-    return false;
+    } catch (error) {
+      console.error('刷新令牌失败:', error);
+      return { success: false, reason: 'network_error' };
+    }
   }
 
   // 通用请求方法
@@ -351,12 +400,10 @@ class HttpRequest {
         fullURL += queryString;
       }
     }
-
     try {
       const controller = new AbortController();
       const timeout: number = options.timeout || this.config.timeout || 10000;
       const timeoutId = setTimeout(() => controller.abort(), timeout);
-      
       // 添加超时前的警告提示（在超时前1秒显示）
       const warningTimeout = Math.max(timeout - 1000, 1000); // 至少1秒
       const warningId = setTimeout(() => {
@@ -373,13 +420,26 @@ class HttpRequest {
       clearTimeout(timeoutId);
       clearTimeout(warningId);
 
-      // 401 处理：尝试刷新一次（基于 HTTP 状态码）
+      // 401 处理：检查是否为token过期，只有token过期才尝试刷新
       if (response.status === 401 && !isRetry) {
-        // 移除重新请求逻辑，只记录日志
-        console.warn('请求返回401状态，需要重新登录');
-        this.showMessage('error', '登录已过期，请重新登录');
-        // 可以在这里添加跳转登录的逻辑
-        // this.toLogin();
+        // 先检查响应内容，判断是否为token过期
+        const isTokenExpired = await this.isTokenExpiredError(response);
+        if (isTokenExpired) {
+          const refreshResult = await this.refreshAccessToken();
+          if (refreshResult.success) {
+            // 重新发送原始请求
+            return this.requestInternal<T>(url, options, data, true);
+          } else {
+            console.warn('刷新令牌失败，需要重新登录:', refreshResult.reason);
+            this.showMessage('error', '登录已过期，请重新登录');
+            this.toLogin();
+          }
+        } else {
+          // 其他401错误（如权限不足、token格式错误等），直接跳转登录
+          console.warn('认证失败，需要重新登录');
+          this.showMessage('error', '认证失败，请重新登录');
+          this.toLogin();
+        }
       }
 
       // 若 HTTP 为 200，但后端以业务 code 标识 401（常见于部分网关/后端约定），同样处理
@@ -389,10 +449,25 @@ class HttpRequest {
           const cloned = response.clone();
           const body = await cloned.json();
           if (typeof body?.code === 'number' && body.code === 401) {
-            console.warn('业务层面返回401状态，需要重新登录');
-            this.showMessage('error', '登录已过期，请重新登录');
-            // 可以在这里添加跳转登录的逻辑
-            // this.toLogin();
+            // 检查是否为token过期
+            const isTokenExpired = this.isTokenExpiredFromBody(body);
+            
+            if (isTokenExpired) {
+              const refreshResult = await this.refreshAccessToken();
+              if (refreshResult.success) {
+                // 重新发送原始请求
+                return this.requestInternal<T>(url, options, data, true);
+              } else {
+                console.warn('刷新令牌失败，需要重新登录:', refreshResult.reason);
+                this.showMessage('error', '登录已过期，请重新登录');
+                this.toLogin();
+              }
+            } else {
+              // 其他401错误，直接跳转登录
+              console.warn('认证失败，需要重新登录');
+              this.showMessage('error', '认证失败，请重新登录');
+              this.toLogin();
+            }
           }
         }
       } catch { }

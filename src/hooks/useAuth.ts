@@ -20,8 +20,10 @@ export const useAuth = () => {
   }
   const login = async (username: string, password: string, code: string) => {
     try {
-      const res = await http.post('/admin/login', { username, password, code })
-      Cookies.set('access_token', res.data.token)
+      const res = await http.post('/admin/auth/login', { username, password, code })
+      // 存储访问令牌和刷新令牌
+      Cookies.set('access_token', res.data.accessToken)
+      Cookies.set('refresh_token', res.data.refreshToken, { httpOnly: false, secure: true })
       localStorage.setItem('userInfo', JSON.stringify(res.data.userInfo))
       setUserInfo(res.data.userInfo)
       setIsLogin(true)
@@ -33,6 +35,44 @@ export const useAuth = () => {
       throw error
     }
   }
+  // 刷新令牌
+  const refreshTokens = async () => {
+    try {
+      const refreshToken = Cookies.get('refresh_token')
+      if (!refreshToken) {
+        throw new Error('没有刷新令牌')
+      }
+      
+      const res = await http.post('/admin/auth/refresh', { refreshToken })
+      Cookies.set('access_token', res.data.accessToken)
+      Cookies.set('refresh_token', res.data.refreshToken, { httpOnly: false, secure: true })
+      localStorage.setItem('userInfo', JSON.stringify(res.data.userInfo))
+      setUserInfo(res.data.userInfo)
+      return res.data.accessToken
+    } catch (error: any) {
+      // 刷新失败，清除所有令牌
+      logout()
+      throw error
+    }
+  }
+
+  const logout = async () => {
+    try {
+      const refreshToken = Cookies.get('refresh_token')
+      if (refreshToken) {
+        await http.post('/admin/auth/revoke', { refreshToken })
+      }
+    } catch (error) {
+      console.error('撤销令牌失败:', error)
+    } finally {
+      Cookies.remove('access_token')
+      Cookies.remove('refresh_token')
+      localStorage.removeItem('userInfo')
+      setUserInfo(null)
+      setIsLogin(false)
+      router.replace('/admin/login')
+    }
+  }
   useEffect(() => {
     const userInfo = localStorage.getItem('userInfo')
     if (userInfo && userInfo !== 'undefined') {
@@ -40,5 +80,5 @@ export const useAuth = () => {
       setIsLogin(true)
     }
   }, [])
-  return { checked, setChecked, captcha, getCaptcha, login, userInfo, isLogin }
+  return { checked, setChecked, captcha, getCaptcha, login, logout, refreshTokens, userInfo, isLogin }
 }

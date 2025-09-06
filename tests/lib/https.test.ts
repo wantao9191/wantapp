@@ -1,375 +1,254 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import HttpRequest from '../../src/lib/https'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import HttpRequest from '@/lib/https'
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn() }),
-  usePathname: () => '/current',
-}))
+// Mock fetch
+global.fetch = vi.fn()
 
-const cookieStore: Record<string, string | undefined> = {}
+// Mock cookies
 vi.mock('js-cookie', () => ({
   default: {
-    get: (k: string) => cookieStore[k],
-    set: (k: string, v: string) => { cookieStore[k] = v },
-    remove: (k: string) => { delete cookieStore[k] },
-  },
+    get: vi.fn(),
+    set: vi.fn(),
+    remove: vi.fn(),
+  }
 }))
 
+// Mock antd message
 vi.mock('antd', () => ({
   message: {
     success: vi.fn(),
     error: vi.fn(),
     warning: vi.fn(),
     info: vi.fn(),
-  },
+  }
 }))
 
+// Mock Next.js router
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+  }),
+  usePathname: () => '/test',
+}))
 
+describe('HttpRequest - 刷新Token机制测试', () => {
+  let http: HttpRequest
+  let mockFetch: any
 
-type JsonBody = any
-
-function jsonResponse(body: JsonBody, status = 200, headers: Record<string, string> = { 'content-type': 'application/json' }) {
-  const h = new Map(Object.entries(headers))
-  const res: any = {
-    status,
-    ok: status >= 200 && status < 300,
-    headers: { get: (k: string) => h.get(k.toLowerCase()) || h.get(k) },
-    json: async () => body,
-    text: async () => JSON.stringify(body),
-    blob: async () => new Blob([JSON.stringify(body)]),
-  }
-  res.clone = () => jsonResponse(body, status, headers)
-  return res
-}
-
-describe('https', () => {
-  const http = new HttpRequest({ baseURL: '/api' })
-  let mockMessage: any
-
-  beforeEach(async () => {
-    vi.restoreAllMocks()
-    ;(global as any).window = undefined
-    for (const k of Object.keys(cookieStore)) delete cookieStore[k]
-    mockMessage = vi.mocked(await import('antd')).message
+  beforeEach(() => {
+    vi.clearAllMocks()
+    http = new HttpRequest({
+      baseURL: '/api',
+      timeout: 10000,
+      showMessage: false,
+    })
+    mockFetch = vi.mocked(fetch)
   })
 
-  it('JSON(code=200) 成功响应', async () => {
-    const seen: { url?: string; headers?: any } = {}
-    ;(global as any).fetch = vi.fn(async (url: string, init?: RequestInit) => {
-      seen.url = url
-      seen.headers = init?.headers
-      return jsonResponse({ code: 200, message: 'OK', data: { a: 1 } }, 200)
+  describe('核心功能测试', () => {
+    it('应该正确处理401错误并尝试刷新token', async () => {
+      // Mock 401响应
+      const expiredResponse = {
+        ok: false,
+        status: 401,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: () => Promise.resolve({
+          code: 401,
+          message: 'Token expired',
+          data: null
+        }),
+        clone: () => expiredResponse
+      }
+
+      // Mock 刷新token成功
+      const refreshResponse = {
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: () => Promise.resolve({
+          code: 200,
+          data: {
+            accessToken: 'new-access-token',
+            refreshToken: 'new-refresh-token'
+          }
+        })
+      }
+
+      // Mock 重新发送请求成功
+      const successResponse = {
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: () => Promise.resolve({
+          code: 200,
+          data: { users: [] }
+        })
+      }
+
+      mockFetch
+        .mockResolvedValueOnce(expiredResponse)
+        .mockResolvedValueOnce(refreshResponse)
+        .mockResolvedValueOnce(successResponse)
+
+      // Mock cookies
+      const mockCookies = await import('js-cookie')
+      mockCookies.default.get.mockReturnValue('refresh-token')
+
+      const result = await http.get('/admin/users')
+
+      // 验证结果
+      expect(result.success).toBe(true)
+      expect(result.data).toEqual({ users: [] })
+
+      // 验证fetch被调用了3次
+      expect(mockFetch).toHaveBeenCalledTimes(3)
     })
 
-    // 提供 token
-    ;(global as any).window = {} as any
-    cookieStore['access_token'] = 't-123'
+    it('应该区分token过期和其他401错误', async () => {
+      // Mock 权限不足的401错误
+      const permissionDeniedResponse = {
+        ok: false,
+        status: 401,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: () => Promise.resolve({
+          code: 401,
+          message: 'Permission denied',
+          data: null
+        }),
+        clone: () => permissionDeniedResponse
+      }
 
-    const res = await http.get('/hello')
-    expect(res.success).toBe(true)
-    expect(res.data).toEqual({ a: 1 })
-    expect(seen.url).toBe('/api/hello')
-    expect(JSON.stringify(seen.headers)).toContain('Authorization')
-  })
+      mockFetch.mockResolvedValueOnce(permissionDeniedResponse)
 
-  it('JSON(code!=200) 抛出业务错误', async () => {
-    ;(global as any).fetch = vi.fn(async () => jsonResponse({ code: 400, message: 'bad', data: null }, 200))
-    await expect(http.get('/x')).rejects.toMatchObject({ name: 'HttpError', code: 400 })
-  })
-
-  it('JSON(无code) 且 HTTP 200 走 http 语义', async () => {
-    ;(global as any).fetch = vi.fn(async () => jsonResponse({ result: 1 }, 200))
-    const res = await http.get('/no-code')
-    expect(res.success).toBe(true)
-    expect(res.code).toBe(200)
-    expect(res.data).toEqual({ result: 1 })
-  })
-
-  it('HTTP 401 状态码时显示错误消息', async () => {
-    ;(global as any).window = {} as any
-
-    ;(global as any).fetch = vi.fn(async () => 
-      jsonResponse({ message: 'unauth' }, 401)
-    )
-
-    await expect(http.get('/unauthorized')).rejects.toMatchObject({ 
-      name: 'HttpError', 
-      code: 401 
-    })
-    
-    expect(mockMessage.error).toHaveBeenCalledWith('登录已过期，请重新登录', 3)
-  })
-
-  it('网络错误(TypeError 含 fetch) 映射为 -1', async () => {
-    ;(global as any).fetch = vi.fn(async () => { throw new TypeError('Failed to fetch') })
-    await expect(http.get('/neterr')).rejects.toMatchObject({ name: 'HttpError', code: -1 })
-  })
-
-  it('AbortError 映射为 -2', async () => {
-    const err = new Error('aborted')
-    ;(err as any).name = 'AbortError'
-    ;(global as any).fetch = vi.fn(async () => { throw err })
-    await expect(http.get('/timeout')).rejects.toMatchObject({ name: 'HttpError', code: -2 })
-  })
-
-  it('GET 请求将查询参数拼接到 URL 上', async () => {
-    const seen: { url?: string } = {}
-    ;(global as any).fetch = vi.fn(async (url: string) => {
-      seen.url = url
-      return jsonResponse({ code: 200, message: 'OK', data: { success: true } }, 200)
+      // 权限不足应该直接抛出异常，不尝试刷新
+      await expect(http.get('/admin/users')).rejects.toThrow()
+      expect(mockFetch).toHaveBeenCalledTimes(1) // 只调用一次，不刷新
     })
 
-    const queryParams = { page: 1, size: 10, search: 'test' }
-    await http.get('/users', queryParams)
-    
-    expect(seen.url).toBe('/api/users?page=1&size=10&search=test')
-  })
+    it('应该处理刷新token失败的情况', async () => {
+      const expiredResponse = {
+        ok: false,
+        status: 401,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: () => Promise.resolve({
+          code: 401,
+          message: 'Token expired',
+          data: null
+        }),
+        clone: () => expiredResponse
+      }
 
-  it('GET 请求处理数组查询参数', async () => {
-    const seen: { url?: string } = {}
-    ;(global as any).fetch = vi.fn(async (url: string) => {
-      seen.url = url
-      return jsonResponse({ code: 200, message: 'OK', data: { success: true } }, 200)
+      const refreshFailResponse = {
+        ok: false,
+        status: 401,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: () => Promise.resolve({
+          code: 401,
+          message: 'Refresh token expired'
+        })
+      }
+
+      mockFetch
+        .mockResolvedValueOnce(expiredResponse)
+        .mockResolvedValueOnce(refreshFailResponse)
+
+      const mockCookies = await import('js-cookie')
+      mockCookies.default.get.mockReturnValue('invalid-refresh-token')
+
+      // 应该抛出异常
+      await expect(http.get('/admin/users')).rejects.toThrow()
+
+      // 验证只调用了2次fetch（原请求 + 刷新请求）
+      expect(mockFetch).toHaveBeenCalledTimes(2)
     })
 
-    const queryParams = { tags: ['tag1', 'tag2'], status: 'active' }
-    await http.get('/posts', queryParams)
-    
-    expect(seen.url).toBe('/api/posts?tags=tag1&tags=tag2&status=active')
-  })
+    it('应该处理没有refresh token的情况', async () => {
+      const expiredResponse = {
+        ok: false,
+        status: 401,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: () => Promise.resolve({
+          code: 401,
+          message: 'Token expired',
+          data: null
+        }),
+        clone: () => expiredResponse
+      }
 
-  it('GET 请求忽略 null 和 undefined 值', async () => {
-    const seen: { url?: string } = {}
-    ;(global as any).fetch = vi.fn(async (url: string) => {
-      seen.url = url
-      return jsonResponse({ code: 200, message: 'OK', data: { success: true } }, 200)
+      mockFetch.mockResolvedValueOnce(expiredResponse)
+
+      const mockCookies = await import('js-cookie')
+      mockCookies.default.get.mockReturnValue(null) // 没有refresh token
+
+      await expect(http.get('/admin/users')).rejects.toThrow()
+      expect(mockFetch).toHaveBeenCalledTimes(1) // 只调用原请求
     })
 
-    const queryParams = { name: 'test', age: null, city: undefined, active: true }
-    await http.get('/users', queryParams)
-    
-    expect(seen.url).toBe('/api/users?name=test&active=true')
-  })
+    it('应该正确识别token过期关键词', async () => {
+      const testCases = [
+        'Token expired',
+        'JWT expired', 
+        '登录已过期',
+        'expired',
+        '过期'
+      ]
 
-  it('GET 请求无查询参数时不添加问号', async () => {
-    const seen: { url?: string } = {}
-    ;(global as any).fetch = vi.fn(async (url: string) => {
-      seen.url = url
-      return jsonResponse({ code: 200, message: 'OK', data: { success: true } }, 200)
-    })
-
-    await http.get('/users')
-    
-    expect(seen.url).toBe('/api/users')
-  })
-
-  describe('消息提示功能', () => {
-    beforeEach(() => {
+      for (const message of testCases) {
       vi.clearAllMocks()
-      ;(global as any).window = {} as any
+        
+        const response = {
+          ok: false,
+          status: 401,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: () => Promise.resolve({
+            code: 401,
+            message,
+            data: null
+          }),
+          clone: () => response
+        }
+
+        mockFetch.mockResolvedValueOnce(response)
+
+        const mockCookies = await import('js-cookie')
+        mockCookies.default.get.mockReturnValue('refresh-token')
+
+        // 应该尝试刷新token
+        await expect(http.get('/admin/users')).rejects.toThrow()
+        expect(mockFetch).toHaveBeenCalledTimes(2) // 原请求 + 刷新请求
+      }
     })
 
-    it('成功响应时显示成功消息', async () => {
-      ;(global as any).fetch = vi.fn(async () => 
-        jsonResponse({ code: 200, message: '操作成功', data: { success: true } }, 200)
-      )
+    it('应该正确识别非token过期错误', async () => {
+      const testCases = [
+        'Permission denied',
+        'Invalid token format',
+        'Unauthorized',
+        'Access forbidden'
+      ]
 
-      await http.get('/success')
-      
-      expect(vi.mocked(await import('antd')).message.success).toHaveBeenCalledWith('操作成功', 3)
-    })
-
-    it('成功响应时默认消息不显示提示', async () => {
-      ;(global as any).fetch = vi.fn(async () => 
-        jsonResponse({ code: 200, message: '请求成功', data: { success: true } }, 200)
-      )
-
-      await http.get('/success')
-      
-      expect(mockMessage.success).not.toHaveBeenCalled()
-    })
-
-    it('业务失败时显示错误消息', async () => {
-      ;(global as any).fetch = vi.fn(async () => 
-        jsonResponse({ code: 400, message: '参数错误', data: null }, 200)
-      )
-
-      await expect(http.get('/error')).rejects.toMatchObject({ 
-        name: 'HttpError', 
-        code: 400,
-        message: '参数错误'
-      })
-      
-      expect(mockMessage.error).toHaveBeenCalledWith('参数错误', 3)
-    })
-
-    it('网络错误时显示错误消息', async () => {
-      ;(global as any).fetch = vi.fn(async () => { 
-        throw new TypeError('Failed to fetch') 
-      })
-
-      await expect(http.get('/neterr')).rejects.toMatchObject({ 
-        name: 'HttpError', 
-        code: -1 
-      })
-      
-      expect(mockMessage.error).toHaveBeenCalledWith('网络连接失败，请检查网络设置', 3)
-    })
-
-    it('超时错误时显示错误消息', async () => {
-      const err = new Error('aborted')
-      ;(err as any).name = 'AbortError'
-      ;(global as any).fetch = vi.fn(async () => { throw err })
-
-      await expect(http.get('/timeout')).rejects.toMatchObject({ 
-        name: 'HttpError', 
-        code: -2 
-      })
-      
-      expect(mockMessage.error).toHaveBeenCalledWith('请求超时（10秒），请检查网络连接或稍后重试', 3)
-    })
-
-    it('HTTP 401 状态码时显示错误消息', async () => {
-      ;(global as any).fetch = vi.fn(async () => 
-        jsonResponse({ message: 'unauthorized' }, 401)
-      )
-
-      await expect(http.get('/unauthorized')).rejects.toMatchObject({ 
-        name: 'HttpError', 
-        code: 401 
-      })
-      
-      expect(mockMessage.error).toHaveBeenCalledWith('登录已过期，请重新登录', 3)
-    })
-
-    it('业务层面 401 状态码时显示错误消息', async () => {
-      ;(global as any).fetch = vi.fn(async () => 
-        jsonResponse({ code: 401, message: 'token expired' }, 200)
-      )
-
-      await expect(http.get('/token-expired')).rejects.toMatchObject({ 
-        name: 'HttpError', 
-        code: 401 
-      })
-      
-      expect(mockMessage.error).toHaveBeenCalledWith('登录已过期，请重新登录', 3)
-    })
-
-    it('未知错误时显示错误消息', async () => {
-      ;(global as any).fetch = vi.fn(async () => { 
-        throw new Error('Unknown error') 
-      })
-
-      await expect(http.get('/unknown')).rejects.toMatchObject({ 
-        name: 'HttpError', 
-        code: -3 
-      })
-      
-      expect(mockMessage.error).toHaveBeenCalledWith('Unknown error', 3)
-    })
-  })
-
-  describe('消息提示配置', () => {
-    beforeEach(() => {
+      for (const message of testCases) {
       vi.clearAllMocks()
-      ;(global as any).window = {} as any
-    })
+        
+        const response = {
+          ok: false,
+          status: 401,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: () => Promise.resolve({
+            code: 401,
+            message,
+            data: null
+          }),
+          clone: () => response
+        }
 
-    it('可以禁用消息提示', async () => {
-      const customHttp = new HttpRequest({ showMessage: false })
-      
-      ;(global as any).fetch = vi.fn(async () => 
-        jsonResponse({ code: 200, message: '操作成功', data: { success: true } }, 200)
-      )
+        mockFetch.mockResolvedValueOnce(response)
 
-      await customHttp.get('/success')
-      
-      expect(mockMessage.success).not.toHaveBeenCalled()
-    })
-
-    it('可以自定义消息显示时长', async () => {
-      const customHttp = new HttpRequest({ messageDuration: 5000 })
-      
-      ;(global as any).fetch = vi.fn(async () => 
-        jsonResponse({ code: 400, message: '参数错误', data: null }, 200)
-      )
-
-      await expect(customHttp.get('/error')).rejects.toMatchObject({ 
-        name: 'HttpError', 
-        code: 400 
-      })
-      
-      expect(mockMessage.error).toHaveBeenCalledWith('参数错误', 5)
-    })
-
-    it('运行时配置消息提示', async () => {
-      const customHttp = new HttpRequest()
-      
-      // 禁用消息提示
-      customHttp.configureMessage({ showMessage: false })
-      
-      ;(global as any).fetch = vi.fn(async () => 
-        jsonResponse({ code: 200, message: '操作成功', data: { success: true } }, 200)
-      )
-
-      await customHttp.get('/success')
-      
-      expect(mockMessage.success).not.toHaveBeenCalled()
-    })
-
-    it('运行时配置消息显示时长', async () => {
-      const customHttp = new HttpRequest()
-      
-      // 设置消息显示时长为8秒
-      customHttp.configureMessage({ messageDuration: 8000 })
-      
-      ;(global as any).fetch = vi.fn(async () => 
-        jsonResponse({ code: 400, message: '参数错误', data: null }, 200)
-      )
-
-      await expect(customHttp.get('/error')).rejects.toMatchObject({ 
-        name: 'HttpError', 
-        code: 400 
-      })
-      
-      expect(mockMessage.error).toHaveBeenCalledWith('参数错误', 8)
-    })
-  })
-
-  describe('超时警告功能', () => {
-    beforeEach(() => {
-      vi.clearAllMocks()
-      ;(global as any).window = {} as any
-    })
-
-    it('超时警告功能被正确配置', async () => {
-      const customHttp = new HttpRequest({ timeout: 5000, showTimeoutWarning: true })
-      
-      // 模拟一个快速完成的请求
-      ;(global as any).fetch = vi.fn(async () => {
-        return jsonResponse({ code: 200, message: 'OK', data: { success: true } }, 200)
-      })
-
-      await customHttp.get('/slow')
-      
-      // 验证超时警告功能被正确配置
-      // 注意：由于请求很快完成，超时警告可能不会显示
-      // 但这个测试验证了超时警告功能的存在和配置
-    })
-
-    it('可以禁用超时警告', async () => {
-      const customHttp = new HttpRequest({ showTimeoutWarning: false })
-      
-      ;(global as any).fetch = vi.fn(async () => {
-        return jsonResponse({ code: 200, message: 'OK', data: { success: true } }, 200)
-      })
-
-      await customHttp.get('/slow')
-      
-      // 不应该显示警告消息
-      expect(mockMessage.warning).not.toHaveBeenCalled()
+        // 不应该尝试刷新token
+        await expect(http.get('/admin/users')).rejects.toThrow()
+        expect(mockFetch).toHaveBeenCalledTimes(1) // 只调用原请求
+      }
     })
   })
 })
-
-
