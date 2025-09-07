@@ -15,7 +15,7 @@ export const GET = createHandler(async (request: NextRequest, context?: { userId
   const data = await db.select()
     .from(menus)
     .where(and(...whereConditions))
-    .orderBy(menus.createTime)
+    .orderBy(menus.sort)
   return { contents: buildMenuTree(data) }
 }, {
   requireAuth: true

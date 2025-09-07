@@ -81,7 +81,7 @@ export const ConfigTable: React.FC<ConfigTableProps> = ({
   const formRef = useRef<any>(null)
   const [loading, setLoading] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
+  const [pageSize, setPageSize] = useState(15)
   const [total, setTotal] = useState(0)
   const [dataSource, setDataSource] = useState<any[]>([])
   // 构建表格列
@@ -216,32 +216,34 @@ export const ConfigTable: React.FC<ConfigTableProps> = ({
 
         {/* 表格容器 */}
         <div className="flex-1 min-h-0 flex flex-col">
-          <div className="flex-1 min-h-0 overflow-hidden">
-            <Table
-              columns={tableColumns}
-              dataSource={dataSource}
-              loading={loading}
-              rowKey={rowKey}
-              pagination={false} // 禁用内置分页，使用自定义分页组件
-              scroll={{
-                x: scroll?.x || 'max-content', // 使用max-content，确保列有足够空间并显示横向滚动条
-                y: scroll?.y || '100%' // 使用100%让表格撑满容器高度
-              }}
-              sticky={{ offsetHeader: 0 }}
-              size={size}
-              bordered={bordered}
-              rowClassName="hover:bg-gray-50 transition-colors w-full"
-              className="h-full text-13px"
-              onChange={(pagination, filters, sorter) => {
-                // 处理排序和筛选
-                console.log('Table changed:', { pagination, filters, sorter })
-              }}
-            />
+          <div className="flex-1 min-h-0 relative">
+            <div className="absolute inset-0 overflow-auto">
+              <Table
+                columns={tableColumns}
+                dataSource={dataSource}
+                loading={loading}
+                rowKey={rowKey}
+                pagination={false} // 禁用内置分页，使用自定义分页组件
+                scroll={{
+                  x: scroll?.x || 'max-content', // 使用max-content，确保列有足够空间并显示横向滚动条
+                  y: scroll?.y || undefined // 让表格自适应容器高度
+                }}
+                sticky={{ offsetHeader: 0 }}
+                size={size}
+                bordered={bordered}
+                rowClassName="hover:bg-gray-50 transition-colors w-full"
+                className="text-13px"
+                onChange={(pagination, filters, sorter) => {
+                  // 处理排序和筛选
+                  console.log('Table changed:', { pagination, filters, sorter })
+                }}
+              />
+            </div>
           </div>
         </div>
 
         {/* 自定义分页组件 */}
-        {total && total > pageSize ? (
+        {total && total > 0 ? (
           <div className="pt-4 border-t border-gray-200">
             <ConfigPagination
               current={currentPage}

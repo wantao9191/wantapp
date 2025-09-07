@@ -61,7 +61,7 @@ const BasicLayout: React.FC<BasicLayoutProps> = ({ children }) => {
           theme={theme}
         />
         <BasicTabs currentMenu={currentMenu} tabs={tabs} removeTab={removeTab} addTab={addTab} menuList={menuList} />
-        <div className='p-8px bg-#f0f2f5 flex-1 w-full overflow-x-hidden h-0 overflow-y-auto flex flex-col'>
+        <div className='p-8px bg-#f5f5f5 flex-1 w-full overflow-x-hidden h-0 overflow-y-auto flex flex-col'>
           {children}
         </div>
       </div>
