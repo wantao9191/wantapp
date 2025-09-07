@@ -1,15 +1,24 @@
 import { NextRequest } from 'next/server'
 import { createHandler } from '../../../_utils/handler'
 import { verifyRefreshToken } from '@/lib/jwt'
+import { badRequest } from '../../../_utils/response'
 
 // 简单的内存黑名单（生产环境建议使用Redis）
 const tokenBlacklist = new Set<string>()
 
 export const POST = createHandler(async (request: NextRequest) => {
-  const { refreshToken } = await request.json()
+  let body: any
   
-  if (!refreshToken) {
-    throw new Error('刷新令牌不能为空')
+  try {
+    body = await request.json()
+  } catch (error) {
+    return badRequest('Invalid JSON format')
+  }
+  
+  const { refreshToken } = body
+  
+  if (!refreshToken || typeof refreshToken !== 'string' || refreshToken.trim() === '') {
+    return badRequest('刷新令牌不能为空')
   }
 
   try {
@@ -21,7 +30,7 @@ export const POST = createHandler(async (request: NextRequest) => {
     
     return { message: '令牌已撤销' }
   } catch (error: any) {
-    throw new Error('刷新令牌无效')
+    return badRequest('刷新令牌无效')
   }
 }, {
   requireAuth: false

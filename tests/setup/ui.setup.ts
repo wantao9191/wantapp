@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom/vitest'
 import { vi, afterEach } from 'vitest'
 import { cleanup } from '@testing-library/react'
+import React from 'react'
 
 // 模拟 window.matchMedia API
 Object.defineProperty(window, 'matchMedia', {
@@ -31,6 +32,26 @@ global.IntersectionObserver = vi.fn().mockImplementation(() => ({
   disconnect: vi.fn(),
 }))
 
+// Mock Ant Design Icons
+vi.mock('@ant-design/icons', async () => {
+  const actual = await vi.importActual('@ant-design/icons')
+  return {
+    ...actual,
+    UserOutlined: vi.fn(() => React.createElement('span', { 'data-testid': 'user-outlined' }, 'UserIcon')),
+    TeamOutlined: vi.fn(() => React.createElement('span', { 'data-testid': 'team-outlined' }, 'TeamIcon')),
+    SettingOutlined: vi.fn(() => React.createElement('span', { 'data-testid': 'setting-outlined' }, 'SettingIcon')),
+    FileTextOutlined: vi.fn(() => React.createElement('span', { 'data-testid': 'file-text-outlined' }, 'FileTextIcon')),
+    RiseOutlined: vi.fn(() => React.createElement('span', { 'data-testid': 'rise-outlined' }, 'RiseIcon')),
+    FallOutlined: vi.fn(() => React.createElement('span', { 'data-testid': 'fall-outlined' }, 'FallIcon')),
+    CheckCircleOutlined: vi.fn(() => React.createElement('span', { 'data-testid': 'check-circle-outlined' }, 'CheckCircleIcon')),
+    ClockCircleOutlined: vi.fn(() => React.createElement('span', { 'data-testid': 'clock-circle-outlined' }, 'ClockCircleIcon')),
+    ExclamationCircleOutlined: vi.fn(() => React.createElement('span', { 'data-testid': 'exclamation-circle-outlined' }, 'ExclamationCircleIcon')),
+    BarChartOutlined: vi.fn(() => React.createElement('span', { 'data-testid': 'bar-chart-outlined' }, 'BarChartIcon')),
+    PieChartOutlined: vi.fn(() => React.createElement('span', { 'data-testid': 'pie-chart-outlined' }, 'PieChartIcon')),
+    LineChartOutlined: vi.fn(() => React.createElement('span', { 'data-testid': 'line-chart-outlined' }, 'LineChartIcon')),
+  }
+})
+
 // Mock Ant Design 的 ConfigProvider
 vi.mock('antd', async () => {
   const actual = await vi.importActual('antd')
@@ -54,6 +75,44 @@ vi.mock('antd', async () => {
         },
       }),
     },
+    Form: Object.assign(
+      ({ children, onFinish }: any) => 
+        React.createElement('form', { 'data-testid': 'form', onSubmit: onFinish }, children),
+      {
+        useForm: () => [
+          {
+            validateFields: vi.fn().mockResolvedValue({}),
+            resetFields: vi.fn(),
+            setFieldsValue: vi.fn(),
+            getFieldsValue: vi.fn().mockReturnValue({}),
+          }
+        ],
+        Item: ({ children, name, label }: any) => 
+          React.createElement('div', { 'data-testid': 'form-item', 'data-name': name, 'data-label': label }, 
+            label && React.createElement('label', null, label),
+            children
+          )
+      }
+    ),
+    Input: Object.assign(
+      ({ placeholder, ...props }: any) => 
+        React.createElement('input', { 'data-testid': 'input', placeholder, ...props }),
+      {
+        Password: ({ placeholder, ...props }: any) => 
+          React.createElement('input', { 'data-testid': 'input-password', type: 'password', placeholder, ...props })
+      }
+    ),
+    Button: ({ children, loading, ...props }: any) => 
+      React.createElement('button', { 'data-testid': 'button', disabled: loading, ...props }, 
+        loading ? 'Loading...' : children
+      ),
+    Checkbox: ({ children, ...props }: any) => 
+      React.createElement('label', { 'data-testid': 'checkbox' },
+        React.createElement('input', { type: 'checkbox', ...props }),
+        children
+      ),
+    Image: ({ src, alt, ...props }: any) => 
+      React.createElement('img', { 'data-testid': 'image', src, alt, ...props }),
   }
 })
 

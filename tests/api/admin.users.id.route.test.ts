@@ -103,11 +103,26 @@ describe('Admin Users [id] API', () => {
 
     it('应该阻止用户修改自己的信息', async () => {
       const { userSchema } = await import('../../src/lib/validations')
+      const { db } = await import('../../src/db')
+      const { checkOrganizationAccess } = await import('../../src/app/api/_utils/handler')
       
       vi.mocked(userSchema.safeParse).mockReturnValue({
         success: true,
         data: { name: '张三' }
       } as any)
+
+      // Mock database query for organization check
+      const selectMock = {
+        from: vi.fn(() => ({
+          where: vi.fn(() => ({
+            limit: vi.fn(() => Promise.resolve([{ organizationId: 1 }]))
+          }))
+        }))
+      }
+      vi.mocked(db.select).mockReturnValue(selectMock as any)
+      
+      // Mock organization access check to pass
+      vi.mocked(checkOrganizationAccess).mockReturnValue(true)
 
       const request = new NextRequest('http://localhost:3000/api/admin/users/1', {
         method: 'PUT',

@@ -86,18 +86,11 @@ export async function middleware(request: NextRequest) {
 
     const token = authHeader.slice(7)
     try {
-      const payload = await verifyAccessToken(token) as AccessTokenPayload
+      // 只验证JWT有效性，不设置请求头
+      await verifyAccessToken(token)
       
-      // 可以在这里添加更多的权限检查
-      // 例如：检查用户角色、权限等
-
-      // 将用户信息添加到请求头中，供API路由使用
+      // JWT验证通过，直接放行
       const response = NextResponse.next()
-      response.headers.set('X-User-Id', payload.id.toString())
-      if (payload.roles) {
-        response.headers.set('X-User-Roles', JSON.stringify(payload.roles))
-      }
-      console.log(payload,'-----')
       return setCorsHeaders(response, origin)
     } catch (error: any) {
       // 根据错误类型返回不同的错误信息

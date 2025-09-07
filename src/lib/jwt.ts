@@ -31,8 +31,11 @@ function getEnv(name: string, fallback?: string): string {
  */
 export type AccessTokenPayload = JWTPayload & {
   id: number
-  roles?: string[]
+  roles?: number[]
   permissionsVersion?: number
+  permissions?: string[]  // 权限字符串列表，如 ['user:read', 'menu:create']
+  organizationId?: number | null // 新增：机构ID
+  isSuperAdmin?: boolean  // 新增：超级管理员标识
 }
 
 /**

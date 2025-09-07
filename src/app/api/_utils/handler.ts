@@ -3,7 +3,7 @@
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { ok, error, unauthorized } from './response'
-import { checkPermission, getUserIdFromHeaders, getUserContext, getUserContextWithErrorType } from '@/lib/auth-helper'
+import { checkPermission, getUserContextWithErrorType } from '@/lib/auth-helper'
 
 // 修复类型定义：适配 Next.js App Router 的参数传递方式
 export type HandlerWithParams = (req: NextRequest, params: { id: string }, context?: { userId: number; organizationId?: number; isSuperAdmin?: boolean }) => Promise<any> | any
@@ -51,7 +51,7 @@ export function createHandler(arg: Handler | HandlerWithParams | Handlers, optio
       try {
         // 处理 Next.js App Router 的参数结构
         let resolvedParams: HandlerParams | undefined
-        
+
         // 从 context 中提取 params
         if (context?.params) {
           if (context.params instanceof Promise) {
@@ -103,7 +103,7 @@ export function createHandler(arg: Handler | HandlerWithParams | Handlers, optio
     try {
       // 处理 Next.js App Router 的参数结构
       let resolvedParams: HandlerParams | undefined
-      
+
       // 从 context 中提取 params
       if (context?.params) {
         if (context.params instanceof Promise) {
@@ -112,7 +112,7 @@ export function createHandler(arg: Handler | HandlerWithParams | Handlers, optio
           resolvedParams = context.params
         }
       }
-      
+
       // 验证参数
       if (hasParams && (!resolvedParams || !validateParams(resolvedParams))) {
         return error('Invalid parameters', 400)
@@ -164,7 +164,7 @@ async function checkAuth(request: NextRequest, permission?: string, requireAuth 
       }
     }
   }
-  
+
   const userContext = userContextResult.data!
 
   // 权限检查
@@ -179,7 +179,7 @@ async function checkAuth(request: NextRequest, permission?: string, requireAuth 
   }
 
   return {
-    context: { 
+    context: {
       userId: userContext.userId,
       organizationId: userContext.organizationId,
       isSuperAdmin: userContext.isSuperAdmin

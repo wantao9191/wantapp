@@ -3,6 +3,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import AdminLoginPage from '../../src/app/admin/login/page'
 
+// 确保 React 在全局可用
+global.React = React
+
 // Mock 外部依赖
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
@@ -17,19 +20,54 @@ vi.mock('../../src/lib/https', () => ({
   }
 }))
 
+vi.mock('../../src/hooks', () => ({
+  useAuth: () => ({
+    checked: false,
+    setChecked: vi.fn(),
+    captcha: 'test-captcha',
+    getCaptcha: vi.fn(),
+    login: vi.fn().mockResolvedValue({ success: true })
+  })
+}))
+
 vi.mock('antd', () => ({
   Card: ({ children, title, ...props }: any) => (
     <div data-testid="card" data-title={title} {...props}>
       {children}
     </div>
   ),
-  Form: ({ children, onFinish, ...props }: any) => (
-    <form data-testid="form" onSubmit={(e) => { e.preventDefault(); onFinish?.({ username: 'test', password: 'test' }) }} {...props}>
-      {children}
-    </form>
+  Form: Object.assign(
+    ({ children, onFinish, ...props }: any) => (
+      <form data-testid="form" onSubmit={(e) => { e.preventDefault(); onFinish?.({ username: 'test', password: 'test' }) }} {...props}>
+        {children}
+      </form>
+    ),
+    {
+      useForm: () => [
+        {
+          validateFields: vi.fn().mockResolvedValue({}),
+          resetFields: vi.fn(),
+          setFieldsValue: vi.fn(),
+          getFieldsValue: vi.fn().mockReturnValue({}),
+        }
+      ],
+      Item: ({ children, name, label, ...props }: any) => (
+        <div data-testid="form-item" data-name={name} data-label={label} {...props}>
+          {label && <label>{label}</label>}
+          {children}
+        </div>
+      )
+    }
   ),
-  Input: ({ placeholder, type, ...props }: any) => (
-    <input data-testid="input" placeholder={placeholder} type={type} {...props} />
+  Input: Object.assign(
+    ({ placeholder, type, ...props }: any) => (
+      <input data-testid="input" placeholder={placeholder} type={type} {...props} />
+    ),
+    {
+      Password: ({ placeholder, ...props }: any) => (
+        <input data-testid="input-password" type="password" placeholder={placeholder} {...props} />
+      )
+    }
   ),
   Button: ({ children, type, htmlType, loading, ...props }: any) => (
     <button data-testid="button" data-type={type} data-html-type={htmlType} data-loading={loading} {...props}>

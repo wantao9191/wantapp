@@ -43,7 +43,7 @@ describe('Token Revoke API', () => {
 
       // Assert
       expect(response.status).toBe(200)
-      expect(result.success).toBe(true)
+      expect(result.code).toBe(200)
       expect(result.data.message).toBe('令牌已撤销')
       expect(verifyRefreshToken).toHaveBeenCalledWith(validRefreshToken)
       expect(isTokenBlacklisted(validRefreshToken)).toBe(true)
@@ -102,7 +102,7 @@ describe('Token Revoke API', () => {
 
       // Assert
       expect(response.status).toBe(400)
-      expect(result.success).toBe(false)
+      expect(result.code).toBe(400)
       expect(result.message).toBe('刷新令牌不能为空')
       expect(verifyRefreshToken).not.toHaveBeenCalled()
     })
@@ -120,7 +120,7 @@ describe('Token Revoke API', () => {
 
       // Assert
       expect(response.status).toBe(400)
-      expect(result.success).toBe(false)
+      expect(result.code).toBe(400)
       expect(result.message).toBe('刷新令牌不能为空')
     })
 
@@ -140,7 +140,7 @@ describe('Token Revoke API', () => {
 
       // Assert
       expect(response.status).toBe(400)
-      expect(result.success).toBe(false)
+      expect(result.code).toBe(400)
       expect(result.message).toBe('刷新令牌无效')
       expect(verifyRefreshToken).toHaveBeenCalledWith(invalidToken)
       expect(isTokenBlacklisted(invalidToken)).toBe(false)
@@ -164,7 +164,7 @@ describe('Token Revoke API', () => {
 
       // Assert
       expect(response.status).toBe(400)
-      expect(result.success).toBe(false)
+      expect(result.code).toBe(400)
       expect(result.message).toBe('刷新令牌无效')
       expect(isTokenBlacklisted(expiredToken)).toBe(false)
     })
@@ -187,7 +187,7 @@ describe('Token Revoke API', () => {
 
       // Assert
       expect(response.status).toBe(400)
-      expect(result.success).toBe(false)
+      expect(result.code).toBe(400)
       expect(result.message).toBe('刷新令牌无效')
     })
   })
@@ -230,9 +230,14 @@ describe('Token Revoke API', () => {
 
       vi.mocked(verifyRefreshToken).mockResolvedValue(mockRefreshTokenPayload)
 
-      // Act - Revoke same token twice
+      // Act - Revoke same token twice (create separate requests)
+      const request2 = new NextRequest('http://localhost/api/admin/auth/revoke', {
+        method: 'POST',
+        body: JSON.stringify({ refreshToken: token })
+      })
+      
       const response1 = await POST(request)
-      const response2 = await POST(request)
+      const response2 = await POST(request2)
 
       // Assert - Both should succeed
       expect(response1.status).toBe(200)
@@ -261,7 +266,7 @@ describe('Token Revoke API', () => {
 
       // Assert
       expect(response.status).toBe(400)
-      expect(result.success).toBe(false)
+      expect(result.code).toBe(400)
       expect(result.message).toBe('刷新令牌无效')
       expect(isTokenBlacklisted(tamperedToken)).toBe(false)
     })
@@ -303,8 +308,14 @@ describe('Token Revoke API', () => {
         body: 'invalid json'
       })
 
-      // Act & Assert
-      await expect(POST(request)).rejects.toThrow()
+      // Act
+      const response = await POST(request)
+      const result = await response.json()
+
+      // Assert
+      expect(response.status).toBe(400)
+      expect(result.code).toBe(400)
+      expect(result.message).toBe('Invalid JSON format')
     })
 
     it('应该处理验证过程中的异常', async () => {
@@ -323,7 +334,7 @@ describe('Token Revoke API', () => {
 
       // Assert
       expect(response.status).toBe(400)
-      expect(result.success).toBe(false)
+      expect(result.code).toBe(400)
       expect(result.message).toBe('刷新令牌无效')
       expect(isTokenBlacklisted(token)).toBe(false)
     })

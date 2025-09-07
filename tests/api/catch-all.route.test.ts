@@ -188,7 +188,7 @@ describe('Catch-all API Route', () => {
         throw new Error('Response error')
       })
 
-      await expect(GET()).rejects.toThrow('Response error')
+      expect(() => GET()).toThrow('Response error')
     })
 
     it('应该确保notFound被正确调用', async () => {

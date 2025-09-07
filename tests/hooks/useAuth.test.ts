@@ -80,7 +80,12 @@ describe('useAuth', () => {
   it('应该获取验证码', async () => {
     const { http } = await import('../../src/lib/https')
     const mockBlob = new Blob(['mock-image'], { type: 'image/png' })
-    vi.mocked(http.get).mockResolvedValue({ data: mockBlob })
+    vi.mocked(http.get).mockResolvedValue({
+      code: 200,
+      message: 'success',
+      success: true,
+      data: mockBlob
+    })
 
     const { result } = renderHook(() => useAuth())
 
@@ -94,7 +99,7 @@ describe('useAuth', () => {
 
   it('应该处理验证码获取失败', async () => {
     const { http } = await import('../../src/lib/https')
-    const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => { })
     vi.mocked(http.get).mockRejectedValue(new Error('Network error'))
 
     const { result } = renderHook(() => useAuth())
@@ -110,10 +115,14 @@ describe('useAuth', () => {
   it('应该成功登录', async () => {
     const { http } = await import('../../src/lib/https')
     const Cookies = (await import('js-cookie')).default
-    
+
     const mockResponse = {
+      code: 200,
+      message: 'success',
+      success: true,
       data: {
-        token: 'mock-token',
+        accessToken: 'mock-token',
+        refreshToken: 'mock-refresh-token',
         userInfo: { id: 1, name: '测试用户' }
       }
     }
@@ -125,12 +134,13 @@ describe('useAuth', () => {
       await result.current.login('testuser', 'password', '1234')
     })
 
-    expect(http.post).toHaveBeenCalledWith('/admin/login', {
+    expect(http.post).toHaveBeenCalledWith('/admin/auth/login', {
       username: 'testuser',
       password: 'password',
       code: '1234'
     })
     expect(Cookies.set).toHaveBeenCalledWith('access_token', 'mock-token')
+    expect(Cookies.set).toHaveBeenCalledWith('refresh_token', 'mock-refresh-token', { httpOnly: false, secure: true })
     expect(localStorageMock.setItem).toHaveBeenCalledWith(
       'userInfo',
       JSON.stringify(mockResponse.data.userInfo)
@@ -141,10 +151,14 @@ describe('useAuth', () => {
 
   it('应该在记住密码时保存登录信息', async () => {
     const { http } = await import('../../src/lib/https')
-    
+
     const mockResponse = {
+      code: 200,
+      message: 'success',
+      success: true,
       data: {
-        token: 'mock-token',
+        accessToken: 'mock-token',
+        refreshToken: 'mock-refresh-token',
         userInfo: { id: 1, name: '测试用户' }
       }
     }

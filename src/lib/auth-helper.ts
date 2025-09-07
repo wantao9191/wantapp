@@ -1,80 +1,18 @@
-// src/lib/auth-helper.ts
+// src/lib/auth-helper.ts - JWT直接解析版本
 
 import { NextRequest, NextResponse } from 'next/server'
-import { hasPermission, getUserPermissions, isSuperAdmin } from '@/lib/permissions'
-import { db } from '@/db'
-import { users } from '@/db/schema'
-import { eq } from 'drizzle-orm'
+import { verifyAccessToken, AccessTokenPayload } from '@/lib/jwt'
+import { unauthorized, forbidden, error } from '@/app/api/_utils/response'
 
 /**
- * 从请求头获取用户ID
- */
-export function getUserIdFromHeaders(request: NextRequest): number | null {
-  const userIdHeader = request.headers.get('X-User-Id')
-  if (!userIdHeader) {
-    return null
-  }
-
-  const userId = parseInt(userIdHeader)
-  return isNaN(userId) ? null : userId
-}
-
-/**
- * 从请求头获取用户角色
- */
-export function getUserRolesFromHeaders(request: NextRequest): number[] {
-  const rolesHeader = request.headers.get('X-User-Roles')
-  if (!rolesHeader) {
-    return []
-  }
-
-  try {
-    return JSON.parse(rolesHeader)
-  } catch {
-    return []
-  }
-}
-
-/**
- * 从请求头获取用户机构ID
- */
-export function getUserOrganizationIdFromHeaders(request: NextRequest): number | null {
-  const orgIdHeader = request.headers.get('X-User-Organization-Id')
-  if (!orgIdHeader) {
-    return null
-  }
-
-  const orgId = parseInt(orgIdHeader)
-  return isNaN(orgId) ? null : orgId
-}
-
-/**
- * 从数据库获取用户机构ID
- */
-export async function getUserOrganizationIdFromDb(userId: number): Promise<number | null> {
-  try {
-    const user = await db
-      .select({ organizationId: users.organizationId })
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1)
-
-    return user[0]?.organizationId || null
-  } catch (error) {
-    console.error('Failed to get user organization ID:', error)
-    return null
-  }
-}
-
-/**
- * 获取用户上下文信息
+ * 用户上下文信息
  */
 export interface UserContext {
   userId: number
   roles: number[]
-  permissions: string[]
+  permissions: string[]  // 权限使用字符串形式，与API保持一致
   isSuperAdmin: boolean
-  organizationId?: number
+  organizationId?: number | null
 }
 
 export interface UserContextResult {
@@ -83,14 +21,25 @@ export interface UserContextResult {
   error?: 'unauthorized' | 'server_error'
 }
 
-export async function getUserContext(request: NextRequest): Promise<UserContext | null> {
-  const result = await getUserContextWithErrorType(request)
-  return result.success ? result.data! : null
+/**
+ * 从请求中提取JWT token
+ */
+function extractTokenFromRequest(request: NextRequest): string | null {
+  const authHeader = request.headers.get('Authorization')
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return null
+  }
+  return authHeader.slice(7)
 }
 
-export async function getUserContextWithErrorType(request: NextRequest): Promise<UserContextResult> {
-  const userId = getUserIdFromHeaders(request)
-  if (!userId) {
+// 权限现在直接使用字符串格式，无需映射转换
+
+/**
+ * 直接从JWT获取用户上下文信息
+ */
+export async function getUserContextFromJWT(request: NextRequest): Promise<UserContextResult> {
+  const token = extractTokenFromRequest(request)
+  if (!token) {
     return {
       success: false,
       error: 'unauthorized'
@@ -98,75 +47,75 @@ export async function getUserContextWithErrorType(request: NextRequest): Promise
   }
 
   try {
-    const [permissions, isAdmin] = await Promise.all([
-      getUserPermissions(userId),
-      isSuperAdmin(userId)
-    ])
-
-    const roles = getUserRolesFromHeaders(request)
-    
-    // 优先从请求头获取机构ID，如果没有则从数据库获取
-    let organizationId = getUserOrganizationIdFromHeaders(request)
-    if (!organizationId) {
-      organizationId = await getUserOrganizationIdFromDb(userId)
-    }
+    const payload = await verifyAccessToken(token) as AccessTokenPayload
 
     return {
       success: true,
       data: {
-        userId,
-        roles,
-        permissions,
-        isSuperAdmin: isAdmin,
-        organizationId: organizationId || undefined
+        userId: payload.id,
+        roles: payload.roles || [],
+        permissions: payload.permissions || [],
+        isSuperAdmin: payload.isSuperAdmin || false,
+        organizationId: payload.organizationId
       }
     }
   } catch (error) {
-    console.error('Failed to get user context:', error)
+    console.error('JWT verification failed:', error)
     return {
       success: false,
-      error: 'server_error'
+      error: 'unauthorized'
     }
   }
 }
 
 /**
- * 检查用户权限
+ * 兼容性函数 - 保持原有接口
+ */
+export async function getUserContext(request: NextRequest): Promise<UserContext | null> {
+  const result = await getUserContextFromJWT(request)
+  return result.success ? result.data! : null
+}
+
+export async function getUserContextWithErrorType(request: NextRequest): Promise<UserContextResult> {
+  return getUserContextFromJWT(request)
+}
+
+/**
+ * 直接从JWT检查权限
+ */
+export async function checkPermissionFromJWT(
+  request: NextRequest,
+  requiredPermission: string
+): Promise<NextResponse | null> {
+  const userContextResult = await getUserContextFromJWT(request)
+
+  if (!userContextResult.success) {
+    return unauthorized('Unauthorized')
+  }
+
+  const userContext = userContextResult.data!
+
+  // 超级管理员或拥有通配符权限直接通过
+  if (userContext.isSuperAdmin || userContext.permissions.includes('*')) {
+    return null
+  }
+
+  // 检查是否有所需权限
+  if (!userContext.permissions.includes(requiredPermission)) {
+    return forbidden(`Insufficient permissions: ${requiredPermission}`)
+  }
+
+  return null // 权限检查通过
+}
+
+/**
+ * 兼容性函数 - 保持原有接口
  */
 export async function checkPermission(
   request: NextRequest,
   requiredPermission: string
 ): Promise<NextResponse | null> {
-  const userId = getUserIdFromHeaders(request)
-
-  if (!userId) {
-    return NextResponse.json({
-      code: 401,
-      message: 'Unauthorized - User ID not found',
-      data: null
-    }, { status: 401 })
-  }
-
-  try {
-    const hasRequiredPermission = await hasPermission(userId, requiredPermission)
-
-    if (!hasRequiredPermission) {
-      return NextResponse.json({
-        code: 403,
-        message: `Insufficient permissions: ${requiredPermission}`,
-        data: null
-      }, { status: 403 })
-    }
-
-    return null // 权限检查通过
-  } catch (error) {
-    console.error('Permission check error:', error)
-    return NextResponse.json({
-      code: 500,
-      message: 'Internal server error during permission check',
-      data: null
-    }, { status: 500 })
-  }
+  return checkPermissionFromJWT(request, requiredPermission)
 }
 
 /**
@@ -177,22 +126,18 @@ export async function checkAuth(request: NextRequest): Promise<{
   userId?: number
   error?: NextResponse
 }> {
-  const userId = getUserIdFromHeaders(request)
+  const userContextResult = await getUserContextFromJWT(request)
 
-  if (!userId) {
+  if (!userContextResult.success) {
     return {
       success: false,
-      error: NextResponse.json({
-        code: 401,
-        message: 'Authentication required',
-        data: null
-      }, { status: 401 })
+      error: unauthorized('Authentication required')
     }
   }
 
   return {
     success: true,
-    userId
+    userId: userContextResult.data!.userId
   }
 }
 
@@ -204,24 +149,19 @@ export function withPermissionCheck(requiredPermission: string) {
     handler: (request: NextRequest, context: UserContext, ...args: T) => Promise<R>
   ) {
     return async function (request: NextRequest, ...args: T): Promise<R | NextResponse> {
-      // 获取用户上下文
-      const userContext = await getUserContext(request)
+      const userContextResult = await getUserContextFromJWT(request)
 
-      if (!userContext) {
-        return NextResponse.json({
-          code: 401,
-          message: 'Unauthorized',
-          data: null
-        }, { status: 401 })
+      if (!userContextResult.success) {
+        return unauthorized('Unauthorized')
       }
 
+      const userContext = userContextResult.data!
+
       // 检查权限
-      if (!userContext.isSuperAdmin && !userContext.permissions.includes(requiredPermission)) {
-        return NextResponse.json({
-          code: 403,
-          message: `Insufficient permissions: ${requiredPermission}`,
-          data: null
-        }, { status: 403 })
+      if (!userContext.isSuperAdmin &&
+        !userContext.permissions.includes('*') &&
+        !userContext.permissions.includes(requiredPermission)) {
+        return forbidden(`Insufficient permissions: ${requiredPermission}`)
       }
 
       return handler(request, userContext, ...args)
@@ -237,17 +177,13 @@ export function withAuth() {
     handler: (request: NextRequest, context: UserContext, ...args: T) => Promise<R>
   ) {
     return async function (request: NextRequest, ...args: T): Promise<R | NextResponse> {
-      const userContext = await getUserContext(request)
+      const userContextResult = await getUserContextFromJWT(request)
 
-      if (!userContext) {
-        return NextResponse.json({
-          code: 401,
-          message: 'Authentication required',
-          data: null
-        }, { status: 401 })
+      if (!userContextResult.success) {
+        return unauthorized('Authentication required')
       }
 
-      return handler(request, userContext, ...args)
+      return handler(request, userContextResult.data!, ...args)
     }
   }
 }
@@ -260,121 +196,93 @@ export async function checkMultiplePermissions(
   permissions: string[],
   requireAll = true // true: 需要所有权限, false: 需要任一权限
 ): Promise<NextResponse | null> {
-  const userId = getUserIdFromHeaders(request)
+  const userContextResult = await getUserContextFromJWT(request)
 
-  if (!userId) {
-    return NextResponse.json({
-      code: 401,
-      message: 'Unauthorized',
-      data: null
-    }, { status: 401 })
+  if (!userContextResult.success) {
+    return unauthorized('Unauthorized')
   }
 
-  try {
-    const userPermissions = await getUserPermissions(userId)
-    const isAdmin = await isSuperAdmin(userId)
+  const userContext = userContextResult.data!
 
-    // 超级管理员直接通过
-    if (isAdmin || userPermissions.includes('*')) {
-      return null
-    }
-
-    // 检查权限
-    const hasPermissions = permissions.map(permission =>
-      userPermissions.includes(permission)
-    )
-
-    const passed = requireAll
-      ? hasPermissions.every(Boolean)
-      : hasPermissions.some(Boolean)
-
-    if (!passed) {
-      const message = requireAll
-        ? `Missing permissions: ${permissions.join(', ')}`
-        : `Missing any of permissions: ${permissions.join(', ')}`
-
-      return NextResponse.json({
-        code: 403,
-        message,
-        data: null
-      }, { status: 403 })
-    }
-
+  // 超级管理员或通配符权限直接通过
+  if (userContext.isSuperAdmin || userContext.permissions.includes('*')) {
     return null
-  } catch (error) {
-    console.error('Multiple permissions check error:', error)
-    return NextResponse.json({
-      code: 500,
-      message: 'Internal server error',
-      data: null
-    }, { status: 500 })
-  }
-}
-
-/**
- * 获取API路径对应的权限要求
- */
-export async function getRequiredPermissionFromPath(
-  pathname: string,
-  method: string
-): Promise<string | null> {
-  // 这里可以从数据库或配置文件获取
-  // 暂时使用简单的映射
-  const pathPermissionMap: Record<string, string> = {
-    '/api/admin/users': 'user_management',
-    '/api/admin/roles': 'role_management',
-    '/api/admin/permissions': 'permission_management',
-    '/api/admin/organizations': 'organization_management',
-    '/api/admin/settings': 'system_settings'
   }
 
-  // 直接匹配
-  if (pathPermissionMap[pathname]) {
-    return pathPermissionMap[pathname]
-  }
+  // 检查权限
+  const hasPermissions = permissions.map(permission =>
+    userContext.permissions.includes(permission)
+  )
 
-  // 动态路由匹配
-  for (const [pattern, permission] of Object.entries(pathPermissionMap)) {
-    if (matchDynamicRoute(pathname, pattern)) {
-      return permission
-    }
+  const passed = requireAll
+    ? hasPermissions.every(Boolean)
+    : hasPermissions.some(Boolean)
+
+  if (!passed) {
+    const message = requireAll
+      ? `Missing permissions: ${permissions.join(', ')}`
+      : `Missing any of permissions: ${permissions.join(', ')}`
+
+    return forbidden(message)
   }
 
   return null
 }
 
 /**
- * 动态路由匹配辅助函数
+ * 机构过滤辅助函数
+ * 用于在API处理器中应用机构过滤逻辑
  */
-function matchDynamicRoute(pathname: string, pattern: string): boolean {
-  const pathSegments = pathname.split('/')
-  const patternSegments = pattern.split('/')
-
-  if (pathSegments.length !== patternSegments.length) {
-    return false
+export function applyOrganizationFilter(
+  context: { organizationId?: number; isSuperAdmin?: boolean } | undefined,
+  data: any,
+  organizationIdField: string = 'organizationId'
+): any {
+  // 如果没有上下文或用户是超级管理员，不进行过滤
+  if (!context || context.isSuperAdmin) {
+    return data
   }
 
-  return patternSegments.every((segment, index) => {
-    // [id] 或 [slug] 等动态参数
-    if (segment.startsWith('[') && segment.endsWith(']')) {
-      return true
+  // 如果用户没有机构ID，返回空数据
+  if (!context.organizationId) {
+    return Array.isArray(data) ? [] : null
+  }
+
+  // 对数据进行机构过滤
+  if (Array.isArray(data)) {
+    return data.filter(item => {
+      if (typeof item === 'object' && item !== null) {
+        return item[organizationIdField] === context.organizationId
+      }
+      return false
+    })
+  } else if (typeof data === 'object' && data !== null) {
+    // 单个对象的情况
+    if (data[organizationIdField] !== context.organizationId) {
+      return null
     }
-    return segment === pathSegments[index]
-  })
+  }
+
+  return data
 }
 
 /**
- * 自动权限检查（根据路径自动判断所需权限）
+ * 检查数据是否属于用户机构
  */
-export async function autoCheckPermission(request: NextRequest): Promise<NextResponse | null> {
-  const { pathname } = new URL(request.url)
-  const method = request.method
-
-  const requiredPermission = await getRequiredPermissionFromPath(pathname, method)
-
-  if (!requiredPermission) {
-    return null // 不需要权限检查
+export function checkOrganizationAccess(
+  context: { organizationId?: number; isSuperAdmin?: boolean } | undefined,
+  targetOrganizationId: number | undefined
+): boolean {
+  // 超级管理员可以访问所有数据
+  if (!context || context.isSuperAdmin) {
+    return true
   }
 
-  return checkPermission(request, requiredPermission)
+  // 如果用户没有机构ID，拒绝访问
+  if (!context.organizationId) {
+    return false
+  }
+
+  // 检查目标数据是否属于用户机构
+  return targetOrganizationId === context.organizationId
 }
