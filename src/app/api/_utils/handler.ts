@@ -17,6 +17,12 @@ export interface HandlerOptions {
   organizationFilter?: boolean // 是否启用机构过滤
 }
 
+export interface HandlerContext {
+  userId: number
+  organizationId?: number
+  isSuperAdmin?: boolean
+}
+
 export interface HandlerParams {
   id: string  // 改为必需属性，因为 hasParams 为 true 时必须有 id
 }
@@ -181,7 +187,7 @@ async function checkAuth(request: NextRequest, permission?: string, requireAuth 
   return {
     context: {
       userId: userContext.userId,
-      organizationId: userContext.organizationId,
+      organizationId: userContext.organizationId ?? undefined,
       isSuperAdmin: userContext.isSuperAdmin
     },
     error: null

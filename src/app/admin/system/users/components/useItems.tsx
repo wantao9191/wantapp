@@ -52,9 +52,7 @@ const useItems = () => {
       type: 'apiSelect',
       placeholder: '请选择所属机构',
       span: 12,
-      api: '/admin/organizations/dicts',
-      labelField: 'name',
-      valueField: 'id'
+      api: '/admin/organizations/dicts'
     },
     {
       label: '关联角色',
@@ -63,8 +61,6 @@ const useItems = () => {
       placeholder: '请选择关联角色',
       span: 12,
       api: '/admin/roles/dicts',
-      labelField: 'name',
-      valueField: 'id',
       mode: 'multiple'
     },
     {

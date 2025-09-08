@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useImperativeHandle, forwardRef } from 'react'
+import React, { useEffect, useImperativeHandle, forwardRef, useMemo, useCallback } from 'react'
 import { Form, Row, Col, Tooltip, Space } from 'antd'
 import { QuestionCircleOutlined } from '@ant-design/icons'
 import type { FormInstance } from 'antd/es/form'
@@ -26,10 +26,30 @@ const processFormData = (formData: any, items: FormItemConfig[]) => {
     if (Array.isArray(item.name)) {
       // 如果name是数组，需要为每个字段复制值
       const fieldValue = formData[item.name.join('_')] // 使用第一个字段作为主值
-      for(let key in fieldValue) {
+      for (let key in fieldValue) {
         processedData[key] = fieldValue[key]
       }
       delete processedData[item.name.join('_')]
+    }
+    if (item.type === 'upload') {
+      const fieldName = Array.isArray(item.name) ? item.name.join('_') : item.name
+      const fileList = formData[fieldName]
+      
+      if (fileList && Array.isArray(fileList) && fileList.length > 0) {
+        if (item.multiple) {
+          // 多文件上传：返回文件ID数组
+          processedData[fieldName] = fileList
+            .filter((file: any) => file.status === 'done') // 只处理已完成的文件
+            .map((file: any) => file.response?.id || file.id)
+        } else {
+          // 单文件上传：返回第一个文件的ID
+          const firstFile = fileList.find((file: any) => file.status === 'done')
+          processedData[fieldName] = firstFile ? (firstFile.response?.id || firstFile.id) : null
+        }
+      } else {
+        // 没有文件时，根据是否多文件返回空数组或null
+        processedData[fieldName] = item.multiple ? [] : null
+      }
     }
   })
   return processedData
@@ -48,6 +68,41 @@ const processInitialValues = (initialValues: any, items: FormItemConfig[]) => {
       })
       processedValues[item.name.join('_')] = values
     }
+    if (item.type === 'upload') {
+      const fieldName = Array.isArray(item.name) ? item.name.join('_') : item.name
+      const fileSource = initialValues[fieldName]
+      if (fileSource) {
+        // 如果初始值是文件ID，需要构造文件对象
+        if (typeof fileSource === 'string' || typeof fileSource === 'number') {
+          processedValues[fieldName] = [{
+            uid: `initial-${fileSource}`,
+            name: '已上传文件',
+            status: 'done',
+            id: fileSource,
+            url: `/api/files/${fileSource}` // 假设有文件访问接口
+          }]
+        } else if (Array.isArray(fileSource)) {
+          // 如果初始值是文件数组
+          processedValues[fieldName] = fileSource.map((file: any, index: number) => ({
+            uid: file.uid || `initial-${index}`,
+            name: file.name || '已上传文件',
+            status: 'done',
+            id: file.id || file,
+            url: file.url || `/api/files/${file.id || file}`
+          }))
+        } else if (fileSource && typeof fileSource === 'object') {
+          // 如果初始值是单个文件对象
+          processedValues[fieldName] = [{
+            uid: fileSource.uid || 'initial-file',
+            name: fileSource.name || '已上传文件',
+            status: 'done',
+            id: fileSource.id || fileSource,
+            url: fileSource.url || `/api/files/${fileSource.id || fileSource}`
+          }]
+        }
+      }
+    }
+
   })
   return processedValues
 }
@@ -116,19 +171,19 @@ const ConfigForm = forwardRef<ConfigFormRef, ConfigFormProps>(({
     return form.getFieldsValue(dependencies)
   }
 
-  // 检查表单项是否应该显示
-  const shouldShowItem = (item: FormItemConfig, formValues: any) => {
+  // 检查表单项是否应该显示 - 使用 useCallback 优化
+  const shouldShowItem = useCallback((item: FormItemConfig, formValues: any) => {
     // 创建表单上下文
     const context: FormContext = {
       formData: formValues,
       config,
       item
     }
-    
+
     // 解析 hidden 属性
     const isHidden = resolveFunctionValue(item.hidden, context)
     if (isHidden) return false
-    
+
     // 这里可以添加更复杂的显示逻辑
     // 比如根据其他字段的值来决定是否显示当前字段
     if (item.dependencies && item.dependencies.length > 0) {
@@ -136,12 +191,12 @@ const ConfigForm = forwardRef<ConfigFormRef, ConfigFormProps>(({
       // 可以在这里添加自定义的显示逻辑
       // 例如：return dependencyValues.someField === 'someValue'
     }
-    
-    return true
-  }
 
-  // 渲染表单项
-  const renderFormItem = (item: FormItemConfig, formValues: any, index: number) => {
+    return true
+  }, [config])
+
+  // 渲染表单项 - 使用 useCallback 优化
+  const renderFormItem = useCallback((item: FormItemConfig, formValues: any, index: number) => {
     if (!shouldShowItem(item, formValues)) {
       return null
     }
@@ -200,7 +255,6 @@ const ConfigForm = forwardRef<ConfigFormRef, ConfigFormProps>(({
 
     // 特殊处理 upload 类型
     if (item.type === 'upload') {
-      formItemProps.valuePropName = 'fileList'
       formItemProps.getValueFromEvent = (e: any) => {
         if (Array.isArray(e)) {
           return e
@@ -216,10 +270,10 @@ const ConfigForm = forwardRef<ConfigFormRef, ConfigFormProps>(({
 
     return (
       <Col {...colProps} key={itemKey}>
-        <Form.Item 
+        <Form.Item
           key={itemKey}
-          {...formItemProps} 
-          size={config.size || 'middle'} 
+          {...formItemProps}
+          size={config.size || 'middle'}
           className={resolvedClassName}
           style={resolvedStyle}
         >
@@ -231,14 +285,14 @@ const ConfigForm = forwardRef<ConfigFormRef, ConfigFormProps>(({
         </Form.Item>
       </Col>
     )
-  }
+  }, [config, disabled, loading])
 
-  // 监听表单值变化，用于处理依赖关系
-  const handleValuesChange = (changedValues: any, allValues: any) => {
+  // 监听表单值变化，用于处理依赖关系 - 使用 useCallback 优化
+  const handleValuesChange = useCallback((changedValues: any, allValues: any) => {
     onValuesChange?.(changedValues, allValues)
-    // 强制重新渲染以处理依赖关系
-    form.validateFields({ validateOnly: true }).catch(() => {})
-  }
+    // 只有在有依赖关系的表单项时才需要重新渲染
+    // 移除不必要的 validateFields 调用
+  }, [onValuesChange])
 
   return (
     <div className={className} style={style}>
@@ -263,12 +317,21 @@ const ConfigForm = forwardRef<ConfigFormRef, ConfigFormProps>(({
         onFinishFailed={onFinishFailed}
       >
         <Row gutter={[16, 0]}>
-          <Form.Item noStyle shouldUpdate>
-            {() => {
-              const formValues = form.getFieldsValue()
-              return config.items.map((item, index) => renderFormItem(item, formValues, index))
-            }}
-          </Form.Item>
+          {config.items.map((item, index) => {
+            // 对于有依赖关系的表单项，使用 shouldUpdate 来监听变化
+            if (item.dependencies && item.dependencies.length > 0) {
+              return (
+                <Form.Item key={`${item.name}_${index}`} noStyle shouldUpdate>
+                  {() => {
+                    const formValues = form.getFieldsValue()
+                    return renderFormItem(item, formValues, index)
+                  }}
+                </Form.Item>
+              )
+            }
+            // 对于没有依赖关系的表单项，直接渲染，不需要 shouldUpdate
+            return renderFormItem(item, {}, index)
+          })}
         </Row>
       </Form>
     </div>

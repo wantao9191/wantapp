@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useMemo, useCallback } from 'react'
 import { Input } from 'antd'
 import type { FormItemConfig, FormContext } from '@/types/form-config'
 import {
@@ -77,8 +77,58 @@ const FormItemRenderer: React.FC<FormItemRendererProps> = ({
   disabled,
   formContext
 }) => {
-  // 获取对应的表单项组件
-  const ItemComponent = FormItems[config.type as keyof typeof FormItems]
+  // 获取对应的表单项组件 - 使用 useMemo 缓存
+  const ItemComponent = useMemo(() => {
+    return FormItems[config.type as keyof typeof FormItems]
+  }, [config.type])
+
+  // 使用 useCallback 优化 onChange 处理函数
+  const handleChange = useCallback((e: any) => {
+    onChange?.(e.target.value)
+  }, [onChange])
+
+  // 解析函数参数 - 使用 useMemo 缓存计算结果
+  const resolvedPlaceholder = useMemo(() => {
+    return formContext && typeof config.placeholder === 'function' 
+      ? config.placeholder(formContext) 
+      : config.placeholder
+  }, [config.placeholder, formContext])
+
+  const resolvedDisabled = useMemo(() => {
+    return formContext && typeof config.disabled === 'function' 
+      ? config.disabled(formContext) 
+      : config.disabled
+  }, [config.disabled, formContext])
+
+  const resolvedStyle = useMemo(() => {
+    return formContext && typeof config.style === 'function' 
+      ? config.style(formContext) 
+      : config.style
+  }, [config.style, formContext])
+
+  const resolvedClassName = useMemo(() => {
+    return formContext && typeof config.className === 'function' 
+      ? config.className(formContext) 
+      : config.className
+  }, [config.className, formContext])
+
+  // 使用 useMemo 缓存 inputProps 对象
+  const inputProps = useMemo(() => ({
+    placeholder: resolvedPlaceholder as string,
+    disabled: disabled || (resolvedDisabled as boolean),
+    style: resolvedStyle as React.CSSProperties,
+    className: resolvedClassName as string,
+    value,
+    onChange: handleChange
+  }), [
+    resolvedPlaceholder,
+    disabled,
+    resolvedDisabled,
+    resolvedStyle,
+    resolvedClassName,
+    value,
+    handleChange
+  ])
 
   // 如果找到对应的组件，使用它；否则使用默认的 Input
   if (ItemComponent) {
@@ -93,31 +143,17 @@ const FormItemRenderer: React.FC<FormItemRendererProps> = ({
     )
   }
 
-  // 解析函数参数
-  const resolvedPlaceholder = formContext && typeof config.placeholder === 'function' 
-    ? config.placeholder(formContext) 
-    : config.placeholder
-  const resolvedDisabled = formContext && typeof config.disabled === 'function' 
-    ? config.disabled(formContext) 
-    : config.disabled
-  const resolvedStyle = formContext && typeof config.style === 'function' 
-    ? config.style(formContext) 
-    : config.style
-  const resolvedClassName = formContext && typeof config.className === 'function' 
-    ? config.className(formContext) 
-    : config.className
-
   // 默认回退到普通输入框
-  return (
-    <Input
-      placeholder={resolvedPlaceholder as string}
-      disabled={disabled || (resolvedDisabled as boolean)}
-      style={resolvedStyle as React.CSSProperties}
-      className={resolvedClassName as string}
-      value={value}
-      onChange={(e) => onChange?.(e.target.value)}
-    />
-  )
+  return <Input {...inputProps} />
 }
 
-export default FormItemRenderer
+// 使用 React.memo 包装组件，避免不必要的重新渲染
+export default React.memo(FormItemRenderer, (prevProps, nextProps) => {
+  // 自定义比较函数，只在关键属性变化时重新渲染
+  return (
+    prevProps.value === nextProps.value &&
+    prevProps.disabled === nextProps.disabled &&
+    prevProps.config === nextProps.config &&
+    prevProps.formContext === nextProps.formContext
+  )
+})

@@ -167,6 +167,7 @@ export interface UploadConfig extends BaseFormItemConfig {
   multiple?: boolean
   maxCount?: number
   listType?: 'text' | 'picture' | 'picture-card'
+  componentProps?: any
   beforeUpload?: (file: any) => boolean | Promise<any>
   onChange?: (info: any) => void
   onPreview?: (file: any) => void

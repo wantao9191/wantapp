@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { Select, message } from 'antd'
 import { http } from '@/lib/https'
 import type { FormItemConfig, FormContext } from '@/types/form-config'
@@ -257,52 +257,96 @@ const ApiSelectItem: React.FC<ApiSelectItemProps> = ({
     return label.toLowerCase().includes(input.toLowerCase())
   }, [filterOption])
 
-  // 解析函数参数
-  const resolvedPlaceholder = formContext && typeof config.placeholder === 'function' 
-    ? (config.placeholder as any)(formContext) 
-    : config.placeholder
-  const resolvedDisabled = formContext && typeof config.disabled === 'function' 
-    ? (config.disabled as any)(formContext) 
-    : config.disabled
-  const resolvedStyle = formContext && typeof config.style === 'function' 
-    ? (config.style as any)(formContext) 
-    : config.style
-  const resolvedClassName = formContext && typeof config.className === 'function' 
-    ? (config.className as any)(formContext) 
-    : config.className
+  // 解析函数参数 - 使用 useMemo 缓存计算结果
+  const resolvedPlaceholder = useMemo(() => {
+    return formContext && typeof config.placeholder === 'function' 
+      ? (config.placeholder as any)(formContext) 
+      : config.placeholder
+  }, [config.placeholder, formContext])
+
+  const resolvedDisabled = useMemo(() => {
+    return formContext && typeof config.disabled === 'function' 
+      ? (config.disabled as any)(formContext) 
+      : config.disabled
+  }, [config.disabled, formContext])
+
+  const resolvedStyle = useMemo(() => {
+    return formContext && typeof config.style === 'function' 
+      ? (config.style as any)(formContext) 
+      : config.style
+  }, [config.style, formContext])
+
+  const resolvedClassName = useMemo(() => {
+    return formContext && typeof config.className === 'function' 
+      ? (config.className as any)(formContext) 
+      : config.className
+  }, [config.className, formContext])
+
+  // 使用 useMemo 缓存选项列表
+  const optionElements = useMemo(() => {
+    return options.map((option: any) => (
+      <Option 
+        key={option.value} 
+        value={option.value} 
+        disabled={option.disabled}
+        label={option.label}
+      >
+        {option.label}
+      </Option>
+    ))
+  }, [options])
+
+  // 使用 useMemo 缓存静态属性对象（不包含 value 和 onChange）
+  const staticProps = useMemo(() => ({
+    placeholder: resolvedPlaceholder as string || '请选择',
+    disabled: disabled || (resolvedDisabled as boolean),
+    style: resolvedStyle as React.CSSProperties,
+    className: resolvedClassName as string,
+    mode: config.type === 'multiSelect' ? (mode || 'multiple') : mode,
+    allowClear: allowClear,
+    showSearch: showSearch,
+    filterOption: showSearch ? customFilterOption : false,
+    maxTagCount: maxTagCount,
+    loading: loading,
+    onSearch: handleSearch,
+    onFocus: onFocus,
+    onBlur: onBlur,
+    size: (config as any).size,
+    notFoundContent: loading ? '加载中...' : '暂无数据'
+  }), [
+    resolvedPlaceholder,
+    disabled,
+    resolvedDisabled,
+    resolvedStyle,
+    resolvedClassName,
+    config.type,
+    mode,
+    allowClear,
+    showSearch,
+    customFilterOption,
+    maxTagCount,
+    loading,
+    handleSearch,
+    onFocus,
+    onBlur,
+    config
+  ])
 
   return (
-    <Select
-      placeholder={resolvedPlaceholder as string || '请选择'}
-      disabled={disabled || (resolvedDisabled as boolean)}
-      style={resolvedStyle as React.CSSProperties}
-      className={resolvedClassName as string}
-      mode={config.type === 'multiSelect' ? (mode || 'multiple') : mode}
-      allowClear={allowClear}
-      showSearch={showSearch}
-      filterOption={showSearch ? customFilterOption : false}
-      maxTagCount={maxTagCount}
-      loading={loading}
-      value={value}
-      onChange={onChange}
-      onSearch={handleSearch}
-      onFocus={onFocus}
-      onBlur={onBlur}
-      size={(config as any).size}
-      notFoundContent={loading ? '加载中...' : '暂无数据'}
-    >
-      {options.map((option: any) => (
-        <Option 
-          key={option.value} 
-          value={option.value} 
-          disabled={option.disabled}
-          label={option.label}
-        >
-          {option.label}
-        </Option>
-      ))}
+    <Select {...staticProps} value={value} onChange={onChange}>
+      {optionElements}
     </Select>
   )
 }
 
-export default ApiSelectItem
+// 使用 React.memo 包装组件，避免不必要的重新渲染
+export default React.memo(ApiSelectItem, (prevProps, nextProps) => {
+  // 自定义比较函数，只在关键属性变化时重新渲染
+  // 注意：value 变化时允许重新渲染，因为这是正常的选择行为
+  return (
+    prevProps.disabled === nextProps.disabled &&
+    prevProps.config === nextProps.config &&
+    prevProps.formContext === nextProps.formContext &&
+    prevProps.onChange === nextProps.onChange
+  )
+})

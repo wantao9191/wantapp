@@ -1,0 +1,1 @@
+ALTER TABLE "files" ADD COLUMN "url" varchar(255) NOT NULL;

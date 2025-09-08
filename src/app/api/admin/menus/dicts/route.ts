@@ -6,7 +6,10 @@ import { eq, and } from 'drizzle-orm'
 import { buildMenuTree } from '@/lib/utils'
 
 export const GET = createHandler(async (request: NextRequest) => {
-  const data = await db.select()
+  const data = await db.select({
+    label: menus.name,
+    value: menus.id
+  })
     .from(menus)
     .where(and(eq(menus.deleted, false), eq(menus.status, 1)))
     .orderBy(menus.createTime)

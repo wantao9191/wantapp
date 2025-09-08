@@ -5,7 +5,10 @@ import { roles } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 
 export const GET = createHandler(async (request: NextRequest) => {
-  const data = await db.select()
+  const data = await db.select({
+    label: roles.name,
+    value: roles.id
+  })
     .from(roles)
     .where(and(eq(roles.deleted, false), eq(roles.status, 1)))
     .orderBy(roles.createTime)
