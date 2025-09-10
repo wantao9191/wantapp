@@ -11,10 +11,13 @@ export const PUT = createHandler(async (request: NextRequest, params, context) =
   if (!parmas.success) {
     throw new Error(parmas.error.errors[0].message)
   }
-  const permission = await db.update(permissions).set({
+  const [permission] = await db.update(permissions).set({
     ...parmas.data,
   }).where(eq(permissions.id, parseInt(id))).returning()
-  return permission
+  if (!permission) {
+    throw new Error('权限不存在')
+  }
+  return 'ok'
 }, {
   permission: 'permission:write',
   requireAuth: true,
@@ -22,10 +25,13 @@ export const PUT = createHandler(async (request: NextRequest, params, context) =
 })
 export const DELETE = createHandler(async (request: NextRequest, params, context) => {
   const { id } = params
-  const permission = await db.update(permissions).set({
+  const [permission] = await db.update(permissions).set({
     deleted: true
   }).where(eq(permissions.id, parseInt(id))).returning()
-  return permission
+  if (!permission) {
+    throw new Error('权限不存在')
+  }
+  return 'ok'
 }, {
   permission: 'permission:write',
   requireAuth: true,

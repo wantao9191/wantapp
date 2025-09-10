@@ -7,13 +7,13 @@ import { http } from '@/lib/https'
 import { Button, Modal } from 'antd'
 import { PlusOutlined, } from '@ant-design/icons'
 import EditModal from './components/editModal'
-export default function OrganizationsPage() {
+export default function RecordPage() {
   const [reload, setReload] = useState(false)
   const { tableColumns, searchFormSchema } = useItems(setReload)
   const [open, setOpen] = useState(false)
   const [formData, setFormData] = useState<any>(null)
-  // 组织管理的操作按钮
-  const organizationActions: ActionConfig = {
+  // 排班记录管理的操作按钮
+  const actions: ActionConfig = {
     title: '操作',
     key: 'actions',
     width: 150,
@@ -50,7 +50,7 @@ export default function OrganizationsPage() {
         columns={tableColumns}
         formColumns={searchFormSchema}
         rowKey="id"
-        actions={organizationActions}
+        actions={actions}
         size="small"
         searchable={true}
         bordered={false}

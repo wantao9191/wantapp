@@ -10,10 +10,10 @@ export const PUT = createHandler(async (request: NextRequest, params, context) =
   if (!parmas.success) {
     throw new Error(parmas.error.errors[0].message)
   }
-  const careTask = await db.update(careTasks).set({
+  const [careTask] = await db.update(careTasks).set({
     ...parmas.data,
   }).where(eq(careTasks.id, parseInt(id))).returning()
-  return careTask
+  return 'ok'
 }, {
   requireAuth: true,
   hasParams: true,
@@ -21,13 +21,13 @@ export const PUT = createHandler(async (request: NextRequest, params, context) =
 })
 export const DELETE = createHandler(async (request: NextRequest, params: { id: string }) => {
   const { id } = params
-  const careTask = await db.update(careTasks).set({
+  const [careTask] = await db.update(careTasks).set({
     deleted: true
   }).where(eq(careTasks.id, parseInt(id))).returning()
   if (!careTask) {
     throw new Error('Care task not found')
   }
-  return 'pk'
+  return 'ok'
 }, {
   requireAuth: true,
   hasParams: true,

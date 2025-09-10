@@ -13,7 +13,5 @@ export const GET = createHandler(async (request: NextRequest, params, context) =
     .orderBy(careTasks.createTime)
   return { contents: careTaskList }
 }, {
-  permission: 'caretask:read',
-  requireAuth: true,
-  hasParams: true
+  requireAuth: false,
 })  

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { validateIdCard } from './utils'
 export const loginSchema = z.object({
   username: z.string()
     .trim()
@@ -68,13 +69,13 @@ export const userSchema = z.object({
 // 护理任务校验规则
 export const careTaskSchema = z.object({
   name: z.string().trim().min(2, { message: '护理任务名称至少2个字符' }).max(50, { message: '护理任务名称最多50个字符' }),
-  status: z.number().optional(),
+  status: z.number(),
   description: z.string().optional(),
   coverId: z.number().min(1, { message: '请选择封面' }),
   audioId: z.number().min(1, { message: '请选择音频' }),
-  minDuration: z.number().min(0, { message: '最小时长不能小于0' }).optional(),
-  maxDuration: z.number().min(0, { message: '最大时长不能小于0' }).optional(),
-  level: z.string().optional(),
+  minDuration: z.number().min(0, { message: '最小时长不能小于0' }),
+  maxDuration: z.number().min(0, { message: '最大时长不能小于0' }),
+  level: z.string(),
 }).refine((data) => {
   // 如果两个时长都提供了，验证 minDuration 不能超过 maxDuration
   if (data.minDuration !== undefined && data.maxDuration !== undefined) {
@@ -84,6 +85,96 @@ export const careTaskSchema = z.object({
 }, {
   message: '最小时长不能超过最大时长',
   path: ['minDuration'], // 错误信息显示在 minDuration 字段上
+})
+// 护理套餐校验规则
+export const carePackageSchema = z.object({
+  name: z.string().trim().min(2, { message: '护理套餐名称至少2个字符' }).max(50, { message: '护理套餐名称最多50个字符' }),
+  tasks: z.array(z.number()).min(1, { message: '请选择护理任务' }),
+  minDuration: z.number().min(0, { message: '最小时长不能小于0' }),
+  maxDuration: z.number().min(0, { message: '最大时长不能小于0' }),
+  organizationId: z.number().min(1, { message: '请选择机构' }).optional(),
+  status: z.number(),
+  description: z.string().optional(),
+}).refine((data) => {
+  // 如果两个时长都提供了，验证 minDuration 不能超过 maxDuration
+  if (data.minDuration !== undefined && data.maxDuration !== undefined) {
+    return data.minDuration <= data.maxDuration;
+  }
+  return true;
+}, {
+  message: '最小时长不能超过最大时长',
+  path: ['minDuration'], // 错误信息显示在 minDuration 字段上
+})
+export const personInfoSchema = z.object({
+  name: z.string().trim().min(2, { message: '人员名称至少2个字符' }).max(50, { message: '人员名称最多50个字符' }),
+  mobile: z.string().trim().min(11, { message: '请输入正确的手机号' }).max(11, { message: '请输入正确的手机号' }),
+  credential: z.string()
+    .trim()
+    .min(1, { message: '请输入证件号' })
+    .refine((value) => {
+      const result = validateIdCard(value)
+      return result.isValid
+    }, { message: '请输入正确的身份证号码' }),
+  avatar: z.number().min(1, { message: '请选择头像' }).optional(),
+  organizationId: z.number().min(1, { message: '请选择机构' }),
+  status: z.number(),
+  description: z.string().optional(),
+  type: z.string().min(1, { message: '请选择类型' }),
+})
+export const insuredSchema = z.object({
+  ...personInfoSchema.shape,
+  packageId: z.number().min(1, { message: '请选择套餐' }),
+  address: z.string().trim().min(2, { message: '地址至少2个字符' }).max(50, { message: '地址最多50个字符' }),
+  latitude: z.number().min(-90, { message: '纬度必须在-90到90之间' }).max(90, { message: '纬度必须在-90到90之间' }).optional(),
+  longitude: z.number().min(-180, { message: '经度必须在-180到180之间' }).max(180, { message: '经度必须在-180到180之间' }).optional(),
+})
+export const schedulePlanSchema = z.object({
+  month: z.string().trim().min(1, { message: '请选择月份' }),
+  organizationId: z.number().min(1, { message: '请选择机构' }).optional(),
+  nurseName: z.string().optional(),
+  insuredName: z.string().optional(),
+})
+export const schedulePlanCreateSchema = z.object({
+  organizationId: z.number().min(1, { message: '请选择机构' }).optional(),
+  nurseId: z.number().min(1, { message: '请选择护士' }),
+  insuredId: z.number().min(1, { message: '请选择被保险人' }),
+  packageId: z.number().min(1, { message: '请选择护理套餐' }),
+  startTime: z.string().trim().min(1, { message: '请选择开始时间' })
+    .refine((value) => {
+      const date = new Date(value)
+      return !isNaN(date.getTime())
+    }, { message: '开始时间格式不正确' }),
+  endTime: z.string().trim().min(1, { message: '请选择结束时间' })
+    .refine((value) => {
+      const date = new Date(value)
+      return !isNaN(date.getTime())
+    }, { message: '结束时间格式不正确' }),
+  duration: z.string().min(1, { message: '请选择时长' })
+    .refine((value) => {
+      const num = parseInt(value)
+      return !isNaN(num) && num > 0
+    }, { message: '时长必须是大于0的数字' }),
+  description: z.string().optional(),
+}).refine((data) => {
+  // 验证开始时间不能晚于结束时间
+  const startTime = new Date(data.startTime)
+  const endTime = new Date(data.endTime)
+  return startTime < endTime
+}, {
+  message: '开始时间不能晚于结束时间',
+  path: ['startTime'],
+}).refine((data) => {
+  // 验证时长与时间范围的合理性
+  const startTime = new Date(data.startTime)
+  const endTime = new Date(data.endTime)
+  const duration = parseInt(data.duration)
+  const actualDuration = Math.floor((endTime.getTime() - startTime.getTime()) / (1000 * 60)) // 分钟
+  
+  // 允许一定的误差范围（±5分钟）
+  return Math.abs(actualDuration - duration) <= 5
+}, {
+  message: '时长与时间范围不匹配',
+  path: ['duration'],
 })
 // 文件上传校验规则
 export const fileUploadSchema = z.object({
@@ -98,4 +189,8 @@ export type RoleSchema = z.infer<typeof roleSchema>
 export type MenuSchema = z.infer<typeof menuSchema>
 export type PermissionSchema = z.infer<typeof permissionSchema>
 export type CareTaskSchema = z.infer<typeof careTaskSchema>
+export type PersonInfoSchema = z.infer<typeof personInfoSchema>
 export type FileUploadSchema = z.infer<typeof fileUploadSchema>
+export type CarePackageSchema = z.infer<typeof carePackageSchema>
+export type InsuredSchema = z.infer<typeof insuredSchema>
+export type SchedulePlanSchema = z.infer<typeof schedulePlanSchema>

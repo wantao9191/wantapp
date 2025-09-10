@@ -4,16 +4,17 @@ import React, { useState } from 'react'
 import { ConfigTable, ActionConfig } from '@/components/ui/ConfirmTable'
 import useItems from './useItems'
 import { http } from '@/lib/https'
-import { Button, Modal } from 'antd'
-import { PlusOutlined, } from '@ant-design/icons'
+import { Button, Modal, message } from 'antd'
+import { PlusOutlined, ExclamationCircleFilled } from '@ant-design/icons'
 import EditModal from './components/editModal'
 export default function OrganizationsPage() {
+  const { confirm } = Modal
   const [reload, setReload] = useState(false)
   const { tableColumns, searchFormSchema } = useItems(setReload)
   const [open, setOpen] = useState(false)
   const [formData, setFormData] = useState<any>(null)
-  // 组织管理的操作按钮
-  const organizationActions: ActionConfig = {
+  // 操作按钮
+  const actions: ActionConfig = {
     title: '操作',
     key: 'actions',
     width: 150,
@@ -27,18 +28,45 @@ export default function OrganizationsPage() {
         onClick: (record: any) => {
           setFormData(record)
           setOpen(true)
-          console.log('编辑角色:', record)
+        }
+      },
+      {
+        key: 'delete',
+        label: '删除',
+        type: 'link',
+        danger: true,
+        onClick: async (record: any) => {
+          handleDelete(record)
         }
       }
     ]
   }
 
-  const getOrganizationList = (params: Record<string, any>) => {
-    return http.get('/admin/roles', params)
+  const getList = (params: Record<string, any>) => {
+    return http.get('/admin/carePackages', params)
   }
   const handleAdd = () => {
     setFormData(null)
     setOpen(true)
+  }
+  const handleDelete = (record: any) => {
+    confirm({
+      title: '删除护理套餐后，该护理套餐将无法正常使用，确定删除该护理套餐吗？',
+      icon: <ExclamationCircleFilled />,
+      okText: '确定',
+      cancelText: '取消',
+      onOk: () => {
+        return new Promise((resolve, reject) => {
+          http.delete(`/admin/carePackages/${record.id}`).then(() => {
+            message.success('删除成功', 1)
+            setReload(true)
+            resolve(true)
+          }).catch(() => {
+            reject(false)
+          })
+        })
+      }
+    })
   }
   const onSubmit = () => {
     setReload(true)
@@ -50,7 +78,7 @@ export default function OrganizationsPage() {
         columns={tableColumns}
         formColumns={searchFormSchema}
         rowKey="id"
-        actions={organizationActions}
+        actions={actions}
         size="small"
         searchable={true}
         bordered={false}
@@ -59,12 +87,12 @@ export default function OrganizationsPage() {
             新增
           </Button>
         }}
-        api={getOrganizationList}
+        api={getList}
         reload={reload}
         setReload={setReload}
       />
       <Modal
-        title={formData?.id ? '编辑角色' : '新增角色'}
+        title={formData?.id ? '编辑护理套餐' : '新增护理套餐'}
         open={open}
         footer={null}
         destroyOnHidden={true}

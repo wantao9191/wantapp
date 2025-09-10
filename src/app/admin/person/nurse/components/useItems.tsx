@@ -3,41 +3,44 @@ import { FormItemConfig } from "@/types/form-config"
 const useItems = () => {
   const searchFormSchema: FormItemConfig[] = [
     {
-      label: '套餐名称',
+      label: '人员名称',
       name: 'name',
       type: 'input',
-      placeholder: '请输入套餐名称',
+      placeholder: '请输入人员名称',
       span: 24,
       rules: [
-        { required: true, message: '请输入套餐名称' },
-        { min: 2, max: 50, message: '套餐名称长度在2-50个字符之间' }
+        { required: true, message: '请输入人员名称' },
+        { min: 2, max: 50, message: '人员名称长度在2-50个字符之间' }
       ]
     },
     {
-      label: '护理服务',
-      name: 'tasks',
+      label: '所属机构',
+      name: 'organizationId',
       type: 'apiSelect',
-      placeholder: '请选择护理服务',
+      placeholder: '请选择所属机构',
       span: 24,
-      api: '/admin/careTasks/dicts',
-      mode: 'multiple',
+      api: '/admin/organizations/dicts',
       required: true,
+      hidden: true,
     },
     {
-      label: '最小时长',
-      name: 'minDuration',
-      type: 'number',
-      placeholder: '请输入最小时长',
+      label: '联系电话',
+      name: 'mobile',
+      type: 'input',
+      placeholder: '请输入联系电话',
       span: 12,
       required: true,
     },
     {
-      label: '最大时长',
-      name: 'maxDuration',
-      type: 'number',
-      placeholder: '请输入最大时长',
+      label: '证件号',
+      name: 'credential',
+      type: 'input',
+      placeholder: '请输入证件号',
       span: 12,
-      required: true,
+      rules: [
+        { required: true, message: '请输入证件号' },
+        { min: 1, max: 50, message: '证件号长度在1-50个字符之间' }
+      ]
     },
     {
       label: '备注',

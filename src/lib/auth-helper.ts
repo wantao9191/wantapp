@@ -99,7 +99,6 @@ export async function checkPermissionFromJWT(
   if (userContext.isSuperAdmin || userContext.permissions.includes('*')) {
     return null
   }
-  console.log('userContext.permissions',requiredPermission,userContext.permissions)
   // 检查是否有所需权限
   if (!userContext.permissions.includes(requiredPermission)) {
     return forbidden(`Insufficient permissions: ${requiredPermission}`)

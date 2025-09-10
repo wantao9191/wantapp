@@ -21,6 +21,9 @@ export const careTasks = pgTable('care_tasks', {
 // 护理计划（套餐）表
 export const carePackages = pgTable('care_packages', {
   id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+  organizationId: integer('organization_id').references(() => organizations.id),
+  minDuration: integer('min_duration'),
+  maxDuration: integer('max_duration'),
   name: varchar('name', { length: 50 }).notNull(),
   tasks: json('tasks').$type<number[]>(),
   description: text('description'),
@@ -32,8 +35,6 @@ export const carePackages = pgTable('care_packages', {
 // 排班计划表
 export const schedulePlans = pgTable('schedule_plans', {
   id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
-  name: varchar('name', { length: 50 }).notNull(),
-  code: varchar('code', { length: 50 }).unique().notNull(),
   organizationId: integer('organization_id').references(() => organizations.id),
   nurseId: integer('nurse_id').references(() => users.id),
   insuredId: integer('insured_id').references(() => personInfo.id),

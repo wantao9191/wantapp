@@ -71,6 +71,41 @@
       "when": 1757315039697,
       "tag": "0009_sharp_stepford_cuckoos",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1757383175332,
+      "tag": "0010_striped_zeigeist",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1757383807405,
+      "tag": "0011_nasty_thanos",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1757406960575,
+      "tag": "0012_spicy_steve_rogers",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1757410404960,
+      "tag": "0013_clammy_wolfpack",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1757471275557,
+      "tag": "0014_lush_blue_marvel",
+      "breakpoints": true
     }
   ]
 }

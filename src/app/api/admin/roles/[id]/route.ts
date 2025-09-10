@@ -11,10 +11,13 @@ export const PUT = createHandler(async (request: NextRequest, params, context) =
   if (!parmas.success) {
     throw new Error(parmas.error.errors[0].message)
   }
-  const role = await db.update(roles).set({
+  const [role] = await db.update(roles).set({
     ...parmas.data,
   }).where(eq(roles.id, parseInt(id))).returning()
-  return role
+  if (!role) {
+    throw new Error('角色不存在')
+  }
+  return 'ok'
 }, {
   permission: 'role:write',
   requireAuth: true,

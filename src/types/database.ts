@@ -8,6 +8,10 @@ export type Permission = typeof schema.permissions.$inferSelect;
 export type Menu = typeof schema.menus.$inferSelect;
 export type ApiPermission = typeof schema.apiPermissions.$inferSelect;
 export type Dict = typeof schema.dicts.$inferSelect;
+export type PersonInfo = typeof schema.personInfo.$inferSelect;
+export type CarePackage = typeof schema.carePackages.$inferSelect;
+export type CareTask = typeof schema.careTasks.$inferSelect;
+export type File = typeof schema.files.$inferSelect;
 // export type Department = typeof schema.departments.$inferSelect;
 // export type UserRole = typeof schema.userRoles.$inferSelect;
 // export type RolePermission = typeof schema.rolePermissions.$inferSelect;
@@ -24,6 +28,10 @@ export type NewPermission = typeof schema.permissions.$inferInsert;
 export type NewMenu = typeof schema.menus.$inferInsert;
 export type NewApiPermission = typeof schema.apiPermissions.$inferInsert;
 export type NewDict = typeof schema.dicts.$inferInsert;
+export type NewPersonInfo = typeof schema.personInfo.$inferInsert;
+export type NewCarePackage = typeof schema.carePackages.$inferInsert;
+export type NewCareTask = typeof schema.careTasks.$inferInsert;
+export type NewFile = typeof schema.files.$inferInsert;
 // export type NewDepartment = typeof schema.departments.$inferInsert;
 
 // 状态枚举

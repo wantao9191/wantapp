@@ -34,10 +34,13 @@ export const PUT = createHandler(async (request: NextRequest, params, context) =
     whereConditions.push(eq(users.organizationId, context.organizationId))
   }
 
-  const role = await db.update(users).set({
+  const [role] = await db.update(users).set({
     ...parmas.data,
   }).where(and(...whereConditions)).returning()
-  return role
+  if (!role) {
+    throw new Error('用户不存在或无权限操作')
+  }
+  return 'ok'
 }, {
   permission: 'user:write',
   requireAuth: true,
@@ -68,13 +71,13 @@ export const DELETE = createHandler(async (request: NextRequest, params, context
     whereConditions.push(eq(users.organizationId, context.organizationId))
   }
 
-  const user = await db.update(users).set({
+  const [user] = await db.update(users).set({
     deleted: true
   }).where(and(...whereConditions)).returning()
-  if (!user || user.length === 0) {
+  if (!user) {
     throw new Error('用户不存在或无权限操作')
   }
-  return
+  return 'ok'
 }, {
   permission: 'user:write',
   requireAuth: true,

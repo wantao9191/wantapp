@@ -1,0 +1,1 @@
+ALTER TABLE "person_info" ADD COLUMN "birth_date" varchar(50);

@@ -68,7 +68,7 @@ const DateItem: React.FC<DateItemProps> = ({ config, value, onChange, disabled, 
 
   const dateRangePlaceholder = useMemo(() => {
     if (config.type === 'dateRange' && resolvedPlaceholder) {
-      return [resolvedPlaceholder as string, resolvedPlaceholder as string]
+      return [resolvedPlaceholder as string, resolvedPlaceholder as string] as [string, string]
     }
     return undefined
   }, [config.type, resolvedPlaceholder])

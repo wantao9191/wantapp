@@ -7,7 +7,7 @@ const useItems = (setReload: (reload: boolean) => void) => {
   const [loading, setLoading] = useState(false)
   const searchFormSchema: FormItemConfig[] = [
     {
-      label: '套餐名称',
+      label: '人员名称',
       name: 'name',
       type: 'input',
     },
@@ -24,35 +24,50 @@ const useItems = (setReload: (reload: boolean) => void) => {
   ]
   const tableColumns: TableColumnConfig[] = [
     {
-      title: '套餐名称',
+      title: '人员名称',
       dataIndex: 'name',
       key: 'name',
       width: 150,
     },
     {
-      title: '护理服务',
-      dataIndex: 'taskNames',
-      key: 'taskNames',
-      render: (tasks: any[]) => {
-        return tasks?.join(',')
-      }
+      title: '护理套餐',
+      dataIndex: 'packageName',
+      key: 'packageName'
     },
     {
-      title: '最小时长',
-      dataIndex: 'minDuration',
-      key: 'minDuration',
+      title: '联系电话',
+      dataIndex: 'mobile',
+      key: 'mobile',
       width: 150
     },
     {
-      title: '最大时长',
-      dataIndex: 'maxDuration',
-      key: 'maxDuration',
+      title: '证件号',
+      dataIndex: 'credential',
+      key: 'credential',
       width: 150
     },
     {
-      title: '备注',
-      dataIndex: 'description',
-      key: 'description',
+      title: '性别',
+      dataIndex: 'gender',
+      key: 'gender',
+      width: 150
+    },
+    {
+      title: '年龄',
+      dataIndex: 'age',
+      key: 'age',
+      width: 150
+    },
+    {
+      title: '出生年月',
+      dataIndex: 'birthDate',
+      key: 'birthDate',
+      width: 150
+    },
+    {
+      title: '地址',
+      dataIndex: 'address',
+      key: 'address',
       width: 160,
     },
     {
@@ -65,7 +80,7 @@ const useItems = (setReload: (reload: boolean) => void) => {
         const handleStatusChange = async (checked: boolean) => {
           try {
             setLoading(true)
-            await http.put(`/admin/carePackages/${record.id}`, {
+            await http.put(`/admin/insured/${record.id}`, {
               ...record,
               status: checked ? 1 : 0
             })
@@ -87,6 +102,12 @@ const useItems = (setReload: (reload: boolean) => void) => {
           />
         )
       }
+    },
+    {
+      title: '备注',
+      dataIndex: 'description',
+      key: 'description',
+      width: 160,
     },
     {
       title: '创建时间',

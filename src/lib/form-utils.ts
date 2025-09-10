@@ -125,8 +125,18 @@ export const FormRules = {
     message
   }),
   idCard: (message = '请输入正确的身份证号码') => ({
-    pattern: /(^\d{15}$)|(^\d{18}$)|(^\d{17}(\d|X|x)$)/,
-    message
+    validator: async (rule: any, value: any) => {
+      if (!value) return Promise.resolve()
+      
+      const { validateIdCard } = await import('./utils')
+      const result = validateIdCard(value)
+      
+      if (!result.isValid) {
+        return Promise.reject(new Error(result.error || message))
+      }
+      
+      return Promise.resolve()
+    }
   }),
   number: (message = '请输入数字') => ({ type: 'number' as const, message }),
   integer: (message = '请输入整数') => ({ type: 'integer' as const, message }),

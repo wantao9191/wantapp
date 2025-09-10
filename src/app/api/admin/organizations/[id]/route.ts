@@ -11,11 +11,14 @@ export const PUT = createHandler(async (request: NextRequest, params, context) =
   if (!parmas.success) {
     throw new Error(parmas.error.errors[0].message)
   }
-  const org = await db.update(organizations).set({
+  const [org] = await db.update(organizations).set({
     ...parmas.data,
     setupTime: parmas.data.setupTime ? new Date(parmas.data.setupTime) : undefined
   }).where(eq(organizations.id, parseInt(id))).returning()
-  return org
+  if (!org) {
+    throw new Error('机构不存在')
+  }
+  return 'ok'
 }, {
   permission: 'organization:write',
   requireAuth: true,
@@ -23,12 +26,12 @@ export const PUT = createHandler(async (request: NextRequest, params, context) =
 })
 export const DELETE = createHandler(async (request: NextRequest, params, context) => {
   const { id } = params
-  const org = await db.update(organizations)
-  .set({
-    deleted: true
-  })
-  .where(eq(organizations.id, parseInt(id)))
-  .returning()
+  const [org] = await db.update(organizations)
+    .set({
+      deleted: true
+    })
+    .where(eq(organizations.id, parseInt(id)))
+    .returning()
   if (!org) {
     throw new Error('机构不存在')
   }

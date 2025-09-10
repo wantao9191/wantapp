@@ -41,9 +41,9 @@ export default function EditModal({
         try {
           setSubmitLoading(true)
           if (formData?.id) {
-            await http.put(`/admin/carePackages/${formData.id}`, params)
+            await http.put(`/admin/nurse/${formData.id}`, params)
           } else {
-            await http.post('/admin/carePackages', params)
+            await http.post('/admin/nurse', params)
           }
           message.success('操作成功')
           onSubmit?.()
