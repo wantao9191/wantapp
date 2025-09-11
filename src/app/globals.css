@@ -358,3 +358,55 @@ body {
   -webkit-mask-composite: xor;
   pointer-events: none;
 }
+
+/* 排班计划页面样式 */
+
+/* 日历组件样式优化 */
+.ant-picker-calendar {
+  border-radius: 12px !important;
+}
+
+.ant-picker-calendar .ant-picker-calendar-header {
+  border-bottom: 1px solid #f1f5f9 !important;
+  padding: 16px 20px !important;
+}
+
+.ant-picker-calendar .ant-picker-calendar-date {
+  border-radius: 8px !important;
+  transition: all 0.2s ease !important;
+}
+
+.ant-picker-calendar .ant-picker-calendar-date:hover {
+  background: #f8fafc !important;
+}
+
+.ant-picker-calendar .ant-picker-calendar-date-content {
+  height: 80px !important;
+  padding: 8px !important;
+}
+
+.ant-picker-calendar .ant-picker-calendar-date-today .ant-picker-calendar-date {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%) !important;
+  border: 1px solid #93c5fd !important;
+}
+
+.ant-picker-calendar .ant-picker-calendar-date-selected .ant-picker-calendar-date {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  color: white !important;
+}
+
+.ant-picker-calendar .ant-picker-calendar-date-selected .ant-picker-calendar-date-content {
+  color: white !important;
+}
+
+/* 日历月份切换按钮样式 */
+.ant-picker-calendar .ant-picker-calendar-header .ant-picker-calendar-year-select,
+.ant-picker-calendar .ant-picker-calendar-header .ant-picker-calendar-month-select {
+  font-weight: 600 !important;
+  color: #1e293b !important;
+}
+
+.ant-picker-calendar .ant-picker-calendar-header .ant-picker-calendar-year-select:hover,
+.ant-picker-calendar .ant-picker-calendar-header .ant-picker-calendar-month-select:hover {
+  color: #3b82f6 !important;
+}

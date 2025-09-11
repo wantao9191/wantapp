@@ -22,8 +22,12 @@ const useItems = (setReload: (reload: boolean) => void) => {
     },
     {
       title: '护理套餐',
-      dataIndex: 'packageName',
-      key: 'packageName'
+      dataIndex: 'package',
+      key: 'packageName',
+      width: 150,
+      render: (value: any) => {
+        return value?.name
+      }
     },
     {
       title: '联系电话',
@@ -60,16 +64,6 @@ const useItems = (setReload: (reload: boolean) => void) => {
       dataIndex: 'address',
       key: 'address',
       width: 160,
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      key: 'status',
-      width: 100,
-      align: 'center',
-      render: (status: number, record: any) => {
-       return {0: '启用', 1: '禁用'}[status]
-      }
     },
     {
       title: '备注',

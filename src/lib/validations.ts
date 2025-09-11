@@ -135,7 +135,7 @@ export const schedulePlanSchema = z.object({
   insuredName: z.string().optional(),
 })
 export const schedulePlanCreateSchema = z.object({
-  organizationId: z.number().min(1, { message: '请选择机构' }).optional(),
+  organizationId: z.number().min(1, { message: '请选择机构' }),
   nurseId: z.number().min(1, { message: '请选择护士' }),
   insuredId: z.number().min(1, { message: '请选择被保险人' }),
   packageId: z.number().min(1, { message: '请选择护理套餐' }),
@@ -149,10 +149,9 @@ export const schedulePlanCreateSchema = z.object({
       const date = new Date(value)
       return !isNaN(date.getTime())
     }, { message: '结束时间格式不正确' }),
-  duration: z.string().min(1, { message: '请选择时长' })
+  duration: z.number().min(1, { message: '请选择时长' })
     .refine((value) => {
-      const num = parseInt(value)
-      return !isNaN(num) && num > 0
+      return !isNaN(value) && value > 0
     }, { message: '时长必须是大于0的数字' }),
   description: z.string().optional(),
 }).refine((data) => {
@@ -167,9 +166,9 @@ export const schedulePlanCreateSchema = z.object({
   // 验证时长与时间范围的合理性
   const startTime = new Date(data.startTime)
   const endTime = new Date(data.endTime)
-  const duration = parseInt(data.duration)
+  const duration = data.duration
   const actualDuration = Math.floor((endTime.getTime() - startTime.getTime()) / (1000 * 60)) // 分钟
-  
+
   // 允许一定的误差范围（±5分钟）
   return Math.abs(actualDuration - duration) <= 5
 }, {

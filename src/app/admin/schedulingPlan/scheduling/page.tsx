@@ -1,7 +1,7 @@
 'use client'
-import { Calendar, ConfigProvider, Popover } from 'antd'
+import { Calendar, ConfigProvider, Popover, Spin, Button, Input } from 'antd'
 import type { CalendarMode } from 'antd/es/calendar/generateCalendar';
-import React, { useState } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import zhCN from 'antd/locale/zh_CN'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
@@ -9,118 +9,232 @@ import type { Dayjs } from 'dayjs'
 import AppIcon from '@/components/ui/AppIcons'
 import EditModal from './components/editModal'
 import { Modal } from 'antd'
-import InsuredModal from './components/insuredModal/insuredModal'
+import { http } from '@/lib/https'
 export default function SchedulingPage() {
   // 设置 dayjs 为中文
   dayjs.locale('zh-cn')
   const [open, setOpen] = useState(false)
   const [formData, setFormData] = useState<any>(null)
-  const [openInsured, setOpenInsured] = useState(false)
-  const getListData = (value: Dayjs) => {
-    let listData;
-    switch (value.date()) {
-      case 8:
-        listData = [
-          { type: 'warning', content: 'This is warning event.' },
-          { type: 'success', content: 'This is usual event.' },
-        ];
-        break;
-      case 10:
-        listData = [
-          { type: 'warning', content: 'This is warning event.' },
-          { type: 'success', content: 'This is usual event.' },
-          { type: 'error', content: 'This is error event.' },
-        ];
-        break;
-      case 15:
-        listData = [
-          { type: 'warning', content: 'This is warning event' },
-          { type: 'success', content: 'This is very long usual event。。....' },
-          { type: 'error', content: 'This is error event 1.' },
-          { type: 'error', content: 'This is error event 2.' },
-          { type: 'error', content: 'This is error event 3.' },
-          { type: 'error', content: 'This is error event 4.' },
-        ];
-        break;
-      default:
+  const [params, setParams] = useState<any>({})
+  const [currentDate, setCurrentDate] = useState<Dayjs>(dayjs())
+  const [list, setList] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
+  const getList = async () => {
+    try {
+      setLoading(true)
+      const res = await http.get('/admin/schedule', { month: currentDate.format('YYYY-MM'), ...params })
+      setList(res.data)
+      setLoading(false)
+    } catch (error) {
+      setLoading(false)
     }
-    return listData || [];
+  }
+  const onReset = useCallback(() => {
+    setParams({})
+    getList()
+  }, [])
+  const getListData = useCallback((value: Dayjs) => {
+    return list.filter((item: any) => dayjs(item.startTime).format('YYYY-MM-DD') === value.format('YYYY-MM-DD'))
+  }, [list]);
+  const onPanelChange = (value: Dayjs) => {
+    setCurrentDate(value)
   };
-  const onPanelChange = (value: Dayjs, mode: CalendarMode) => {
-    console.log(value.format('YYYY-MM-DD'), mode);
-  };
-  const handleAdd = () => {
-    setFormData(null)
+  const handleAdd = (value: Dayjs) => {
+    setFormData({
+      currentDate: value
+    })
     setOpen(true)
   };
+  const handleEdit = (item: any) => {
+    setFormData(item)
+    setOpen(true)
+  }
   const onSubmit = () => {
     setOpen(false)
+    getList()
   }
-  const onOpenInsured = () => {
-    setOpenInsured(true)
-  }
+
   const popoverContent = (data: any) => {
+    const renderList = data.length > 3 ? data.slice(0, 3) : data
     return (
-      <div>
-        {data.map((item: any, index: number) => (
-          <div key={item.id || index} className='flex items-center justify-between'>
-            {item.content}
+      <div className="min-w-80">
+        <div className="text-sm font-medium text-gray-700 mb-3 flex items-center justify-between">
+          <span>排班信息</span>
+          {data.length > 3 && (
+            <div className="text-gray-500 text-xs cursor-pointer bg-gray-50 px-3  rounded-full border border-gray-200 hover:bg-gray-100 transition-colors duration-200">
+              <span className="inline-flex items-center gap-1">
+                <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
+                查看全部
+                <span className="text-gray-700">
+                  {data.length}
+                </span>
+                条排班
+              </span>
+            </div>
+          )}
+        </div>
+        {renderList.map((item: any, index: number) => (
+          <div key={item.id || index} className='flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-2 rounded-lg mb-2 text-sm border border-blue-100 hover:shadow-sm transition-all duration-200'>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  {dayjs(item.startTime).format('HH:mm')} - {dayjs(item.endTime).format('HH:mm')}
+                </span>
+              </div>
+              <div className="text-gray-700">
+                <span className="font-medium">{item.insured?.name}</span>
+                <span className="text-gray-500 ml-1">的护理服务</span>
+              </div>
+              <div className="text-xs text-gray-500 mt-1">
+                套餐：<span className="font-medium text-indigo-600">{item.package?.name}</span>
+              </div>
+            </div>
+            <Button
+              type='link'
+              size='small'
+              className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-2 py-1 rounded"
+              onClick={(e) => {
+                // TODO: 实现编辑功能
+                handleEdit(item)
+              }}
+            >
+              编辑
+            </Button>
           </div>
         ))}
+
       </div>
     )
   }
   const dateCellRender = (value: Dayjs) => {
     const listData: any = getListData(value);
     return (
-      <div className="h-[calc(100%-24px)] flex flex-col justify-center items-center ">
-        {listData.length > 0 && (
-          <div className="flex-1 ">
-            <Popover
-              content={popoverContent(listData)}
-              title="排班计划"
-              trigger="click"
-              placement="topLeft"
-            >
-              <div className='text-gray-500 text-12px cursor-pointer bg-green-100 px-2 py-1 rounded' onClick={(e) => {
-                e.stopPropagation()
-              }}>
-                {`${listData.length}条排班计划`}
-              </div>
-            </Popover>
+      <div className={`h-[calc(100%-24px)] flex flex-col justify-center items-center gap-1`}>
+        {listData.length > 0 ? (
+          <Popover
+            content={popoverContent(listData)}
+            title=""
+            trigger="click"
+            placement="topLeft"
+            styles={{
+              body: {
+                borderRadius: '12px',
+                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                border: '1px solid rgba(59, 130, 246, 0.1)'
+              }
+            }}
+            arrow={false}
+          >
+            <div className='text-gray-700 text-xs cursor-pointer bg-gradient-to-r from-green-100 to-emerald-100 px-3 py-1.5 rounded-full border border-green-200 hover:shadow-md hover:from-green-200 hover:to-emerald-200 transition-all duration-200 font-medium' onClick={(e) => {
+              e.stopPropagation()
+            }}>
+              <span className="inline-flex items-center gap-1">
+                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                {`${listData.length}条排班`}
+              </span>
+            </div>
+          </Popover>
+        ) : (
+          <div className='text-gray-500 text-xs cursor-pointer bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200 hover:bg-gray-100 transition-colors duration-200'>
+            <span className="inline-flex items-center gap-1">
+              <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
+              暂无排班
+            </span>
           </div>
         )}
-        <div className="h-full flex justify-center items-center text-gray-500 text-12px" onClick={(e) => {
-          e.stopPropagation()
-          handleAdd()
-        }}>
-          <AppIcon name="PlusOutlined" />添加计划
-        </div>
+        {value.isAfter(dayjs().endOf('day')) && (
+          <div
+            className="flex justify-center items-center text-blue-500 text-xs mt-1 px-2 py-1 rounded-full hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation()
+              handleAdd(value)
+            }}
+          >
+            <AppIcon name="PlusOutlined" className="mr-1" />
+            添加计划
+          </div>
+        )}
       </div>
     );
   };
-  return <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 flex-1 flex flex-col min-h-0 h-full overflow-y-auto">
-    <ConfigProvider locale={zhCN}>
-      <Calendar className='w-full flex-1' onPanelChange={onPanelChange} cellRender={dateCellRender} />
-    </ConfigProvider>
-    <Modal
-      title={formData?.id ? '编辑排班计划' : '新增排班计划'}
-      open={open}
-      footer={null}
-      destroyOnHidden={true}
-      onCancel={() => setOpen(false)}
-    >
-      <EditModal formData={formData} onSubmit={onSubmit} onCancel={() => setOpen(false)} onOpenInsured={onOpenInsured} />
-    </Modal>
-    <Modal
-      title="选择参保人"
-      open={openInsured}
-      footer={null}
-      destroyOnHidden={true}
-      onCancel={() => setOpenInsured(false)}
-      width={800}
-    >
-      <InsuredModal />
-    </Modal>
-  </div>
+  useEffect(() => {
+    getList()
+  }, [currentDate])
+  return (
+    <Spin spinning={loading}>
+      <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl border border-gray-200 flex-1 flex flex-col min-h-0 h-full overflow-y-auto shadow-sm">
+        <ConfigProvider locale={zhCN}>
+          <Calendar
+            className='w-full flex-1 bg-white rounded-lg shadow-sm border border-gray-100'
+            value={currentDate}
+            onPanelChange={onPanelChange}
+            cellRender={dateCellRender}
+            headerRender={({ value, type, onChange, onTypeChange }) => (
+              <div className="flex items-center justify-between p-4 border-b border-gray-100">
+                <div className="flex items-center gap-4">
+                  <div className="text-14px text-gray-800 flex items-center">
+                    <span className="mr-2 w-120px">参保人姓名</span>
+                    <Input
+                      value={params.insuredName}
+                      onChange={(e) => setParams({ ...params, insuredName: e.target.value })}
+                      size='small'
+                    />
+                  </div>
+                  <div className="text-14px text-gray-800 flex items-center">
+                    <span className="mr-2 w-120px">护理员姓名</span>
+                    <Input
+                      value={params.nurseName}
+                      onChange={(e) => setParams({ ...params, nurseName: e.target.value })}
+                      size='small'
+                    />
+                  </div>
+                  <div className="text-14px text-gray-800 flex items-center">
+                    <Button type="primary" onClick={getList} className='ml-2' size='small'> 查询 </Button>
+                    <Button onClick={onReset} className='ml-2' size='small'>
+                      重置
+                    </Button>
+
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="text"
+                    icon={<AppIcon name="LeftOutlined" />}
+                    onClick={() => onChange(value.subtract(1, 'month'))}
+                    className="hover:bg-gray-100"
+                  />
+                  <h2 className="text-lg font-semibold text-gray-800">
+                    {value.format('YYYY年MM月')}
+                  </h2>
+                  <Button
+                    type="text"
+                    icon={<AppIcon name="RightOutlined" />}
+                    onClick={() => onChange(value.add(1, 'month'))}
+                    className="hover:bg-gray-100"
+                  />
+                  <Button
+                    type="primary"
+                    onClick={() => onChange(dayjs())}
+                    className="ml-2"
+                  >
+                    今天
+                  </Button>
+                </div>
+              </div>
+            )}
+          />
+        </ConfigProvider>
+        <Modal
+          title={formData?.id ? '编辑排班计划' : '新增排班计划'}
+          open={open}
+          footer={null}
+          destroyOnHidden={true}
+          onCancel={() => setOpen(false)}
+          width={600}
+        >
+          <EditModal formData={formData} onSubmit={onSubmit} onCancel={() => setOpen(false)} />
+        </Modal>
+      </div>
+    </Spin>
+  )
 }

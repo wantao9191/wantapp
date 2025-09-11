@@ -1,8 +1,9 @@
 import { NextRequest } from "next/server"
-import { createHandler } from "../../_utils/handler"
+import { createHandler, HandlerContext } from "../../_utils/handler"
 import { db } from "@/db"
-import { schedulePlans, users, personInfo, carePackages, organizations } from "@/db/schema"
+import { schedulePlans, personInfo, carePackages, organizations } from "@/db/schema"
 import { eq, and, gte, lt, like } from "drizzle-orm"
+import { alias } from "drizzle-orm/pg-core"
 import { schedulePlanSchema, schedulePlanCreateSchema } from "@/lib/validations"
 
 export const GET = createHandler(async (request: NextRequest, params, context) => {
@@ -53,16 +54,18 @@ export const GET = createHandler(async (request: NextRequest, params, context) =
     whereConditions.push(lt(schedulePlans.startTime, endOfMonth))
   }
 
+  const nurseInfo = alias(personInfo, 'nurseInfo')
+  const insuredInfo = alias(personInfo, 'insuredInfo')
+
   // 如果传入了护士姓名，添加护士姓名过滤条件
   if (nurseName) {
-    whereConditions.push(like(personInfo.name, `%${nurseName}%`))
+    whereConditions.push(like(nurseInfo.name, `%${nurseName}%`))
   }
 
   // 如果传入了被保险人姓名，添加被保险人姓名过滤条件
   if (insuredName) {
-    whereConditions.push(like(personInfo.name, `%${insuredName}%`))
+    whereConditions.push(like(insuredInfo.name, `%${insuredName}%`))
   }
-
   // 构建查询，包含所有关联表的完整信息
   const data = await db
     .select({
@@ -93,30 +96,26 @@ export const GET = createHandler(async (request: NextRequest, params, context) =
 
       // 关联的护士完整信息
       nurse: {
-        id: users.id,
-        name: users.name,
-        username: users.username,
-        phone: users.phone,
-        email: users.email,
-        status: users.status,
-        description: users.description,
-        createTime: users.createTime,
-        deleted: users.deleted,
+        id: nurseInfo.id,
+        name: nurseInfo.name,
+        username: nurseInfo.username,
+        mobile: nurseInfo.mobile,
+        description: nurseInfo.description,
+        createTime: nurseInfo.createTime,
+        type: nurseInfo.type,
       },
 
       // 关联的被保险人完整信息
       insured: {
-        id: personInfo.id,
-        name: personInfo.name,
-        mobile: personInfo.mobile,
-        credential: personInfo.credential,
-        avatar: personInfo.avatar,
-        organizationId: personInfo.organizationId,
-        status: personInfo.status,
-        description: personInfo.description,
-        type: personInfo.type,
-        createTime: personInfo.createTime,
-        deleted: personInfo.deleted,
+        id: insuredInfo.id,
+        name: insuredInfo.name,
+        mobile: insuredInfo.mobile,
+        credential: insuredInfo.credential,
+        avatar: insuredInfo.avatar,
+        organizationId: insuredInfo.organizationId,
+        description: insuredInfo.description,
+        type: insuredInfo.type,
+        createTime: insuredInfo.createTime,
       },
 
       // 关联的护理套餐完整信息
@@ -128,17 +127,15 @@ export const GET = createHandler(async (request: NextRequest, params, context) =
         name: carePackages.name,
         tasks: carePackages.tasks,
         description: carePackages.description,
-        status: carePackages.status,
-        createTime: carePackages.createTime,
-        deleted: carePackages.deleted,
+        createTime: carePackages.createTime
       },
     })
     .from(schedulePlans)
     .leftJoin(organizations, eq(schedulePlans.organizationId, organizations.id))
-    .leftJoin(users, eq(schedulePlans.nurseId, users.id))
-    .leftJoin(personInfo, eq(schedulePlans.insuredId, personInfo.id))
+    .leftJoin(insuredInfo, eq(schedulePlans.insuredId, insuredInfo.id))
+    .leftJoin(nurseInfo, eq(schedulePlans.nurseId, nurseInfo.id))
     .leftJoin(carePackages, eq(schedulePlans.packageId, carePackages.id))
-    .where(and(...whereConditions))
+    .where(and(...whereConditions)).orderBy(schedulePlans.startTime)
 
   return data
 }, {
@@ -146,12 +143,15 @@ export const GET = createHandler(async (request: NextRequest, params, context) =
   requireAuth: true,
 })
 
-export const POST = createHandler(async (request: NextRequest, params, context) => {
+export const POST = createHandler(async (request: NextRequest, context?: HandlerContext) => {
   const data = await request.json()
   if (context?.isSuperAdmin) {
-    data.organizationId = context.organizationId
+    if (!data.organizationId) {
+      throw new Error('机构ID不能为空')
+    }
   } else {
-    data.organizationId = context?.organizationId ?? undefined
+    console.log(context?.organizationId)
+    data.organizationId = Number(context?.organizationId)
   }
   const dataParams = schedulePlanCreateSchema.safeParse(data)
   if (!dataParams.success) {
@@ -161,8 +161,7 @@ export const POST = createHandler(async (request: NextRequest, params, context) 
   const insertData = {
     ...dataParams.data,
     startTime: new Date(dataParams.data.startTime),
-    endTime: new Date(dataParams.data.endTime),
-    duration: parseInt(dataParams.data.duration),
+    endTime: new Date(dataParams.data.endTime)
   }
   await db.insert(schedulePlans).values(insertData).returning()
   return 'ok'

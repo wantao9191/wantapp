@@ -1,30 +1,26 @@
 import { NextRequest } from "next/server"
-import { createHandler, HandlerContext } from "../../_utils/handler"
+import { createHandler } from "../../../_utils/handler"
 import { db } from "@/db"
-import { personInfo, organizations, carePackages } from "@/db/schema"
-import type { NewPersonInfo } from "@/types/database"
-import { eq, like, and, count } from "drizzle-orm"
-import { paginatedSimple } from "../../_utils/response"
-import { pageSchema, insuredSchema } from "@/lib/validations"
-import bcrypt from 'bcryptjs'
-import { getAgeFromIdCard, getGenderFromIdCard, getBirthDateFromIdCard } from "@/lib/utils"
+import { personInfo, organizations, carePackages, careTasks } from "@/db/schema"
+import { eq, like, and, count, inArray } from "drizzle-orm"
+import { paginatedSimple } from "../../../_utils/response"
+import { pageSchema, } from "@/lib/validations"
 
 // 常量定义
-const DEFAULT_PASSWORD = '12345@Aa'
 const DEFAULT_PAGE_SIZE = 10
 const DEFAULT_PAGE = 1
 const DEFAULT_TYPE = 'insured'
+
 export const GET = createHandler(async (request: NextRequest, params, context) => {
   const { searchParams } = new URL(request.url)
   const name = searchParams.get('name') || ''
-  const status = searchParams.get('status') || ''
   const page = searchParams.get('page') || DEFAULT_PAGE.toString()
   const pageSize = searchParams.get('pageSize') || DEFAULT_PAGE_SIZE.toString()
-
+  const organizationId = searchParams.get('organizationId')
   // 参数验证
   const pageParams = pageSchema.safeParse({
     page: Number(page),
-    pageSize: Number(pageSize)
+    pageSize: Number(pageSize),
   })
   if (!pageParams.success) {
     throw new Error(pageParams.error.errors[0].message)
@@ -33,24 +29,19 @@ export const GET = createHandler(async (request: NextRequest, params, context) =
   // 构建查询条件
   const whereConditions = [
     eq(personInfo.deleted, false),
-    eq(personInfo.type, DEFAULT_TYPE)
+    eq(personInfo.type, DEFAULT_TYPE),
+    eq(personInfo.status, 1)
   ]
 
   // 如果不是超级管理员，添加机构过滤条件
-  if (context && !context.isSuperAdmin && context.organizationId) {
-    whereConditions.push(eq(personInfo.organizationId, context.organizationId))
+  if (context?.isSuperAdmin) {
+    // 如果传入了机构ID参数，添加机构过滤条件
+    if (organizationId) {
+      whereConditions.push(eq(personInfo.organizationId, parseInt(organizationId)))
+    }
   }
-
   if (name) {
     whereConditions.push(like(personInfo.name, `%${name}%`))
-  }
-
-  if (status) {
-    const statusNum = Number(status)
-    if (isNaN(statusNum)) {
-      throw new Error('状态参数必须是数字')
-    }
-    whereConditions.push(eq(personInfo.status, statusNum))
   }
 
   // 使用 JOIN 查询一次性获取所有数据
@@ -71,22 +62,20 @@ export const GET = createHandler(async (request: NextRequest, params, context) =
         description: personInfo.description,
         status: personInfo.status,
         createTime: personInfo.createTime,
-        deleted: personInfo.deleted,
-        packageId: personInfo.packageId,
         birthDate: personInfo.birthDate,
         organizationName: organizations.name,
-        // 关联的护理套餐完整信息
+        // 关联的护理套餐信息
         package: {
           id: carePackages.id,
           organizationId: carePackages.organizationId,
           minDuration: carePackages.minDuration,
           maxDuration: carePackages.maxDuration,
           name: carePackages.name,
-          tasks: carePackages.tasks,
           description: carePackages.description,
           status: carePackages.status,
           createTime: carePackages.createTime,
           deleted: carePackages.deleted,
+          tasks: carePackages.tasks, // JSON 字段，包含任务 ID 数组
         },
       })
       .from(personInfo)
@@ -103,52 +92,46 @@ export const GET = createHandler(async (request: NextRequest, params, context) =
   ])
 
   const total = totalResult[0]?.count || 0
-  return paginatedSimple(contents, pageParams.data.page, pageParams.data.pageSize, total)
+  const enrichedContents = await cretateContent(contents)
+  return paginatedSimple(enrichedContents, pageParams.data.page, pageParams.data.pageSize, total)
 }, {
   permission: 'insured:read',
   requireAuth: true
 })
 
-export const POST = createHandler(async (request: NextRequest, context?: HandlerContext) => {
-  const data = await request.json()
+const cretateContent = async (contents: any[]) => {
+  // 收集所有任务 ID
+  const allTaskIds = contents.flatMap(item => item.package?.tasks || []).filter((arr, index, self) => self.indexOf(arr) === index)
 
-  // 处理机构ID逻辑
-  if (context?.isSuperAdmin) {
-    if (!data.organizationId) {
-      throw new Error('机构ID不能为空')
-    }
-  } else {
-    if (!context?.organizationId) {
-      throw new Error('用户机构信息缺失')
-    }
-    data.organizationId = Number(context.organizationId)
+  // 批量查询任务详情
+  let taskDetails: Record<number, any> = {}
+  if (allTaskIds.length > 0) {
+    const tasks = await db
+      .select()
+      .from(careTasks)
+      .where(
+        and(
+          inArray(careTasks.id, Array.from(allTaskIds)),
+          eq(careTasks.deleted, false),
+          eq(careTasks.status, 1)
+        )
+      )
+
+    // 转换为映射对象
+    taskDetails = tasks.reduce((acc, task) => {
+      acc[task.id] = task
+      return acc
+    }, {} as Record<number, any>)
   }
 
-  // 数据验证
-  const dataParams = insuredSchema.safeParse({ ...data, type: DEFAULT_TYPE })
-  if (!dataParams.success) {
-    throw new Error(dataParams.error.errors[0].message)
-  }
-
-  // 从身份证号提取信息
-  const { credential, mobile } = dataParams.data
-  const age = getAgeFromIdCard(credential)
-  const gender = getGenderFromIdCard(credential)
-  const birthDate = getBirthDateFromIdCard(credential)
-
-  // 构建插入数据
-  const insertData: NewPersonInfo = {
-    ...dataParams.data,
-    username: `user-${mobile}`,
-    password: await bcrypt.hash(DEFAULT_PASSWORD, 10),
-    gender: gender || '',
-    age: age || 0,
-    birthDate: birthDate || null,
-  }
-
-  await db.insert(personInfo).values(insertData).returning()
-  return { message: '创建成功' }
-}, {
-  permission: 'insured:write',
-  requireAuth: true
-})
+  // 为每个套餐补充任务详情
+  return contents.map(item => ({
+    ...item,
+    package: item.package ? {
+      ...item.package,
+      tasks: item.package.tasks && Array.isArray(item.package.tasks)
+        ? item.package.tasks.map((taskId: number) => taskDetails[taskId]).filter(Boolean)
+        : []
+    } : null
+  }))
+}

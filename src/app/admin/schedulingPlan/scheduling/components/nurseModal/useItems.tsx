@@ -11,16 +11,6 @@ const useItems = (setReload: (reload: boolean) => void) => {
       name: 'name',
       type: 'input',
     },
-    {
-      label: '状态',
-      name: 'status',
-      type: 'select',
-      placeholder: '请选择',
-      options: [
-        { label: '启用', value: 1 },
-        { label: '禁用', value: 0 },
-      ],
-    },
   ]
   const tableColumns: TableColumnConfig[] = [
     {
@@ -28,15 +18,6 @@ const useItems = (setReload: (reload: boolean) => void) => {
       dataIndex: 'name',
       key: 'name',
       width: 150,
-    },
-    {
-      title: '护理套餐',
-      dataIndex: 'packageName',
-      key: 'packageName',
-      width: 150,
-      render: (value: any) => {
-        return value?.name
-      }
     },
     {
       title: '联系电话',
@@ -67,45 +48,6 @@ const useItems = (setReload: (reload: boolean) => void) => {
       dataIndex: 'birthDate',
       key: 'birthDate',
       width: 150
-    },
-    {
-      title: '地址',
-      dataIndex: 'address',
-      key: 'address',
-      width: 160,
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      key: 'status',
-      width: 100,
-      align: 'center',
-      render: (status: number, record: any) => {
-        const handleStatusChange = async (checked: boolean) => {
-          try {
-            setLoading(true)
-            await http.put(`/admin/insured/${record.id}`, {
-              ...record,
-              status: checked ? 1 : 0
-            })
-            setLoading(false)
-            setReload(true)
-          }
-          catch (error) {
-            setLoading(false)
-          }
-        }
-        return (
-          <Switch
-            checked={status === 1}
-            size="small"
-            checkedChildren="启用"
-            unCheckedChildren="禁用"
-            onChange={handleStatusChange}
-            loading={loading}
-          />
-        )
-      }
     },
     {
       title: '备注',

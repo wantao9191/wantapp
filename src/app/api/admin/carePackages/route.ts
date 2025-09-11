@@ -48,32 +48,7 @@ export const GET = createHandler(async (request: NextRequest, context?: HandlerC
   ])
 
   // 获取所有相关的 careTasks 信息
-  const taskIds = contents.flatMap(item => item.tasks || [])
-  const uniqueTaskIds = [...new Set(taskIds)]
-  
-  let taskMap: Record<number, string> = {}
-  if (uniqueTaskIds.length > 0) {
-    const tasks = await db.select({
-      id: careTasks.id,
-      name: careTasks.name
-    })
-      .from(careTasks)
-      .where(and(
-        eq(careTasks.deleted, false),
-        eq(careTasks.status, 1)
-      ))
-    
-    taskMap = tasks.reduce((acc, task) => {
-      acc[task.id] = task.name
-      return acc
-    }, {} as Record<number, string>)
-  }
-
-  // 为每个 carePackage 添加 tasks 名称
-  const contentsWithTaskNames = contents.map(item => ({
-    ...item,
-    taskNames: (item.tasks || []).map((taskId: number) => taskMap[taskId] || `任务${taskId}`)
-  }))
+  const contentsWithTaskNames = await cretateContent(contents)
   return paginatedSimple(contentsWithTaskNames, pageParams.data.page, pageParams.data.pageSize, totalResult[0]?.count || 0)
 }, {
   permission: 'careplan:read',
@@ -97,3 +72,33 @@ export const POST = createHandler(async (request: NextRequest, context?: Handler
   permission: 'careplan:write',
   requireAuth: true
 })
+
+export const cretateContent = async (contents: any[]) => {
+  // 获取所有相关的 careTasks 信息
+  const taskIds = [...new Set(contents.flatMap(item => item.tasks || []))]
+
+  let taskMap: Record<number, string> = {}
+  if (taskIds.length > 0) {
+    const tasks = await db.select({
+      id: careTasks.id,
+      name: careTasks.name
+    })
+      .from(careTasks)
+      .where(and(
+        eq(careTasks.deleted, false),
+        eq(careTasks.status, 1)
+      ))
+
+    taskMap = tasks.reduce((acc, task) => {
+      acc[task.id] = task.name
+      return acc
+    }, {} as Record<number, string>)
+  }
+
+  // 为每个 carePackage 添加 tasks 名称
+  const contentsWithTaskNames = contents.map(item => ({
+    ...item,
+    taskNames: (item.tasks || []).map((taskId: number) => taskMap[taskId] || `任务${taskId}`)
+  }))
+  return contentsWithTaskNames
+}
