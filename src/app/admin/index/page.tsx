@@ -99,11 +99,11 @@ const AdminDashboard = () => {
       {/* 欢迎区域 */}
       <div className='mb-4'>
         <div className='bg-white border border-gray-200 rounded-lg p-4 relative overflow-hidden shadow-sm'>
-          <div className='absolute top-0 right-0 w-20 h-20 bg-gray-50 rounded-full -translate-y-10 translate-x-10'></div>
+          <div className='absolute top-0 right-0 w-20 h-20 bg-gray-50 rounded-full -translate-y-10 translate-x-10' />
           <div className='relative z-10'>
             <div className='flex items-center mb-2'>
-              <div className='w-2 h-6 bg-primary-500 rounded-full mr-3'></div>
-              <Title level={3} className='!mb-0 !text-xl text-gray-800'>
+              <div className='w-2 h-6 bg-primary-500 rounded-full mr-3' />
+              <Title className='!mb-0 !text-xl text-gray-800' level={3}>
                 欢迎回来，管理员！
               </Title>
             </div>
@@ -123,7 +123,7 @@ const AdminDashboard = () => {
       <div className='mb-4'>
         <Row gutter={[12, 12]}>
           {statsData.map((item, index) => (
-            <Col xs={12} sm={6} key={index}>
+            <Col key={index} sm={6} xs={12}>
               <Card 
                 className='h-full hover:shadow-md transition-all duration-300'
               >
@@ -131,7 +131,7 @@ const AdminDashboard = () => {
                   <div className='flex-1 min-w-0'>
                     <Text className='text-gray-500 text-xs block mb-1'>{item.title}</Text>
                     <div className='flex items-baseline'>
-                      <Title level={4} className='!mb-0 !text-lg !leading-none'>{item.value}</Title>
+                      <Title className='!mb-0 !text-lg !leading-none' level={4}>{item.value}</Title>
                       <div className={`ml-1 flex items-center text-xs ${
                         item.trendType === 'up' ? 'text-green-500' : 'text-red-500'
                       }`}>
@@ -156,21 +156,21 @@ const AdminDashboard = () => {
       {/* 主要内容区域 */}
       <Row gutter={[12, 12]}>
         {/* 系统状态 */}
-        <Col xs={24} lg={16}>
-          <Card title="系统状态" size="small" className='h-full'>
+        <Col lg={16} xs={24}>
+          <Card className='h-full' size="small" title="系统状态">
             <div className='flex flex-col sm:flex-row gap-4'>
               <div className='flex-shrink-0 text-center'>
                 <Progress
-                  type="circle"
-                  percent={85}
-                  strokeColor="#52c41a"
-                  size={100}
                   format={() => (
                     <div className='text-center'>
                       <div className='text-lg font-bold text-green-500'>85%</div>
                       <div className='text-xs text-gray-500'>系统健康度</div>
                     </div>
                   )}
+                  percent={85}
+                  size={100}
+                  strokeColor="#52c41a"
+                  type="circle"
                 />
               </div>
               <div className='flex-1 space-y-3'>
@@ -208,8 +208,8 @@ const AdminDashboard = () => {
         </Col>
 
         {/* 快速操作 */}
-        <Col xs={24} lg={8}>
-          <Card title="快速操作" size="small" className='h-full'>
+        <Col lg={8} xs={24}>
+          <Card className='h-full' size="small" title="快速操作">
             <div className='grid grid-cols-2 gap-3'>
               {quickActions.map((action, index) => (
                 <div
@@ -230,23 +230,23 @@ const AdminDashboard = () => {
       </Row>
 
       {/* 底部区域 */}
-      <Row gutter={[12, 12]} className='mt-3'>
+      <Row className='mt-3' gutter={[12, 12]}>
         {/* 最近活动 */}
-        <Col xs={24} lg={12}>
-          <Card title="最近活动" size="small" className='h-full'>
+        <Col lg={12} xs={24}>
+          <Card className='h-full' size="small" title="最近活动">
             <List
               dataSource={recentActivities}
               renderItem={(item) => (
                 <List.Item className='!px-0 !py-2'>
                   <List.Item.Meta
                     avatar={item.avatar}
+                    description={<span className='text-xs text-gray-500'>{item.description}</span>}
                     title={
                       <div className='flex items-center justify-between'>
                         <span className='font-medium text-sm'>{item.title}</span>
                         <span className='text-xs text-gray-400'>{item.time}</span>
                       </div>
                     }
-                    description={<span className='text-xs text-gray-500'>{item.description}</span>}
                   />
                 </List.Item>
               )}
@@ -255,8 +255,8 @@ const AdminDashboard = () => {
         </Col>
 
         {/* 数据概览 */}
-        <Col xs={24} lg={12}>
-          <Card title="数据概览" size="small" className='h-full'>
+        <Col lg={12} xs={24}>
+          <Card className='h-full' size="small" title="数据概览">
             <div className='space-y-3'>
               <div className='flex items-center justify-between p-3 bg-blue-50 rounded-lg'>
                 <div className='flex items-center'>

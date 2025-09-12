@@ -29,13 +29,13 @@ export const RateItem: React.FC<OtherItemProps> = ({ config, value, onChange, di
 
   return (
     <Rate
-      disabled={disabled || (resolvedDisabled as boolean)}
-      style={resolvedStyle as React.CSSProperties}
+      allowClear={rateConfig.allowClear}
+      allowHalf={rateConfig.allowHalf}
+      character={rateConfig.character}
       className={resolvedClassName as string}
       count={rateConfig.count}
-      allowHalf={rateConfig.allowHalf}
-      allowClear={rateConfig.allowClear}
-      character={rateConfig.character}
+      disabled={disabled || (resolvedDisabled as boolean)}
+      style={resolvedStyle as React.CSSProperties}
       tooltips={rateConfig.tooltips}
       value={value}
       onChange={onChange}
@@ -60,17 +60,17 @@ export const SliderItem: React.FC<OtherItemProps> = ({ config, value, onChange, 
 
   return (
     <Slider
-      disabled={disabled || (resolvedDisabled as boolean)}
-      style={resolvedStyle as React.CSSProperties}
       className={resolvedClassName as string}
-      min={sliderConfig.min}
-      max={sliderConfig.max}
-      step={sliderConfig.step}
+      disabled={disabled || (resolvedDisabled as boolean)}
       marks={sliderConfig.marks}
+      max={sliderConfig.max}
+      min={sliderConfig.min}
       range={sliderConfig.range}
-      vertical={sliderConfig.vertical}
+      step={sliderConfig.step}
+      style={resolvedStyle as React.CSSProperties}
       tooltip={{ open: sliderConfig.tooltipVisible }}
       value={value}
+      vertical={sliderConfig.vertical}
       onChange={onChange}
     />
   )
@@ -93,13 +93,13 @@ export const ColorPickerItem: React.FC<OtherItemProps> = ({ config, value, onCha
 
   return (
     <ColorPicker
-      disabled={disabled || (resolvedDisabled as boolean)}
-      style={resolvedStyle as React.CSSProperties}
-      className={resolvedClassName as string}
-      format={colorPickerConfig.format}
-      showText={colorPickerConfig.showText}
       allowClear={colorPickerConfig.allowClear}
+      className={resolvedClassName as string}
+      disabled={disabled || (resolvedDisabled as boolean)}
+      format={colorPickerConfig.format}
       presets={colorPickerConfig.presets}
+      showText={colorPickerConfig.showText}
+      style={resolvedStyle as React.CSSProperties}
       value={value}
       onChange={onChange}
     />

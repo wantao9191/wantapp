@@ -26,7 +26,7 @@ const processFormData = (formData: any, items: FormItemConfig[]) => {
     if (Array.isArray(item.name)) {
       // 如果name是数组，需要为每个字段复制值
       const fieldValue = formData[item.name.join('_')] // 使用第一个字段作为主值
-      for (let key in fieldValue) {
+      for (const key in fieldValue) {
         processedData[key] = fieldValue[key]
       }
       delete processedData[item.name.join('_')]
@@ -273,8 +273,8 @@ const ConfigForm = forwardRef<ConfigFormRef, ConfigFormProps>(({
         <Form.Item
           key={itemKey}
           {...formItemProps}
-          size={config.size || 'middle'}
           className={resolvedClassName}
+          size={config.size || 'middle'}
           style={resolvedStyle}
         >
           <FormItemRenderer
@@ -297,24 +297,24 @@ const ConfigForm = forwardRef<ConfigFormRef, ConfigFormProps>(({
   return (
     <div className={className} style={style}>
       <Form
-        form={form}
-        layout={config.layout || 'vertical'}
-        labelCol={config.labelCol}
-        wrapperCol={config.wrapperCol}
-        size={config.size || 'middle'}
-        disabled={disabled || config.disabled || loading}
         colon={config.colon}
+        disabled={disabled || config.disabled || loading}
+        form={form}
+        initialValues={initialValues}
+        labelCol={config.labelCol}
+        layout={config.layout || 'vertical'}
+        preserve={config.preserve}
         requiredMark={config.requiredMark}
         scrollToFirstError={config.scrollToFirstError}
-        preserve={config.preserve}
+        size={config.size || 'middle'}
         validateTrigger={config.validateTrigger}
-        initialValues={initialValues}
-        onValuesChange={handleValuesChange}
+        wrapperCol={config.wrapperCol}
         onFinish={(values) => {
           const processedValues = processFormData(values, config.items)
           onFinish?.(processedValues)
         }}
         onFinishFailed={onFinishFailed}
+        onValuesChange={handleValuesChange}
       >
         <Row gutter={[16, 0]}>
           {config.items.map((item, index) => {

@@ -26,7 +26,7 @@ export interface UserContextResult {
  */
 function extractTokenFromRequest(request: NextRequest): string | null {
   const authHeader = request.headers.get('Authorization')
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (!authHeader?.startsWith('Bearer ')) {
     return null
   }
   return authHeader.slice(7)

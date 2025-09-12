@@ -287,9 +287,9 @@ const ApiSelectItem: React.FC<ApiSelectItemProps> = ({
     return options.map((option: any) => (
       <Option 
         key={option.value} 
-        value={option.value} 
-        disabled={option.disabled}
+        disabled={option.disabled} 
         label={option.label}
+        value={option.value}
       >
         {option.label}
       </Option>

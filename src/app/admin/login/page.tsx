@@ -40,9 +40,9 @@ export default function Login() {
     <div className="login-page min-h-screen w-full gradient-bg relative overflow-hidden">
       {/* 装饰性背景元素 */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary-200/30 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-primary-300/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-primary-100/40 rounded-full blur-2xl animate-float" style={{ animationDelay: '4s' }}></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary-200/30 rounded-full blur-3xl animate-float" />
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-primary-300/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-primary-100/40 rounded-full blur-2xl animate-float" style={{ animationDelay: '4s' }} />
       </div>
 
       <div className="relative z-10 min-h-screen flex">
@@ -52,7 +52,7 @@ export default function Login() {
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{ backgroundImage: 'url(/login-cover.jpg)' }}
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-primary-600/80 via-primary-500/70 to-primary-700/80"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-primary-600/80 via-primary-500/70 to-primary-700/80" />
           
           <div className="relative z-20 text-center text-white px-8 max-w-lg animate-fade-in">
             <div className="mb-8">
@@ -90,7 +90,7 @@ export default function Login() {
               {/* 头部信息 */}
               <div className="text-center mb-6">
                 <div className="logo-container inline-flex items-center justify-center w-16 h-16 rounded-3xl mb-4 shadow-glow border border-primary-200/50">
-                  <img src="/logo.png" alt="logo" className="w-10 h-8 object-contain filter drop-shadow-sm" />
+                  <img alt="logo" className="w-10 h-8 object-contain filter drop-shadow-sm" src="/logo.png" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">欢迎回来</h2>
                 <p className="text-gray-500 text-sm">登录您的长护系统账户</p>
@@ -98,57 +98,57 @@ export default function Login() {
 
               {/* 登录表单 */}
               <Form 
-                name="login" 
+                className="space-y-1" 
                 form={form} 
-                onFinish={onFinish}
                 layout="vertical"
+                name="login"
                 size="middle"
-                className="space-y-1"
+                onFinish={onFinish}
               >
                 <Form.Item 
-                  name="username" 
+                  className="mb-4" 
+                  name="username"
                   rules={[{ required: true, message: '请输入用户名' }]}
-                  className="mb-4"
                 >
                   <Input 
-                    prefix={<UserOutlined className="text-gray-400" />} 
+                    className="input-modern h-10 text-sm" 
                     placeholder="请输入用户名"
-                    className="input-modern h-10 text-sm"
+                    prefix={<UserOutlined className="text-gray-400" />}
                   />
                 </Form.Item>
 
                 <Form.Item 
-                  name="password" 
+                  className="mb-4" 
+                  name="password"
                   rules={[{ required: true, message: '请输入密码' }]}
-                  className="mb-4"
                 >
                   <Input.Password 
-                    prefix={<LockOutlined className="text-gray-400" />} 
+                    className="input-modern h-10 text-sm" 
                     placeholder="请输入密码"
-                    className="input-modern h-10 text-sm"
+                    prefix={<LockOutlined className="text-gray-400" />}
                   />
                 </Form.Item>
 
                 <Form.Item 
-                  name="code" 
+                  className="mb-4" 
+                  name="code"
                   rules={[{ required: true, message: '请输入验证码' }]}
-                  className="mb-4"
                 >
                   <Row gutter={8}>
                     <Col span={14}>
                       <Input 
-                        prefix={<CodeOutlined className="text-gray-400" />} 
+                        className="input-modern h-10 text-sm" 
                         placeholder="请输入验证码"
-                        className="input-modern h-10 text-sm"
+                        prefix={<CodeOutlined className="text-gray-400" />}
                       />
                     </Col>
                     <Col span={10}>
                       <div className="captcha-container h-10">
                         {captcha && (
                           <img 
+                            alt="验证码" 
                             className="w-full h-full object-cover" 
                             src={captcha} 
-                            alt="验证码" 
                             onClick={getCaptcha} 
                           />
                         )}
@@ -161,14 +161,14 @@ export default function Login() {
                   <div className="flex items-center justify-between">
                     <Checkbox 
                       checked={checked} 
-                      onChange={() => setChecked(!checked)}
                       className="text-gray-600 text-sm"
+                      onChange={() => setChecked(!checked)}
                     >
                       记住密码
                     </Checkbox>
                     <a 
-                      href="javascript:void(0)" 
-                      className="text-primary-500 hover:text-primary-600 text-xs font-medium transition-colors"
+                      className="text-primary-500 hover:text-primary-600 text-xs font-medium transition-colors" 
+                      href="javascript:void(0)"
                     >
                       忘记密码？
                     </a>
@@ -176,11 +176,11 @@ export default function Login() {
                 </Form.Item>
 
                 <Button 
-                  type="primary" 
-                  htmlType="submit" 
                   block 
+                  className="btn-primary h-10 text-sm font-medium shadow-lg" 
+                  htmlType="submit" 
                   loading={btnLoading}
-                  className="btn-primary h-10 text-sm font-medium shadow-lg"
+                  type="primary"
                 >
                   {btnLoading ? '登录中...' : '立即登录'}
                 </Button>
@@ -190,9 +190,9 @@ export default function Login() {
               <div className="mt-6 pt-4 border-t border-gray-100 text-center">
                 <p className="text-xs text-gray-400">
                   登录即表示您同意我们的
-                  <a href="#" className="text-primary-500 hover:text-primary-600 mx-1">服务条款</a>
+                  <a className="text-primary-500 hover:text-primary-600 mx-1" href="#">服务条款</a>
                   和
-                  <a href="#" className="text-primary-500 hover:text-primary-600 mx-1">隐私政策</a>
+                  <a className="text-primary-500 hover:text-primary-600 mx-1" href="#">隐私政策</a>
                 </p>
               </div>
             </div>

@@ -33,16 +33,16 @@ export default function NursePage({ onSelect }: { onSelect: (record: any) => voi
   return (
     <div className='h-60vh flex flex-col' >
       <ConfigTable
+        actions={actions}
+        api={getList}
+        bordered={false}
         columns={tableColumns}
         formColumns={searchFormSchema}
-        rowKey="id"
-        actions={actions}
-        size="small"
-        searchable={true}
-        bordered={false}
-        api={getList}
         reload={reload}
+        rowKey="id"
+        searchable={true}
         setReload={setReload}
+        size="small"
       />
     </div>
   )

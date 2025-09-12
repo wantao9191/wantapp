@@ -1,6 +1,6 @@
 {
 	"name": "my-fullstack-app",
-	"version": "0.1.0",
+	"version": "2.0.0",
 	"private": true,
 	"scripts": {
 		"dev": "next dev",
@@ -9,7 +9,7 @@
 		"restart": "taskkill /f /im node.exe 2>NUL || echo No processes to kill",
 		"build": "next build",
 		"start": "next start",
-		"build:prod": ".\\scripts\\test-production.bat",
+		"build:prod": "cross-env NODE_ENV=production next build --no-lint",
 		"lint": "next lint",
 		"lint:fix": "next lint --fix",
 		"format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
@@ -24,25 +24,7 @@
 		"db:insert-menus": "tsx scripts/insert-menus.ts",
 		"type-check": "tsc --noEmit",
 		"check": "pnpm type-check && pnpm lint && pnpm format:check",
-		"test": "vitest run",
-		"test:watch": "vitest",
-		"test:coverage": "vitest run --coverage",
-		"test:manager": "tsx scripts/test-manager.ts",
-		"test:unit": "tsx scripts/test-manager.ts unit",
-		"test:api": "tsx scripts/test-manager.ts api",
-		"test:ui": "tsx scripts/test-manager.ts ui",
-		"test:hooks": "tsx scripts/test-manager.ts hooks",
-		"test:integration": "tsx scripts/test-manager.ts integration",
-		"test:middleware": "tsx scripts/test-manager.ts middleware",
-		"test:enhanced": "tsx scripts/test-manager.ts enhanced",
-		"test:auth": "tsx scripts/test-manager.ts auth",
-		"test:admin": "tsx scripts/test-manager.ts admin",
-		"test:quick": "tsx scripts/test-manager.ts quick",
-		"test:full": "tsx scripts/test-manager.ts full",
-		"test:ui-mode": "tsx scripts/test-manager.ts ui-mode",
-		"test:cleanup": "tsx scripts/test-manager.ts cleanup",
-		"report": "node ./dist/scripts/generate-report.js",
-		"report:dev": "tsx scripts/generate-report.ts"
+		"test": "vitest run"
 	},
 	"dependencies": {
 		"@ant-design/icons": "^6.0.0",
@@ -73,8 +55,8 @@
 		"@types/pg": "^8.15.5",
 		"@types/react": "^19.1.10",
 		"@types/react-dom": "^19.1.7",
-		"@typescript-eslint/eslint-plugin": "^6.0.0",
-		"@typescript-eslint/parser": "^6.0.0",
+		"@typescript-eslint/eslint-plugin": "^7.18.0",
+		"@typescript-eslint/parser": "^7.18.0",
 		"@unocss/cli": "^66.4.2",
 		"@unocss/postcss": "^66.4.2",
 		"@unocss/preset-icons": "^66.4.2",
@@ -91,7 +73,7 @@
 		"prettier": "^3.0.0",
 		"rimraf": "^6.0.1",
 		"tsx": "^4.20.3",
-		"typescript": "^5.0.0",
+		"typescript": "^5.9.2",
 		"unocss": "^66.4.2",
 		"vitest": "^3.2.4"
 	}

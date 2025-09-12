@@ -77,7 +77,7 @@ const useItems = (setReload: (reload: boolean) => void) => {
           setReload(true)
         }
         return (
-          <Switch checked={status === 1} size="small" checkedChildren="启用" unCheckedChildren="禁用" onChange={handleStatusChange} loading={loading} />
+          <Switch checked={status === 1} checkedChildren="启用" loading={loading} size="small" unCheckedChildren="禁用" onChange={handleStatusChange} />
         )
       }
     },

@@ -66,13 +66,13 @@ const InputItem: React.FC<InputItemProps> = ({ config, value, onChange, disabled
       return (
         <TextArea
           {...staticProps}
+          allowClear={inputConfig.allowClear}
+          maxLength={inputConfig.maxLength}
+          rows={inputConfig.rows || 4}
+          showCount={inputConfig.showCount}
+          size={inputConfig.size}
           value={value}
           onChange={handleChange}
-          rows={inputConfig.rows || 4}
-          maxLength={inputConfig.maxLength}
-          showCount={inputConfig.showCount}
-          allowClear={inputConfig.allowClear}
-          size={inputConfig.size}
         />
       )
     
@@ -80,16 +80,16 @@ const InputItem: React.FC<InputItemProps> = ({ config, value, onChange, disabled
       return (
         <Password
           {...staticProps}
+          addonAfter={inputConfig.addonAfter}
+          addonBefore={inputConfig.addonBefore}
+          allowClear={inputConfig.allowClear}
+          maxLength={inputConfig.maxLength}
+          prefix={inputConfig.prefix}
+          showCount={inputConfig.showCount}
+          size={inputConfig.size}
+          suffix={inputConfig.suffix}
           value={value}
           onChange={handleChange}
-          maxLength={inputConfig.maxLength}
-          showCount={inputConfig.showCount}
-          allowClear={inputConfig.allowClear}
-          prefix={inputConfig.prefix}
-          suffix={inputConfig.suffix}
-          addonBefore={inputConfig.addonBefore}
-          addonAfter={inputConfig.addonAfter}
-          size={inputConfig.size}
         />
       )
     
@@ -97,16 +97,16 @@ const InputItem: React.FC<InputItemProps> = ({ config, value, onChange, disabled
       return (
         <Input
           {...staticProps}
+          addonAfter={inputConfig.addonAfter}
+          addonBefore={inputConfig.addonBefore}
+          allowClear={inputConfig.allowClear}
+          maxLength={inputConfig.maxLength}
+          prefix={inputConfig.prefix}
+          showCount={inputConfig.showCount}
+          size={inputConfig.size}
+          suffix={inputConfig.suffix}
           value={value}
           onChange={handleChange}
-          maxLength={inputConfig.maxLength}
-          showCount={inputConfig.showCount}
-          allowClear={inputConfig.allowClear}
-          prefix={inputConfig.prefix}
-          suffix={inputConfig.suffix}
-          addonBefore={inputConfig.addonBefore}
-          addonAfter={inputConfig.addonAfter}
-          size={inputConfig.size}
         />
       )
   }

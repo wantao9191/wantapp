@@ -30,17 +30,17 @@ const RadioItem: React.FC<RadioItemProps> = ({ config, value, onChange, disabled
 
   return (
     <RadioGroup
-      disabled={disabled || (resolvedDisabled as boolean)}
-      style={resolvedStyle as React.CSSProperties}
-      className={resolvedClassName as string}
-      optionType={radioConfig.optionType}
       buttonStyle={radioConfig.buttonStyle}
+      className={resolvedClassName as string}
+      disabled={disabled || (resolvedDisabled as boolean)}
+      optionType={radioConfig.optionType}
       size={radioConfig.size}
+      style={resolvedStyle as React.CSSProperties}
       value={value}
       onChange={(e) => onChange?.(e.target.value)}
     >
       {radioConfig.options?.map((option: any) => (
-        <Radio key={option.value} value={option.value} disabled={option.disabled}>
+        <Radio key={option.value} disabled={option.disabled} value={option.value}>
           {option.label}
         </Radio>
       ))}

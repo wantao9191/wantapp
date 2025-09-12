@@ -49,21 +49,21 @@ const ConfigPagination: React.FC<ConfigPaginationProps> = ({
     <div className={`flex justify-end ${className}`} style={style}>
       <Pagination
         current={current}
-        pageSize={pageSize}
-        total={total}
-        showSizeChanger={showSizeChanger}
-        showQuickJumper={showQuickJumper}
-        showTotal={getShowTotal()}
-        pageSizeOptions={pageSizeOptions}
-        onChange={onChange}
-        onShowSizeChange={onShowSizeChange}
-        size={size}
         locale={{
           items_per_page: '条/页',
           jump_to: '跳至',
           jump_to_confirm: '确定',
           page: '页',
         }}
+        pageSize={pageSize}
+        pageSizeOptions={pageSizeOptions}
+        showQuickJumper={showQuickJumper}
+        showSizeChanger={showSizeChanger}
+        showTotal={getShowTotal()}
+        size={size}
+        total={total}
+        onChange={onChange}
+        onShowSizeChange={onShowSizeChange}
       />
     </div>
   )

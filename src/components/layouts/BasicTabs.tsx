@@ -98,14 +98,11 @@ const BasicTabs = ({ currentMenu, tabs, addTab, removeTab, menuList }: LayoutPro
   return (
     <div className='h-32px border-b-1 border-b-solid border-[#d9d9d9]'>
       <Tabs
-        type="editable-card"
         hideAdd
+        activeKey={activeKey}
+        className='h-full tabs-browser'
         items={items}
         size="small"
-        activeKey={activeKey}
-        onChange={(key) => clickTab(key)}
-        onEdit={(key) => handleRemoveTab(key as string)}
-        className='h-full tabs-browser'
         tabBarStyle={{
           margin: 0,
           height: '32px',
@@ -113,6 +110,9 @@ const BasicTabs = ({ currentMenu, tabs, addTab, removeTab, menuList }: LayoutPro
           paddingRight: '8px',
           borderBottom: 'none',
         }}
+        type="editable-card"
+        onChange={(key) => clickTab(key)}
+        onEdit={(key) => handleRemoveTab(key as string)}
       />
     </div>
   )

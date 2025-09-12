@@ -121,7 +121,7 @@ const UploadItem: React.FC<UploadItemProps> = ({ config, value, onChange, disabl
   } else if (uploadConfig.listType === 'picture') {
     return (
       <Upload {...uploadProps} listType="picture">
-        <Button icon={<UploadOutlined />} disabled={disabled || (resolvedDisabled as boolean)}>
+        <Button disabled={disabled || (resolvedDisabled as boolean)} icon={<UploadOutlined />}>
           上传文件
         </Button>
       </Upload>

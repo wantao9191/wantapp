@@ -37,6 +37,6 @@ export const POST = createHandler(async (request: NextRequest) => {
 })
 
 // 检查令牌是否在黑名单中
-export function isTokenBlacklisted(token: string): boolean {
+function isTokenBlacklisted(token: string): boolean {
   return tokenBlacklist.has(token)
 }

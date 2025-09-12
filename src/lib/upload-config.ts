@@ -1,7 +1,14 @@
-import dotenv from 'dotenv'
-dotenv.config({
-  path: '.env.local'
-});
+// 尝试加载 dotenv（如果可用）
+try {
+  const dotenv = require('dotenv');
+  const envFile = process.env.NODE_ENV === 'production' 
+    ? '.env.production.local' 
+    : '.env.local';
+  dotenv.config({ path: envFile });
+} catch (error) {
+  // dotenv 不可用，使用系统环境变量
+  console.log('dotenv 不可用，使用系统环境变量');
+}
 // 文件上传配置
 export interface UploadConfig {
   // 存储路径配置

@@ -1,6 +1,5 @@
 'use client'
 import { Calendar, ConfigProvider, Popover, Spin, Button, Input, Tag, App, Popconfirm } from 'antd'
-import type { CalendarMode } from 'antd/es/calendar/generateCalendar';
 import React, { useState, useEffect, useCallback } from 'react'
 import zhCN from 'antd/locale/zh_CN'
 import dayjs from 'dayjs'
@@ -16,7 +15,6 @@ export default function SchedulingPage() {
   // 设置 dayjs 为中文
   dayjs.locale('zh-cn')
   const { message } = App.useApp()
-  const { confirm } = Modal
   const { statusMap } = useDict()
   const [open, setOpen] = useState(false)
   const [formData, setFormData] = useState<any>(null)
@@ -94,7 +92,7 @@ export default function SchedulingPage() {
         <div className="text-sm font-medium text-gray-700 mb-3 flex items-center justify-between">
           <span>排班信息</span>
           <span className="inline-flex items-center gap-1">
-            <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
+            <span className="w-2 h-2 bg-gray-400 rounded-full" />
             共
             <span className="text-gray-700">
               {data.length}
@@ -122,9 +120,9 @@ export default function SchedulingPage() {
               </div>
               {item.isBefore ? (
                 <Button
-                  type='link'
-                  size='small'
                   className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-2 py-1 rounded"
+                  size='small'
+                  type='link'
                   onClick={() => {
                     handleCheck(item)
                   }}
@@ -134,9 +132,9 @@ export default function SchedulingPage() {
               ) : (
                 <>
                   <Button
-                    type='link'
-                    size='small'
                     className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-2 py-1 rounded"
+                    size='small'
+                    type='link'
                     onClick={() => {
                       handleEdit(item)
                     }}
@@ -149,7 +147,7 @@ export default function SchedulingPage() {
                       handleChangeStatus(item)
                     }}
                   >
-                    <Button type='link' size='small' className={`${item.status === 0 ? 'text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-2 py-1 rounded' : '!text-red-600 !hover:text-red-800 !hover:bg-red-50 px-2 py-1 rounded'}`}>
+                    <Button className={`${item.status === 0 ? 'text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-2 py-1 rounded' : '!text-red-600 !hover:text-red-800 !hover:bg-red-50 px-2 py-1 rounded'}`} size='small' type='link'>
                       {item.status === 0 ? '启用' : '停止'}
                     </Button>
                   </Popconfirm>
@@ -164,12 +162,11 @@ export default function SchedulingPage() {
   const dateCellRender = (value: Dayjs) => {
     const listData: any = getListData(value);
     return (
-      <div className={`h-[calc(100%-24px)] flex flex-col justify-center items-center gap-1`}>
+      <div className="h-[calc(100%-24px)] flex flex-col justify-center items-center gap-1">
         {listData.length > 0 ? (
           <Popover
+            arrow={false}
             content={popoverContent(listData)}
-            title=""
-            trigger="click"
             placement="topLeft"
             styles={{
               body: {
@@ -178,13 +175,14 @@ export default function SchedulingPage() {
                 border: '1px solid rgba(59, 130, 246, 0.1)'
               }
             }}
-            arrow={false}
+            title=""
+            trigger="click"
           >
             <div className='text-gray-700 text-xs cursor-pointer bg-gradient-to-r from-green-100 to-emerald-100 px-3 py-1.5 rounded-full border border-green-200 hover:shadow-md hover:from-green-200 hover:to-emerald-200 transition-all duration-200 font-medium' onClick={(e) => {
               e.stopPropagation()
             }}>
               <span className="inline-flex items-center gap-1">
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                <span className="w-2 h-2 bg-green-500 rounded-full" />
                 {`${listData.length}条排班`}
               </span>
             </div>
@@ -192,7 +190,7 @@ export default function SchedulingPage() {
         ) : (
           <div className='text-gray-500 text-xs cursor-pointer bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200 hover:bg-gray-100 transition-colors duration-200'>
             <span className="inline-flex items-center gap-1">
-              <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
+              <span className="w-2 h-2 bg-gray-400 rounded-full" />
               暂无排班
             </span>
           </div>
@@ -205,7 +203,7 @@ export default function SchedulingPage() {
               handleAdd(value)
             }}
           >
-            <AppIcon name="PlusOutlined" className="mr-1" />
+            <AppIcon className="mr-1" name="PlusOutlined" />
             添加计划
           </div>
         )}
@@ -220,32 +218,30 @@ export default function SchedulingPage() {
       <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl border border-gray-200 flex-1 flex flex-col min-h-0 h-full overflow-y-auto shadow-sm">
         <ConfigProvider locale={zhCN}>
           <Calendar
-            className='w-full flex-1 bg-white rounded-lg shadow-sm border border-gray-100'
-            value={currentDate}
-            onPanelChange={onPanelChange}
             cellRender={dateCellRender}
+            className='w-full flex-1 bg-white rounded-lg shadow-sm border border-gray-100'
             headerRender={({ value, type, onChange, onTypeChange }) => (
               <div className="flex items-center justify-between p-4 border-b border-gray-100">
                 <div className="flex items-center gap-4">
                   <div className="text-14px text-gray-800 flex items-center">
                     <span className="mr-2 w-120px">参保人姓名</span>
                     <Input
+                      size='small'
                       value={params.insuredName}
                       onChange={(e) => setParams({ ...params, insuredName: e.target.value })}
-                      size='small'
                     />
                   </div>
                   <div className="text-14px text-gray-800 flex items-center">
                     <span className="mr-2 w-120px">护理员姓名</span>
                     <Input
+                      size='small'
                       value={params.nurseName}
                       onChange={(e) => setParams({ ...params, nurseName: e.target.value })}
-                      size='small'
                     />
                   </div>
                   <div className="text-14px text-gray-800 flex items-center">
-                    <Button type="primary" onClick={getList} className='ml-2' size='small'> 查询 </Button>
-                    <Button onClick={onReset} className='ml-2' size='small'>
+                    <Button className='ml-2' size='small' type="primary" onClick={getList}> 查询 </Button>
+                    <Button className='ml-2' size='small' onClick={onReset}>
                       重置
                     </Button>
 
@@ -253,53 +249,55 @@ export default function SchedulingPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Button
-                    type="text"
-                    icon={<AppIcon name="LeftOutlined" />}
-                    onClick={() => onChange(value.subtract(1, 'month'))}
                     className="hover:bg-gray-100"
+                    icon={<AppIcon name="LeftOutlined" />}
+                    type="text"
+                    onClick={() => onChange(value.subtract(1, 'month'))}
                   />
                   <h2 className="text-lg font-semibold text-gray-800">
                     {value.format('YYYY年MM月')}
                   </h2>
                   <Button
-                    type="text"
-                    icon={<AppIcon name="RightOutlined" />}
-                    onClick={() => onChange(value.add(1, 'month'))}
                     className="hover:bg-gray-100"
+                    icon={<AppIcon name="RightOutlined" />}
+                    type="text"
+                    onClick={() => onChange(value.add(1, 'month'))}
                   />
                   <Button
+                    className="ml-2"
                     type="primary"
                     onClick={() => onChange(dayjs())}
-                    className="ml-2"
                   >
                     今天
                   </Button>
                 </div>
               </div>
             )}
+            value={currentDate}
+            onPanelChange={onPanelChange}
           />
         </ConfigProvider>
         <Modal
-          title={formData?.id ? '编辑排班计划' : '新增排班计划'}
-          open={open}
-          footer={null}
           destroyOnHidden={true}
-          onCancel={() => setOpen(false)}
+          footer={null}
+          open={open}
+          title={formData?.id ? '编辑排班计划' : '新增排班计划'}
           width={600}
           zIndex={1999}
+          onCancel={() => setOpen(false)}
         >
-          <EditModal formData={formData} onSubmit={onSubmit} onCancel={() => setOpen(false)} />
+          <EditModal formData={formData} onCancel={() => setOpen(false)} onSubmit={onSubmit} />
         </Modal>
         <Modal
-          title='查看排班计划'
-          open={checkOpen}
-          footer={null}
           destroyOnHidden={true}
-          onCancel={() => setCheckOpen(false)}
+          footer={null}
+          open={checkOpen}
+          title='查看排班计划'
           width={600}
           zIndex={1999}
+          onCancel={() => setCheckOpen(false)}
         >
-          <CheckModal open={checkOpen} onCancel={() => setCheckOpen(false)} formData={formData} />
+          <CheckModal formData={formData} open={checkOpen} onCancel={() => setCheckOpen(false)} />
         </Modal>
       </div>
     </Spin>

@@ -1,10 +1,18 @@
-import dotenv from 'dotenv';
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
 import * as schema from './schema'
-dotenv.config({
-  path: '.env.local'
-});
+
+// 尝试加载 dotenv（如果可用）
+try {
+  const dotenv = require('dotenv');
+  const envFile = process.env.NODE_ENV === 'production' 
+    ? '.env.production.local' 
+    : '.env.local';
+  dotenv.config({ path: envFile });
+} catch (error) {
+  // dotenv 不可用，使用系统环境变量
+  console.log('dotenv 不可用，使用系统环境变量');
+}
 // 检查环境变量
 if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL 环境变量未设置')

@@ -111,10 +111,10 @@ export const ConfigTable: React.FC<ConfigTableProps> = ({
           {actions.actions?.filter((action: any) => !action.hidden || (typeof action.hidden === 'function' ? !action.hidden(record) : true)).map((action: any) => (
             <Button
               key={action.key}
-              type={action.type}
               danger={action.danger}
               icon={action.icon}
               size={size}
+              type={action.type}
               onClick={() => action.onClick(record)}
             >
               {action.label}
@@ -195,10 +195,10 @@ export const ConfigTable: React.FC<ConfigTableProps> = ({
       {searchable && (
         <div className="mb-2 p-4 bg-gray-50 rounded-lg border border-gray-200">
           <div className="flex flex-wrap gap-4 items-end">
-            <ConfigForm config={formConfig} ref={formRef} />
+            <ConfigForm ref={formRef} config={formConfig} />
             <div className="flex gap-2">
               {formConfigActions.map((action: CommonActionConfig) => (
-                <Button key={action.key} type={action.type} size={size} onClick={action.onClick}>
+                <Button key={action.key} size={size} type={action.type} onClick={action.onClick}>
                   {action.label}
                 </Button>
               ))}
@@ -219,20 +219,20 @@ export const ConfigTable: React.FC<ConfigTableProps> = ({
           <div className="flex-1 min-h-0 relative">
             <div className="absolute inset-0 overflow-auto">
               <Table
+                bordered={bordered}
+                className="text-13px"
                 columns={tableColumns}
                 dataSource={dataSource}
                 loading={loading}
-                rowKey={rowKey}
                 pagination={false} // 禁用内置分页，使用自定义分页组件
+                rowClassName="hover:bg-gray-50 transition-colors w-full"
+                rowKey={rowKey}
                 scroll={{
                   x: scroll?.x || 'max-content', // 使用max-content，确保列有足够空间并显示横向滚动条
                   y: scroll?.y || undefined // 让表格自适应容器高度
                 }}
-                sticky={{ offsetHeader: 0 }}
                 size={size}
-                bordered={bordered}
-                rowClassName="hover:bg-gray-50 transition-colors w-full"
-                className="text-13px"
+                sticky={{ offsetHeader: 0 }}
                 onChange={(pagination, filters, sorter) => {
                   // 处理排序和筛选
                   console.log('Table changed:', { pagination, filters, sorter })
@@ -246,17 +246,17 @@ export const ConfigTable: React.FC<ConfigTableProps> = ({
         {total && total > 0 ? (
           <div className="pt-4 border-t border-gray-200">
             <ConfigPagination
-              current={currentPage}
-              pageSize={pageSize}
-              total={total || 0}
-              showSizeChanger={paginationConfig.showSizeChanger}
-              showQuickJumper={paginationConfig.showQuickJumper}
-              showTotal={paginationConfig.showTotal}
-              onChange={handlePageChange}
-              onShowSizeChange={handlePageChange}
-              size={size === 'small' ? 'small' : 'default'}
               align="center"
               className="w-full"
+              current={currentPage}
+              pageSize={pageSize}
+              showQuickJumper={paginationConfig.showQuickJumper}
+              showSizeChanger={paginationConfig.showSizeChanger}
+              showTotal={paginationConfig.showTotal}
+              size={size === 'small' ? 'small' : 'default'}
+              total={total || 0}
+              onChange={handlePageChange}
+              onShowSizeChange={handlePageChange}
             />
           </div>
         ) : ''}

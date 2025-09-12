@@ -78,13 +78,13 @@ const DateItem: React.FC<DateItemProps> = ({ config, value, onChange, disabled, 
       return (
         <RangePicker
           {...commonProps}
-          value={dateRangeValue}
-          placeholder={dateRangePlaceholder}
-          format={dateConfig.format}
-          showTime={dateConfig.showTime}
-          picker={dateConfig.picker}
           disabledDate={dateConfig.disabledDate}
+          format={dateConfig.format}
+          picker={dateConfig.picker}
+          placeholder={dateRangePlaceholder}
+          showTime={dateConfig.showTime}
           size={dateConfig.size}
+          value={dateRangeValue}
         />
       )
     
@@ -92,10 +92,10 @@ const DateItem: React.FC<DateItemProps> = ({ config, value, onChange, disabled, 
       return (
         <TimePicker
           {...commonProps}
-          value={singleDateValue}
-          placeholder={resolvedPlaceholder as string}
           format={dateConfig.format || 'HH:mm:ss'}
+          placeholder={resolvedPlaceholder as string}
           size={dateConfig.size}
+          value={singleDateValue}
         />
       )
     
@@ -103,14 +103,14 @@ const DateItem: React.FC<DateItemProps> = ({ config, value, onChange, disabled, 
       return (
         <DatePicker
           {...commonProps}
-          value={singleDateValue}
-          placeholder={resolvedPlaceholder as string}
-          format={dateConfig.format}
-          showTime={dateConfig.showTime}
-          picker={dateConfig.picker}
           disabledDate={dateConfig.disabledDate}
+          format={dateConfig.format}
+          picker={dateConfig.picker}
+          placeholder={resolvedPlaceholder as string}
+          showTime={dateConfig.showTime}
           showToday={dateConfig.showToday}
           size={dateConfig.size}
+          value={singleDateValue}
         />
       )
   }

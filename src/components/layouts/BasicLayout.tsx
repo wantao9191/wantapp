@@ -41,14 +41,14 @@ const BasicLayout: React.FC<BasicLayoutProps> = ({ children }) => {
       {/* 侧边栏 - 设置 flex-shrink-0 防止被挤压 */}
       <div className='flex-shrink-0 border-slate-300 bg-gradient-to-b from-slate-100 to-blue-50 shadow-lg'>
         <BasicAside
+          addTab={addTab}
           collapsed={collapsed}
-          toggleCollapsed={toggleCollapsed}
-          menuList={menuList}
           currentMenu={currentMenu}
+          menuList={menuList}
           setCurrentMenu={setCurrentMenu}
           setMenuList={setMenuList}
-          addTab={addTab}
           setTabs={setTabs}
+          toggleCollapsed={toggleCollapsed}
         />
       </div>
 
@@ -56,11 +56,11 @@ const BasicLayout: React.FC<BasicLayoutProps> = ({ children }) => {
       <div className='flex-1 flex flex-col min-w-0'>
         <BasicHeader
           collapsed={collapsed}
+          theme={theme}
           toggleCollapsed={toggleCollapsed}
           toggleTheme={toggleTheme}
-          theme={theme}
         />
-        <BasicTabs currentMenu={currentMenu} tabs={tabs} removeTab={removeTab} addTab={addTab} menuList={menuList} />
+        <BasicTabs addTab={addTab} currentMenu={currentMenu} menuList={menuList} removeTab={removeTab} tabs={tabs} />
         <div className='p-8px bg-#f5f5f5 flex-1 w-full overflow-x-hidden h-0 overflow-y-auto flex flex-col'>
           {children}
         </div>

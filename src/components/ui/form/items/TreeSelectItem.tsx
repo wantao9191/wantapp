@@ -31,19 +31,19 @@ const TreeSelectItem: React.FC<TreeSelectItemProps> = ({ config, value, onChange
 
   return (
     <TreeSelect
-      placeholder={resolvedPlaceholder as string}
-      disabled={disabled || (resolvedDisabled as boolean)}
-      style={{ width: '100%', ...(resolvedStyle as React.CSSProperties) }}
-      className={resolvedClassName as string}
-      treeData={treeSelectConfig.treeData}
-      multiple={treeSelectConfig.multiple}
-      treeCheckable={treeSelectConfig.treeCheckable}
-      showCheckedStrategy={treeSelectConfig.showCheckedStrategy}
-      treeDefaultExpandAll={treeSelectConfig.treeDefaultExpandAll}
       allowClear={treeSelectConfig.allowClear}
+      className={resolvedClassName as string}
+      disabled={disabled || (resolvedDisabled as boolean)}
+      multiple={treeSelectConfig.multiple}
+      placeholder={resolvedPlaceholder as string}
+      showCheckedStrategy={treeSelectConfig.showCheckedStrategy}
+      size={treeSelectConfig.size}
+      style={{ width: '100%', ...(resolvedStyle as React.CSSProperties) }}
+      treeCheckable={treeSelectConfig.treeCheckable}
+      treeData={treeSelectConfig.treeData}
+      treeDefaultExpandAll={treeSelectConfig.treeDefaultExpandAll}
       value={value}
       onChange={onChange}
-      size={treeSelectConfig.size}
     />
   )
 }

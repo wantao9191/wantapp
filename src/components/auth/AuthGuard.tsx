@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, Suspense } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import Loading from '@/components/ui/Loading'
 import Cookies from 'js-cookie'
@@ -8,7 +8,8 @@ interface AuthGuardProps {
   children: React.ReactNode
 }
 
-export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
+// 内部组件处理 useSearchParams
+const AuthGuardInner: React.FC<AuthGuardProps> = ({ children }) => {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -54,6 +55,14 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
     return <Loading />
   }
   return <>{children}</>
+}
+
+export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
+  return (
+    <Suspense fallback={<Loading />}>
+      <AuthGuardInner>{children}</AuthGuardInner>
+    </Suspense>
+  )
 }
 
 export default AuthGuard

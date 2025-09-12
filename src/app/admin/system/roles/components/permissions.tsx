@@ -55,7 +55,7 @@ const Permissions: React.FC<PermissionsProps> = (props) => {
       setLoading(true)
       const { menus, permissions } = await fetchMenuPermissions()
       const trees = menus.data.contents.map((menu: MenuNode) => {
-        if (menu.children && menu.children.length) {
+        if (menu.children?.length) {
           menu.children.map((child: MenuNode) => {
             child.permissions = permissions.data.contents
               .filter((permission: PermissionItem) => permission.menuId === child.id)
@@ -218,7 +218,7 @@ const Permissions: React.FC<PermissionsProps> = (props) => {
         {menuTree.map((menu: MenuNode) => (
           <div key={menu.id}>
             <div className='flex'>
-              <Checkbox indeterminate={menu.indeterminate} onChange={(e) => onCheckAllChange(e, menu)} checked={menu.checkAll}>
+              <Checkbox checked={menu.checkAll} indeterminate={menu.indeterminate} onChange={(e) => onCheckAllChange(e, menu)}>
                 {menu.name}
               </Checkbox>
             </div>
@@ -226,7 +226,7 @@ const Permissions: React.FC<PermissionsProps> = (props) => {
               {menu?.children?.map((child: MenuNode, index: number) => (
                 <div key={child.id}>
                   <div className={`${index === 0 ? '' : 'mt-6px'}`}>
-                    <Checkbox indeterminate={child.indeterminate} value={child.id} onChange={(e) => handleChange(e, child)} checked={child.checkAll}>
+                    <Checkbox checked={child.checkAll} indeterminate={child.indeterminate} value={child.id} onChange={(e) => handleChange(e, child)}>
                       {child.name}
                     </Checkbox>
                   </div>

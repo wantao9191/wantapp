@@ -1,9 +1,17 @@
 // 修改 src/scripts/seed.ts
-import dotenv from 'dotenv';
+// 尝试加载 dotenv（如果可用）
+try {
+  const dotenv = require('dotenv');
+  const envFile = process.env.NODE_ENV === 'production' 
+    ? '.env.production.local' 
+    : '.env.local';
+  dotenv.config({ path: envFile });
+} catch (error) {
+  // dotenv 不可用，使用系统环境变量
+  console.log('dotenv 不可用，使用系统环境变量');
+}
+
 import { seedDatabase } from '@/db/seed';
-dotenv.config({
-  path: '.env.local'
-});
 console.log(process.env);
 
 async function main() {

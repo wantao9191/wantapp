@@ -43,11 +43,11 @@ function supportsParams(handler: Function): boolean {
 }
 
 // 修复 Next.js 15 类型兼容性
-type RouteContext = { params?: HandlerParams | Promise<HandlerParams> }
+type RouteContext = { params: Promise<HandlerParams> }
 
 // 增强的处理器创建函数 - 修复参数传递方式
-export function createHandler(handler: Handler | HandlerWithParams, options?: HandlerOptions): (req: NextRequest, context?: RouteContext) => Promise<NextResponse>
-export function createHandler(handlers: Handlers, options?: HandlerOptions): (req: NextRequest, context?: RouteContext) => Promise<NextResponse>
+export function createHandler(handler: Handler | HandlerWithParams, options?: HandlerOptions): (req: NextRequest, context: RouteContext) => Promise<NextResponse>
+export function createHandler(handlers: Handlers, options?: HandlerOptions): (req: NextRequest, context: RouteContext) => Promise<NextResponse>
 export function createHandler(arg: Handler | HandlerWithParams | Handlers, options: HandlerOptions = {}) {
   const { permission, requireAuth = true, hasParams = false } = options
 

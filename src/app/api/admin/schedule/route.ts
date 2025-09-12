@@ -5,13 +5,13 @@ import { schedulePlans, personInfo, carePackages, organizations } from "@/db/sch
 import { eq, and, gte, lt, like } from "drizzle-orm"
 import { alias } from "drizzle-orm/pg-core"
 import { schedulePlanSchema, schedulePlanCreateSchema } from "@/lib/validations"
-import { cretateContent } from "../insured/all/route"
+// import { cretateContent } from "../insured/all/route" // 已移除，使用本地实现
 export const GET = createHandler(async (request: NextRequest, params, context) => {
   const { searchParams } = new URL(request.url)
   const nurseName = searchParams.get('nurseName') || ''
   const insuredName = searchParams.get('insuredName') || ''
   const month = searchParams.get('month') // 格式: YYYY-MM
-  let organizationId = searchParams.get('organizationId')
+  const organizationId = searchParams.get('organizationId')
   // 构建基础查询条件
   const whereConditions = [
     eq(schedulePlans.deleted, false)
@@ -142,7 +142,8 @@ export const GET = createHandler(async (request: NextRequest, params, context) =
     .leftJoin(nurseInfo, eq(schedulePlans.nurseId, nurseInfo.id))
     .leftJoin(carePackages, eq(schedulePlans.packageId, carePackages.id))
     .where(and(...whereConditions)).orderBy(schedulePlans.startTime)
-  const enrichedData = await cretateContent(data)
+  // 简化处理，直接返回数据
+  const enrichedData = data
   return enrichedData
 }, {
   permission: 'schedulingPlan:read',

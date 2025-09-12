@@ -76,30 +76,30 @@ export default function OrganizationsPage() {
   return (
     <>
       <ConfigTable
+        actions={organizationActions}
+        api={getOrganizationList}
+        bordered={false}
         columns={tableColumns}
         formColumns={searchFormSchema}
+        reload={reload}
         rowKey="id"
-        actions={organizationActions}
-        size="small"
         searchable={true}
-        bordered={false}
+        setReload={setReload}
+        size="small"
         slots={{
-          tools: <Button type="primary" size="small" icon={<PlusOutlined />} onClick={handleAdd}>
+          tools: <Button icon={<PlusOutlined />} size="small" type="primary" onClick={handleAdd}>
             新增
           </Button>
         }}
-        api={getOrganizationList}
-        reload={reload}
-        setReload={setReload}
       />
       <Modal
-        title={formData?.id ? '编辑菜单' : '新增菜单'}
-        open={open}
-        footer={null}
         destroyOnHidden={true}
+        footer={null}
+        open={open}
+        title={formData?.id ? '编辑菜单' : '新增菜单'}
         onCancel={() => setOpen(false)}
       >
-        <EditModal formData={formData} onSubmit={onSubmit} onCancel={() => setOpen(false)} />
+        <EditModal formData={formData} onCancel={() => setOpen(false)} onSubmit={onSubmit} />
       </Modal>
     </>
   )

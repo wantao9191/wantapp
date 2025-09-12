@@ -9,7 +9,7 @@ export async function getUserRoles(userId: number): Promise<any[]> {
   const user = await db.select({
     roles: users.roles,
   }).from(users).where(eq(users.id, userId)).limit(1)
-  if (!user[0] || !user[0].roles || user[0].roles.length === 0) {
+  if (!user[0]?.roles || user[0].roles.length === 0) {
     return []
   }
   // 2. 获取角色信息

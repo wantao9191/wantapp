@@ -31,10 +31,10 @@ const CheckboxItem: React.FC<CheckboxItemProps> = ({ config, value, onChange, di
   if (checkboxConfig.options) {
     return (
       <CheckboxGroup
-        disabled={disabled || (resolvedDisabled as boolean)}
-        style={resolvedStyle as React.CSSProperties}
         className={resolvedClassName as string}
+        disabled={disabled || (resolvedDisabled as boolean)}
         options={checkboxConfig.options}
+        style={resolvedStyle as React.CSSProperties}
         value={value}
         onChange={onChange}
       />
@@ -42,11 +42,11 @@ const CheckboxItem: React.FC<CheckboxItemProps> = ({ config, value, onChange, di
   } else {
     return (
       <Checkbox
-        disabled={disabled || (resolvedDisabled as boolean)}
-        style={resolvedStyle as React.CSSProperties}
-        className={resolvedClassName as string}
-        indeterminate={checkboxConfig.indeterminate}
         checked={value}
+        className={resolvedClassName as string}
+        disabled={disabled || (resolvedDisabled as boolean)}
+        indeterminate={checkboxConfig.indeterminate}
+        style={resolvedStyle as React.CSSProperties}
         onChange={(e) => onChange?.(e.target.checked)}
       >
         {config.label}

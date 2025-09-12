@@ -75,30 +75,30 @@ export default function OrganizationsPage() {
   return (
     <>
       <ConfigTable
+        actions={careTaskActions}
+        api={getList}
+        bordered={false}
         columns={tableColumns}
         formColumns={searchFormSchema}
+        reload={reload}
         rowKey="id"
-        actions={careTaskActions}
-        size="small"
         searchable={true}
-        bordered={false}
+        setReload={setReload}
+        size="small"
         slots={{
-          tools: <Button type="primary" size="small" icon={<PlusOutlined />} onClick={handleAdd} className="bg-green-500 hover:bg-green-600">
+          tools: <Button className="bg-green-500 hover:bg-green-600" icon={<PlusOutlined />} size="small" type="primary" onClick={handleAdd}>
             新增
           </Button>
         }}
-        api={getList}
-        reload={reload}
-        setReload={setReload}
       />
       <Modal
-        title={formData?.id ? '编辑护理任务' : '新增护理任务'}
-        open={open}
-        footer={null}
         destroyOnHidden={true}
+        footer={null}
+        open={open}
+        title={formData?.id ? '编辑护理任务' : '新增护理任务'}
         onCancel={() => setOpen(false)}
       >
-        <EditModal formData={formData} onSubmit={onSubmit} onCancel={() => setOpen(false)} />
+        <EditModal formData={formData} onCancel={() => setOpen(false)} onSubmit={onSubmit} />
       </Modal>
     </>
   )

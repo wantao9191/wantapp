@@ -119,6 +119,9 @@ export default function EditModal({
         form={form}
         layout="vertical"
         size="middle"
+        onFinish={handleSubmit}
+        onFinishFailed={(errorInfo) => {
+        }}
         onValuesChange={(changedValues, allValues) => {
           // 当开始时间改变时，强制重新渲染结束时间选择器
           if (changedValues.startTime) {
@@ -126,24 +129,21 @@ export default function EditModal({
             form.setFieldsValue({ endTime: undefined })
           }
         }}
-        onFinish={handleSubmit}
-        onFinishFailed={(errorInfo) => {
-        }}
       >
         {/* 护理员信息 */}
         <Card 
-          size="small" 
-          className="shadow-sm border-0 bg-gradient-to-r from-purple-50 to-pink-50"
+          className="shadow-sm border-0 bg-gradient-to-r from-purple-50 to-pink-50" 
+          size="small"
           style={{ marginBottom: '12px' }}
           title={
             <Space>
               <UserOutlined className="text-purple-500" />
               <Text strong className="text-gray-700">护理员信息</Text>
               <Button 
-                type="link" 
+                className="text-purple-600 hover:text-purple-700 font-medium" 
                 size="small" 
+                type="link"
                 onClick={handleAddNurse}
-                className="text-purple-600 hover:text-purple-700 font-medium"
               >
                 {form.getFieldValue('nurseId') ? '更换' : '选择'}护理员
               </Button>
@@ -151,37 +151,37 @@ export default function EditModal({
           }
         >
           <Form.Item
+            className="mb-0"
             name="nurseId"
             rules={[{ required: true, message: '请选择护理员' }]}
-            className="mb-0"
           >
             {form.getFieldValue('nurseId') ? (
               <Descriptions 
-                column={2} 
-                size="small" 
-                bordered
-                className="bg-white rounded-lg"
+                bordered 
+                className="bg-white rounded-lg" 
+                column={2}
+                size="small"
               >
-                <Descriptions.Item label="姓名" className="font-medium">
+                <Descriptions.Item className="font-medium" label="姓名">
                   <Text className="text-gray-800 font-semibold">{nurseRecord?.name || '-'}</Text>
                 </Descriptions.Item>
-                <Descriptions.Item label="性别" className="font-medium">
+                <Descriptions.Item className="font-medium" label="性别">
                   <Text className="text-gray-800">{nurseRecord?.gender || '-'}</Text>
                 </Descriptions.Item>
-                <Descriptions.Item label="出生日期" className="font-medium">
+                <Descriptions.Item className="font-medium" label="出生日期">
                   <Text className="text-gray-800">{nurseRecord?.birthDate || '-'}</Text>
                 </Descriptions.Item>
-                <Descriptions.Item label="年龄" className="font-medium">
+                <Descriptions.Item className="font-medium" label="年龄">
                   <Text className="text-gray-800">{nurseRecord?.age || '-'}岁</Text>
                 </Descriptions.Item>
-                <Descriptions.Item label="联系电话" className="font-medium">
+                <Descriptions.Item className="font-medium" label="联系电话">
                   <Text className="text-gray-800">{nurseRecord?.mobile || '-'}</Text>
                 </Descriptions.Item>
               </Descriptions>
             ) : (
               <Empty 
-                description="请选择护理员" 
-                className="py-8"
+                className="py-8" 
+                description="请选择护理员"
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
               />
             )}
@@ -190,18 +190,18 @@ export default function EditModal({
 
         {/* 参保人信息 */}
         <Card 
-          size="small" 
-          className="shadow-sm border-0 bg-gradient-to-r from-orange-50 to-red-50"
+          className="shadow-sm border-0 bg-gradient-to-r from-orange-50 to-red-50" 
+          size="small"
           style={{ marginBottom: '12px' }}
           title={
             <Space>
               <TeamOutlined className="text-orange-500" />
               <Text strong className="text-gray-700">参保人信息</Text>
               <Button 
-                type="link" 
+                className="text-orange-600 hover:text-orange-700 font-medium" 
                 size="small" 
+                type="link"
                 onClick={handleAddInsured}
-                className="text-orange-600 hover:text-orange-700 font-medium"
               >
                 {form.getFieldValue('insuredId') ? '更换' : '选择'}参保人
               </Button>
@@ -209,40 +209,40 @@ export default function EditModal({
           }
         >
           <Form.Item
+            className="mb-0"
             name="insuredId"
             rules={[{ required: true, message: '请选择参保人' }]}
-            className="mb-0"
           >
             {form.getFieldValue('insuredId') ? (
               <Descriptions 
-                column={2} 
-                size="small" 
-                bordered
-                className="bg-white rounded-lg"
+                bordered 
+                className="bg-white rounded-lg" 
+                column={2}
+                size="small"
               >
-                <Descriptions.Item label="姓名" className="font-medium">
+                <Descriptions.Item className="font-medium" label="姓名">
                   <Text className="text-gray-800 font-semibold">{insuredRecord?.name || '-'}</Text>
                 </Descriptions.Item>
-                <Descriptions.Item label="性别" className="font-medium">
+                <Descriptions.Item className="font-medium" label="性别">
                   <Text className="text-gray-800">{insuredRecord?.gender || '-'}</Text>
                 </Descriptions.Item>
-                <Descriptions.Item label="出生日期" className="font-medium">
+                <Descriptions.Item className="font-medium" label="出生日期">
                   <Text className="text-gray-800">{insuredRecord?.birthDate || '-'}</Text>
                 </Descriptions.Item>
-                <Descriptions.Item label="年龄" className="font-medium">
+                <Descriptions.Item className="font-medium" label="年龄">
                   <Text className="text-gray-800">{insuredRecord?.age || '-'}岁</Text>
                 </Descriptions.Item>
-                <Descriptions.Item label="联系电话" span={2} className="font-medium">
+                <Descriptions.Item className="font-medium" label="联系电话" span={2}>
                   <Text className="text-gray-800">{insuredRecord?.mobile || '-'}</Text>
                 </Descriptions.Item>
-                <Descriptions.Item label="地址" span={2} className="font-medium">
+                <Descriptions.Item className="font-medium" label="地址" span={2}>
                   <Text className="text-gray-600">{insuredRecord?.address || '-'}</Text>
                 </Descriptions.Item>
               </Descriptions>
             ) : (
               <Empty 
-                description="请选择参保人" 
-                className="py-8"
+                className="py-8" 
+                description="请选择参保人"
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
               />
             )}
@@ -252,8 +252,8 @@ export default function EditModal({
         {/* 套餐信息 */}
         {form.getFieldValue('insuredId') && (
           <Card 
-            size="small" 
-            className="shadow-sm border-0 bg-gradient-to-r from-green-50 to-emerald-50"
+            className="shadow-sm border-0 bg-gradient-to-r from-green-50 to-emerald-50" 
+            size="small"
             style={{ marginBottom: '12px' }}
             title={
               <Space>
@@ -263,31 +263,31 @@ export default function EditModal({
             }
           >
             <Form.Item
+              className="mb-0"
               name="packageId"
               rules={[{ required: true, message: '请选择套餐' }]}
-              className="mb-0"
             >
               <Descriptions 
-                column={2} 
-                size="small" 
-                bordered
-                className="bg-white rounded-lg"
+                bordered 
+                className="bg-white rounded-lg" 
+                column={2}
+                size="small"
               >
-                <Descriptions.Item label="套餐" className="font-medium">
+                <Descriptions.Item className="font-medium" label="套餐">
                   <Text className="text-gray-800 font-semibold">{insuredRecord?.package?.name || '-'}</Text>
                 </Descriptions.Item>
-                <Descriptions.Item label="服务时长" className="font-medium">
+                <Descriptions.Item className="font-medium" label="服务时长">
                   <Text className="text-gray-800">
                     {insuredRecord?.package?.minDuration || 0}分钟 - {insuredRecord?.package?.maxDuration || 0}分钟
                   </Text>
                 </Descriptions.Item>
-                <Descriptions.Item label="护理服务" span={2} className="font-medium">
+                <Descriptions.Item className="font-medium" label="护理服务" span={2}>
                   <Space wrap>
                     {insuredRecord?.package?.tasks?.map((task: any) => (
                       <Tag 
-                        color="blue" 
-                        key={task.id}
+                        key={task.id} 
                         className="px-3 py-1 rounded-full text-sm font-medium"
+                        color="blue"
                       >
                         {task.name}
                       </Tag>
@@ -301,8 +301,8 @@ export default function EditModal({
 
         {/* 排班时间 */}
         <Card 
-          size="small" 
-          className="shadow-sm border-0 bg-gradient-to-r from-blue-50 to-indigo-50"
+          className="shadow-sm border-0 bg-gradient-to-r from-blue-50 to-indigo-50" 
+          size="small"
           style={{ marginBottom: '12px' }}
           title={
             <Space>
@@ -314,21 +314,21 @@ export default function EditModal({
           <Row gutter={[16, 16]}>
             <Col span={24}>
               <Form.Item
-                name="currentDate"
                 label={
                   <Space>
                     <CalendarOutlined className="text-gray-500" />
                     <Text className="font-medium">计划日期</Text>
                   </Space>
                 }
+                name="currentDate"
                 rules={[{ required: true, message: '请选择计划日期' }]}
               >
                 <DatePicker 
-                  placeholder="请选择计划日期" 
-                  className="w-full"
+                  className="w-full" 
                   disabledDate={(current) => {
                     return current && current <= dayjs().startOf('day')
-                  }} 
+                  }}
+                  placeholder="请选择计划日期" 
                 />
               </Form.Item>
             </Col>
@@ -336,41 +336,37 @@ export default function EditModal({
               <>
                 <Col span={12}>
                   <Form.Item
-                    name="startTime"
                     label={
                       <Space>
                         <ClockCircleOutlined className="text-gray-500" />
                         <Text className="font-medium">开始时间</Text>
                       </Space>
                     }
+                    name="startTime"
                     rules={[{ required: true, message: '请选择开始时间' }]}
                   >
                     <TimePicker
-                      placeholder="请选择开始时间"
                       className="w-full"
                       format="HH:mm"
-                      showNow={false}
                       minuteStep={10}
+                      placeholder="请选择开始时间"
+                      showNow={false}
                     />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Form.Item
-                    name="endTime"
                     label={
                       <Space>
                         <ClockCircleOutlined className="text-gray-500" />
                         <Text className="font-medium">结束时间</Text>
                       </Space>
                     }
+                    name="endTime"
                     rules={[{ required: true, message: '请选择结束时间' }]}
                   >
                     <TimePicker
-                      placeholder="请选择结束时间"
                       className="w-full"
-                      format="HH:mm"
-                      showNow={false}
-                      minuteStep={10}
                       disabledTime={() => {
                         const startTime = form.getFieldValue('startTime')
                         if (!startTime) return {}
@@ -397,6 +393,10 @@ export default function EditModal({
                           }
                         }
                       }}
+                      format="HH:mm"
+                      minuteStep={10}
+                      placeholder="请选择结束时间"
+                      showNow={false}
                     />
                   </Form.Item>
                 </Col>
@@ -407,8 +407,8 @@ export default function EditModal({
 
         {/* 其他信息 */}
         <Card 
-          size="small" 
-          className="shadow-sm border-0 bg-gradient-to-r from-gray-50 to-slate-50"
+          className="shadow-sm border-0 bg-gradient-to-r from-gray-50 to-slate-50" 
+          size="small"
           style={{ marginBottom: '12px' }}
           title={
             <Space>
@@ -420,37 +420,37 @@ export default function EditModal({
           <Row gutter={[16, 16]}>
             <Col span={24}>
               <Form.Item
-                name="description"
                 label={
                   <Space>
                     <FileTextOutlined className="text-gray-500" />
                     <Text className="font-medium">备注</Text>
                   </Space>
                 }
+                name="description"
               >
                 <Input.TextArea
+                  className="rounded-lg"
                   placeholder="请输入备注"
                   rows={3}
-                  className="rounded-lg"
                 />
               </Form.Item>
             </Col>
             <Col span={24}>
               <Form.Item
-                name="status"
                 label={
                   <Space>
                     <SettingOutlined className="text-gray-500" />
                     <Text className="font-medium">状态</Text>
                   </Space>
                 }
+                name="status"
                 rules={[{ required: true, message: '请选择状态' }]}
               >
                 <Radio.Group className="space-x-4">
-                  <Radio value={1} className="font-medium">
+                  <Radio className="font-medium" value={1}>
                     <Text className="text-green-600">启用</Text>
                   </Radio>
-                  <Radio value={0} className="font-medium">
+                  <Radio className="font-medium" value={0}>
                     <Text className="text-red-600">禁用</Text>
                   </Radio>
                 </Radio.Group>
@@ -468,22 +468,22 @@ export default function EditModal({
         footer: (
           <Space>
             <Button 
-              onClick={handleReset}
               className="px-6 py-2 rounded-lg font-medium transition-all duration-200 hover:shadow-md border-gray-300 text-gray-600 hover:text-gray-700"
+              onClick={handleReset}
             >
               重置
             </Button>
             <Button 
-              onClick={handleCancel}
               className="px-6 py-2 rounded-lg font-medium transition-all duration-200 hover:shadow-md border-gray-300 text-gray-600 hover:text-gray-700"
+              onClick={handleCancel}
             >
               取消
             </Button>
             <Button
-              type="primary"
-              loading={submitLoading}
-              onClick={() => form.submit()}
               className="px-6 py-2 rounded-lg font-medium transition-all duration-200 hover:shadow-md bg-blue-600 hover:bg-blue-700 border-blue-600 hover:border-blue-700"
+              loading={submitLoading}
+              type="primary"
+              onClick={() => form.submit()}
             >
               确定
             </Button>
@@ -491,54 +491,54 @@ export default function EditModal({
         )
       }} />
       <Modal
+        className="rounded-lg"
+        destroyOnHidden={true}
+        footer={
+          <Space>
+            <Button 
+              className="px-6 py-2 rounded-lg font-medium transition-all duration-200 hover:shadow-md"
+              onClick={() => setOpenInsured(false)}
+            >
+              关闭
+            </Button>
+          </Space>
+        }
+        open={openInsured}
         title={
           <Space>
             <TeamOutlined className="text-orange-500" />
             <Text strong>选择参保人</Text>
           </Space>
         }
-        open={openInsured}
+        width={800}
+        zIndex={1000}
+        onCancel={() => setOpenInsured(false)}
+      >
+        <InsuredModal onSelect={handleSelectInsured} />
+      </Modal>
+      <Modal
+        className="rounded-lg"
+        destroyOnHidden={true}
         footer={
           <Space>
             <Button 
-              onClick={() => setOpenInsured(false)}
               className="px-6 py-2 rounded-lg font-medium transition-all duration-200 hover:shadow-md"
+              onClick={() => setOpenNurse(false)}
             >
               关闭
             </Button>
           </Space>
         }
-        destroyOnHidden={true}
-        onCancel={() => setOpenInsured(false)}
-        width={800}
-        className="rounded-lg"
-        zIndex={1000}
-      >
-        <InsuredModal onSelect={handleSelectInsured} />
-      </Modal>
-      <Modal
+        open={openNurse}
         title={
           <Space>
             <UserOutlined className="text-purple-500" />
             <Text strong>选择护理员</Text>
           </Space>
         }
-        open={openNurse}
-        footer={
-          <Space>
-            <Button 
-              onClick={() => setOpenNurse(false)}
-              className="px-6 py-2 rounded-lg font-medium transition-all duration-200 hover:shadow-md"
-            >
-              关闭
-            </Button>
-          </Space>
-        }
-        destroyOnHidden={true}
-        onCancel={() => setOpenNurse(false)}
         width={800}
-        className="rounded-lg"
         zIndex={1000}
+        onCancel={() => setOpenNurse(false)}
       >
         <NurseModal onSelect={handleSelectNurse} />
       </Modal>

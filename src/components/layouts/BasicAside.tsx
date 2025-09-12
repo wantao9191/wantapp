@@ -23,7 +23,7 @@ const BasicAside = ({
     if (pathname === clickedItem.path) {
       return
     }
-    if (clickedItem.children && clickedItem.children.length) {
+    if (clickedItem.children?.length) {
       setMenuList && setMenuList((prevItems: any[] = []) =>
         prevItems.map((item: any) =>
           item.id === clickedItem.id ? { ...item, slider: !item.slider } : item
@@ -88,10 +88,10 @@ const BasicAside = ({
           <>
             <div className='flex items-center gap-2 hover:bg-gray-50 px-1.5 py-1.5 rounded-lg transition-all duration-200 min-w-0 group ' onClick={onUserClick}>
               <Avatar
+                className="shadow-sm"
+                icon={<UserOutlined />}
                 size="small"
                 style={{ backgroundColor: '#1890ff' }}
-                icon={<UserOutlined />}
-                className="shadow-sm"
               />
               <div className="flex-1 min-w-0">
                 <div className='text-xs font-semibold text-gray-800 truncate'>
@@ -102,24 +102,24 @@ const BasicAside = ({
                 </div>
               </div>
               <AppIcon
-                name="DownOutlined"
                 className='text-gray-400 text-xs group-hover:text-gray-600 transition-colors duration-200'
+                name="DownOutlined"
               />
 
             </div>
             <div className='hover:bg-gray-50 p-1.5 rounded-lg transition-all duration-200 group'>
               <AppIcon
-                name="BellOutlined"
                 className='text-gray-500 group-hover:text-gray-700 transition-colors duration-200'
+                name="BellOutlined"
               />
             </div>
             {visble && (
               <div className='absolute top-14 left-3.5 right-3.5 bg-#333 rounded-md p-4 flex flex-col items-center gap-2 text-white'>
                 <Avatar
+                  className="shadow-sm"
+                  icon={<UserOutlined />}
                   size="large"
                   style={{ backgroundColor: '#1890ff' }}
-                  icon={<UserOutlined />}
-                  className="shadow-sm"
                 />
                 <div className="flex-1 min-w-0 text-center">
                   <div className='text-xs font-semibold  truncate'>
@@ -131,7 +131,7 @@ const BasicAside = ({
 
                 </div>
                 <div className='text-xs cursor-pointer' onClick={onLogout}>
-                 <AppIcon name="LogoutOutlined" className='text-white text-xs' /> 退出登录
+                 <AppIcon className='text-white text-xs' name="LogoutOutlined" /> 退出登录
                 </div>
               </div>
             )}
@@ -139,10 +139,10 @@ const BasicAside = ({
         ) : (
           <div className='flex flex-col items-center gap-1 w-full py-2'>
             <Avatar
+              className="shadow-sm"
+              icon={<UserOutlined />}
               size="small"
               style={{ backgroundColor: '#1890ff' }}
-              icon={<UserOutlined />}
-              className="shadow-sm"
             />
           </div>
         )}
@@ -164,18 +164,18 @@ const BasicAside = ({
                   : 'text-gray-700 hover:text-gray-900'
                 }
               `}
-              onClick={() => onClick(item)}
               title={collapsed ? item.name : ''}
+              onClick={() => onClick(item)}
             >
               {collapsed ? (
                 <>
                   <span className="flex items-center shrink-0 text-sm">
                     <AppIcon
-                      name={item.icon}
                       className={`
                         transition-colors duration-200
                         ${currentMenu === item.path ? 'text-blue-600' : 'text-gray-500 group-hover:text-gray-700'}
                       `}
+                      name={item.icon}
                     />
                   </span>
                   <span className='flex-1 truncate whitespace-nowrap text-xs font-medium'>
@@ -184,26 +184,26 @@ const BasicAside = ({
                   {item.children?.length ? (
                     <span className='transition-transform duration-200 group-hover:scale-110'>
                       <AppIcon
-                        name={item.slider ? "DownOutlined" : "RightOutlined"}
                         className='text-gray-400 text-xs'
+                        name={item.slider ? "DownOutlined" : "RightOutlined"}
                       />
                     </span>
                   ) : null}
                 </>
               ) : (
                 <Popover
-                  content={item.children?.length ? subContent(item) : item.name}
                   align={{ offset: [20, 0] }}
-                  placement="right"
+                  content={item.children?.length ? subContent(item) : item.name}
                   overlayClassName="menu-popover"
+                  placement="right"
                 >
                   <span className="flex items-center shrink-0 text-base">
                     <AppIcon
-                      name={item.icon}
                       className={`
                         transition-colors duration-200
                         ${currentMenu === item.path ? 'text-blue-600' : 'text-gray-500 group-hover:text-gray-700'}
                       `}
+                      name={item.icon}
                     />
                   </span>
                 </Popover>

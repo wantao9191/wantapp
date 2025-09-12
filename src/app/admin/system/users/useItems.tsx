@@ -91,11 +91,11 @@ const useItems = (setReload: (reload: boolean) => void) => {
           userInfo.id !== record.id ?
             <Switch
               checked={status === 1}
-              size="small"
               checkedChildren="启用"
+              loading={loading}
+              size="small"
               unCheckedChildren="禁用"
-              onChange={handleStatusChange}
-              loading={loading} /> :
+              onChange={handleStatusChange} /> :
             <Tag className='!mr-0' color={status === 1 ? 'success' : 'magenta'}>{status === 1 ? '启用' : '禁用'}</Tag>
         )
       }

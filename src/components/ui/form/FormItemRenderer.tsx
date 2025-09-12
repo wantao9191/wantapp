@@ -135,10 +135,10 @@ const FormItemRenderer: React.FC<FormItemRendererProps> = ({
     return (
       <ItemComponent
         config={config as any}
-        value={value}
-        onChange={onChange}
         disabled={disabled}
         formContext={formContext}
+        value={value}
+        onChange={onChange}
       />
     )
   }

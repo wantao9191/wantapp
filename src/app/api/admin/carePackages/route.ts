@@ -49,7 +49,7 @@ export const GET = createHandler(async (request: NextRequest, context?: HandlerC
   ])
 
   // 获取所有相关的 careTasks 信息
-  const contentsWithTaskNames = await cretateContent(contents)
+  const contentsWithTaskNames = await createContent(contents)
   return paginatedSimple(contentsWithTaskNames, pageParams.data.page, pageParams.data.pageSize, totalResult[0]?.count || 0)
 }, {
   permission: 'careplan:read',
@@ -82,7 +82,7 @@ export const POST = createHandler(async (request: NextRequest, context?: Handler
   requireAuth: true
 })
 
-export const cretateContent = async (contents: any[]) => {
+const createContent = async (contents: any[]) => {
   // 获取所有相关的 careTasks 信息
   const taskIds = [...new Set(contents.flatMap(item => item.tasks || []))]
 

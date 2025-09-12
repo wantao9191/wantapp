@@ -87,8 +87,8 @@ export default function EditModal({
           取消
         </Button>
         <Button
-          type="primary"
           loading={submitLoading}
+          type="primary"
           onClick={handleSubmit}
         >
           确定

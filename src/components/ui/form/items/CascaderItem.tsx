@@ -31,19 +31,19 @@ const CascaderItem: React.FC<CascaderItemProps> = ({ config, value, onChange, di
 
   return (
     <Cascader
-      placeholder={resolvedPlaceholder as string}
-      disabled={disabled || (resolvedDisabled as boolean)}
-      style={{ width: '100%', ...(resolvedStyle as React.CSSProperties) }}
+      changeOnSelect={cascaderConfig.changeOnSelect}
       className={resolvedClassName as string}
-      options={cascaderConfig.options}
+      disabled={disabled || (resolvedDisabled as boolean)}
+      displayRender={cascaderConfig.displayRender}
       expandTrigger={cascaderConfig.expandTrigger}
       multiple={cascaderConfig.multiple}
+      options={cascaderConfig.options}
+      placeholder={resolvedPlaceholder as string}
       showSearch={cascaderConfig.showSearch}
-      changeOnSelect={cascaderConfig.changeOnSelect}
-      displayRender={cascaderConfig.displayRender}
+      size={cascaderConfig.size}
+      style={{ width: '100%', ...(resolvedStyle as React.CSSProperties) }}
       value={value}
       onChange={onChange}
-      size={cascaderConfig.size}
     />
   )
 }

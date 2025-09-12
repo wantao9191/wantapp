@@ -79,7 +79,7 @@ export async function middleware(request: NextRequest) {
 
     // 私有API需要认证
     const authHeader = request.headers.get('Authorization')
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!authHeader?.startsWith('Bearer ')) {
       console.warn(`[Auth] Missing or invalid Authorization header for ${pathname}`)
       return createErrorResponse('Missing or invalid Authorization header', 401, origin)
     }

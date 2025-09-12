@@ -45,7 +45,7 @@ const SelectItem: React.FC<SelectItemProps> = ({ config, value, onChange, disabl
   // 使用 useMemo 缓存选项列表
   const options = useMemo(() => {
     return selectConfig.options?.map((option: any) => (
-      <Option key={option.value} value={option.value} disabled={option.disabled}>
+      <Option key={option.value} disabled={option.disabled} value={option.value}>
         {option.label}
       </Option>
     )) || []
