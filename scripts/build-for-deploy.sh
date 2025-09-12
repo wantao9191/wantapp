@@ -134,10 +134,10 @@ if [ -d "src/db" ]; then
     cp -r src/db "$BUILD_DIR/src/"
 fi
 
-# 创建生产环境配置模板
-echo "⚙️  创建环境配置模板..."
-cat > "$BUILD_DIR/.env.production.local.template" << 'EOF'
-# 生产环境配置模板
+# 创建生产环境配置文件
+echo "⚙️  创建环境配置文件..."
+cat > "$BUILD_DIR/.env.production.local" << 'EOF'
+# 生产环境配置
 # 请根据实际情况修改以下配置
 
 # 数据库配置
@@ -189,7 +189,6 @@ pnpm install --frozen-lockfile --production
 
 ### 3. 配置环境变量
 ```bash
-cp .env.production.local.template .env.production.local
 # 编辑 .env.production.local 文件，填入正确的配置
 # 使用 vi 编辑器（大多数 Linux 系统都有）
 vi .env.production.local
@@ -363,7 +362,7 @@ pnpm install --frozen-lockfile
 # 检查环境配置
 if [ ! -f ".env.production.local" ]; then
     echo "⚠️  警告：未找到 .env.production.local 文件"
-    echo "请复制 .env.production.local.template 为 .env.production.local 并配置"
+    echo "请检查部署包是否完整"
     exit 1
 fi
 
