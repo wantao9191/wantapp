@@ -1,5 +1,5 @@
 'use client'
-import { Calendar, ConfigProvider, Popover, Spin, Button, Input } from 'antd'
+import { Calendar, ConfigProvider, Popover, Spin, Button, Input, Tag, App, Popconfirm } from 'antd'
 import type { CalendarMode } from 'antd/es/calendar/generateCalendar';
 import React, { useState, useEffect, useCallback } from 'react'
 import zhCN from 'antd/locale/zh_CN'
@@ -8,22 +8,32 @@ import 'dayjs/locale/zh-cn'
 import type { Dayjs } from 'dayjs'
 import AppIcon from '@/components/ui/AppIcons'
 import EditModal from './components/editModal'
+import CheckModal from './components/checkModal'
 import { Modal } from 'antd'
 import { http } from '@/lib/https'
+import { useDict } from '@/hooks/useDict'
 export default function SchedulingPage() {
   // 设置 dayjs 为中文
   dayjs.locale('zh-cn')
+  const { message } = App.useApp()
+  const { confirm } = Modal
+  const { statusMap } = useDict()
   const [open, setOpen] = useState(false)
   const [formData, setFormData] = useState<any>(null)
   const [params, setParams] = useState<any>({})
   const [currentDate, setCurrentDate] = useState<Dayjs>(dayjs())
   const [list, setList] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
+  const [checkOpen, setCheckOpen] = useState(false)
   const getList = async () => {
     try {
       setLoading(true)
       const res = await http.get('/admin/schedule', { month: currentDate.format('YYYY-MM'), ...params })
-      setList(res.data)
+      const data = res.data.map((item: any) => ({
+        ...item,
+        isBefore: dayjs(item.startTime).isBefore(dayjs().startOf('day')) || dayjs(item.startTime).isSame(dayjs().startOf('day'), 'day')
+      }))
+      setList(data)
       setLoading(false)
     } catch (error) {
       setLoading(false)
@@ -49,60 +59,105 @@ export default function SchedulingPage() {
     setFormData(item)
     setOpen(true)
   }
+  const handleCheck = (item: any) => {
+    setFormData(item)
+    setCheckOpen(true)
+  }
+  const handleChangeStatus = async (item: any) => {
+    try {
+      await http.put(`/admin/schedule/${item.id}`, {
+        status: item.status === 0 ? 1 : 0,
+        nurseId: item.nurse.id,
+        insuredId: item.insured.id,
+        packageId: item.package.id,
+        startTime: item.startTime,
+        endTime: item.endTime,
+        description: item.description,
+        duration: item.duration,
+      })
+      message.success('操作成功')
+      getList()
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   const onSubmit = () => {
     setOpen(false)
     getList()
   }
 
   const popoverContent = (data: any) => {
-    const renderList = data.length > 3 ? data.slice(0, 3) : data
+    const renderList = data
     return (
       <div className="min-w-80">
         <div className="text-sm font-medium text-gray-700 mb-3 flex items-center justify-between">
           <span>排班信息</span>
-          {data.length > 3 && (
-            <div className="text-gray-500 text-xs cursor-pointer bg-gray-50 px-3  rounded-full border border-gray-200 hover:bg-gray-100 transition-colors duration-200">
-              <span className="inline-flex items-center gap-1">
-                <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
-                查看全部
-                <span className="text-gray-700">
-                  {data.length}
-                </span>
-                条排班
-              </span>
-            </div>
-          )}
+          <span className="inline-flex items-center gap-1">
+            <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
+            共
+            <span className="text-gray-700">
+              {data.length}
+            </span>
+            条排班
+          </span>
         </div>
-        {renderList.map((item: any, index: number) => (
-          <div key={item.id || index} className='flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-2 rounded-lg mb-2 text-sm border border-blue-100 hover:shadow-sm transition-all duration-200'>
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                  {dayjs(item.startTime).format('HH:mm')} - {dayjs(item.endTime).format('HH:mm')}
-                </span>
+        <div className='max-h-[240px] min-h-[80px] overflow-y-auto'>
+          {renderList.map((item: any, index: number) => (
+            <div key={item.id || index} className='flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-2 rounded-lg mb-2 text-sm border border-blue-100 hover:shadow-sm transition-all duration-200'>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    {dayjs(item.startTime).format('HH:mm')} - {dayjs(item.endTime).format('HH:mm')}
+                  </span>
+                  <Tag color={statusMap[item.status].color}> {statusMap[item.status].label}</Tag>
+                </div>
+                <div className="text-gray-700">
+                  <span className="font-medium">{item.insured?.name}</span>
+                  <span className="text-gray-500 ml-1">的护理服务</span>
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  套餐：<span className="font-medium text-indigo-600">{item.package?.name}</span>
+                </div>
               </div>
-              <div className="text-gray-700">
-                <span className="font-medium">{item.insured?.name}</span>
-                <span className="text-gray-500 ml-1">的护理服务</span>
-              </div>
-              <div className="text-xs text-gray-500 mt-1">
-                套餐：<span className="font-medium text-indigo-600">{item.package?.name}</span>
-              </div>
+              {item.isBefore ? (
+                <Button
+                  type='link'
+                  size='small'
+                  className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-2 py-1 rounded"
+                  onClick={() => {
+                    handleCheck(item)
+                  }}
+                >
+                  查看
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    type='link'
+                    size='small'
+                    className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-2 py-1 rounded"
+                    onClick={() => {
+                      handleEdit(item)
+                    }}
+                  >
+                    编辑
+                  </Button>
+                  <Popconfirm
+                    title={`${item.status === 0 ? '启用' : '停止'}排班计划`}
+                    onConfirm={() => {
+                      handleChangeStatus(item)
+                    }}
+                  >
+                    <Button type='link' size='small' className={`${item.status === 0 ? 'text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-2 py-1 rounded' : '!text-red-600 !hover:text-red-800 !hover:bg-red-50 px-2 py-1 rounded'}`}>
+                      {item.status === 0 ? '启用' : '停止'}
+                    </Button>
+                  </Popconfirm>
+                </>
+              )}
             </div>
-            <Button
-              type='link'
-              size='small'
-              className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-2 py-1 rounded"
-              onClick={(e) => {
-                // TODO: 实现编辑功能
-                handleEdit(item)
-              }}
-            >
-              编辑
-            </Button>
-          </div>
-        ))}
-
+          ))}
+        </div>
       </div>
     )
   }
@@ -231,8 +286,20 @@ export default function SchedulingPage() {
           destroyOnHidden={true}
           onCancel={() => setOpen(false)}
           width={600}
+          zIndex={1999}
         >
           <EditModal formData={formData} onSubmit={onSubmit} onCancel={() => setOpen(false)} />
+        </Modal>
+        <Modal
+          title='查看排班计划'
+          open={checkOpen}
+          footer={null}
+          destroyOnHidden={true}
+          onCancel={() => setCheckOpen(false)}
+          width={600}
+          zIndex={1999}
+        >
+          <CheckModal open={checkOpen} onCancel={() => setCheckOpen(false)} formData={formData} />
         </Modal>
       </div>
     </Spin>

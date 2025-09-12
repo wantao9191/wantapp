@@ -35,7 +35,7 @@ export const DELETE = createHandler(async (request: NextRequest, params, context
   if (!org) {
     throw new Error('机构不存在')
   }
-  return
+  return 'ok'
 }, {
   permission: 'organization:write',
   requireAuth: true,

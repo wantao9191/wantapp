@@ -10,6 +10,20 @@ export const PUT = createHandler(async (request: NextRequest, params, context) =
   const { id } = params
   const data = await request.json()
   data.type = DEFAULT_TYPE
+
+  // 先查询现有护士信息
+  const [currentNurse] = await db.select().from(personInfo).where(eq(personInfo.id, parseInt(id))).limit(1)
+  if (!currentNurse) {
+    throw new Error('护理员不存在')
+  }
+
+  // 权限校验：非超级管理员只能操作自己机构的护理员
+  if (!context?.isSuperAdmin) {
+    if (currentNurse.organizationId !== Number(context?.organizationId)) {
+      throw new Error('无权限操作该护理员')
+    }
+  }
+
   if (context?.isSuperAdmin) {
     if (!data.organizationId) {
       throw new Error('机构ID不能为空')
@@ -34,10 +48,8 @@ export const PUT = createHandler(async (request: NextRequest, params, context) =
     age: age || 0,
     birthDate: birthDate || null,
   }
-  const [insured] = await db.update(personInfo).set(insertData).where(eq(personInfo.id, parseInt(id))).returning()
-  if (!insured) {
-    throw new Error('参保人不存在')
-  }
+  await db.update(personInfo).set(insertData).where(eq(personInfo.id, parseInt(id))).returning()
+
   return 'ok'
 }, {
   permission: 'nurse:write',
@@ -47,10 +59,22 @@ export const PUT = createHandler(async (request: NextRequest, params, context) =
 
 export const DELETE = createHandler(async (request: NextRequest, params, context) => {
   const { id } = params
-  const [insured] = await db.update(personInfo).set({ deleted: true }).where(eq(personInfo.id, parseInt(id))).returning()
-  if (!insured) {
-    throw new Error('参保人不存在')
+
+  // 先查询现有护士信息
+  const [currentNurse] = await db.select().from(personInfo).where(eq(personInfo.id, parseInt(id))).limit(1)
+  if (!currentNurse) {
+    throw new Error('护理员不存在')
   }
+
+  // 权限校验：非超级管理员只能操作自己机构的护理员
+  if (!context?.isSuperAdmin) {
+    if (currentNurse.organizationId !== Number(context?.organizationId)) {
+      throw new Error('无权限操作该护理员')
+    }
+  }
+
+  await db.update(personInfo).set({ deleted: true }).where(eq(personInfo.id, parseInt(id))).returning()
+
   return 'ok'
 }, {
   permission: 'nurse:write',

@@ -6,6 +6,7 @@ import { ConfigProvider, App as AntdApp } from 'antd';
 import { antdTheme } from '@/lib/antd-config';
 import '@/lib/dayjs-config'; // 导入 dayjs 配置
 import { AuthGuard } from '@/components/auth/AuthGuard';
+import { HttpProvider } from '@/components/providers/HttpProvider';
 import "./globals.css";
 
 const geistSans = Geist({
@@ -36,9 +37,11 @@ export default function RootLayout({
         <AntdRegistry>
           <ConfigProvider theme={antdTheme}>
             <AntdApp>
-              <AuthGuard>
-                {children}
-              </AuthGuard>
+              <HttpProvider>
+                <AuthGuard>
+                  {children}
+                </AuthGuard>
+              </HttpProvider>
             </AntdApp>
           </ConfigProvider>
         </AntdRegistry>

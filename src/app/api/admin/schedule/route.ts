@@ -5,7 +5,7 @@ import { schedulePlans, personInfo, carePackages, organizations } from "@/db/sch
 import { eq, and, gte, lt, like } from "drizzle-orm"
 import { alias } from "drizzle-orm/pg-core"
 import { schedulePlanSchema, schedulePlanCreateSchema } from "@/lib/validations"
-
+import { cretateContent } from "../insured/all/route"
 export const GET = createHandler(async (request: NextRequest, params, context) => {
   const { searchParams } = new URL(request.url)
   const nurseName = searchParams.get('nurseName') || ''
@@ -14,8 +14,7 @@ export const GET = createHandler(async (request: NextRequest, params, context) =
   let organizationId = searchParams.get('organizationId')
   // 构建基础查询条件
   const whereConditions = [
-    eq(schedulePlans.deleted, false),
-    eq(schedulePlans.status, 1)
+    eq(schedulePlans.deleted, false)
   ]
 
   const dataParams = schedulePlanSchema.safeParse({
@@ -100,6 +99,9 @@ export const GET = createHandler(async (request: NextRequest, params, context) =
         name: nurseInfo.name,
         username: nurseInfo.username,
         mobile: nurseInfo.mobile,
+        gender: nurseInfo.gender,
+        birthDate: nurseInfo.birthDate,
+        age: nurseInfo.age,
         description: nurseInfo.description,
         createTime: nurseInfo.createTime,
         type: nurseInfo.type,
@@ -111,6 +113,10 @@ export const GET = createHandler(async (request: NextRequest, params, context) =
         name: insuredInfo.name,
         mobile: insuredInfo.mobile,
         credential: insuredInfo.credential,
+        gender: insuredInfo.gender,
+        birthDate: insuredInfo.birthDate,
+        age: insuredInfo.age,
+        address: insuredInfo.address,
         avatar: insuredInfo.avatar,
         organizationId: insuredInfo.organizationId,
         description: insuredInfo.description,
@@ -136,8 +142,8 @@ export const GET = createHandler(async (request: NextRequest, params, context) =
     .leftJoin(nurseInfo, eq(schedulePlans.nurseId, nurseInfo.id))
     .leftJoin(carePackages, eq(schedulePlans.packageId, carePackages.id))
     .where(and(...whereConditions)).orderBy(schedulePlans.startTime)
-
-  return data
+  const enrichedData = await cretateContent(data)
+  return enrichedData
 }, {
   permission: 'schedulingPlan:read',
   requireAuth: true,
@@ -150,7 +156,6 @@ export const POST = createHandler(async (request: NextRequest, context?: Handler
       throw new Error('机构ID不能为空')
     }
   } else {
-    console.log(context?.organizationId)
     data.organizationId = Number(context?.organizationId)
   }
   const dataParams = schedulePlanCreateSchema.safeParse(data)

@@ -13,17 +13,20 @@ export const PUT = createHandler(async (request: NextRequest, params, context) =
     throw new Error(data.error.errors[0].message)
   }
 
-  const whereConditions = [eq(carePackages.id, parseInt(id))]
-
-  // 如果不是超级管理员，添加机构过滤条件
-  if (context && !context.isSuperAdmin && context.organizationId) {
-    whereConditions.push(eq(carePackages.organizationId, context.organizationId))
+  // 先查询现有护理套餐信息
+  const [currentPackage] = await db.select().from(carePackages).where(eq(carePackages.id, parseInt(id))).limit(1)
+  if (!currentPackage) {
+    throw new Error('护理套餐不存在')
   }
 
-  const [packages] = await db.update(carePackages).set(data.data).where(and(...whereConditions)).returning()
-  if (!packages) {
-    throw new Error('护理套餐不存在或无权限操作')
+  // 权限校验：非超级管理员只能操作自己机构的护理套餐
+  if (!context?.isSuperAdmin) {
+    if (currentPackage.organizationId !== Number(context?.organizationId)) {
+      throw new Error('无权限操作该护理套餐')
+    }
   }
+
+  await db.update(carePackages).set(data.data).where(eq(carePackages.id, parseInt(id))).returning()
   return 'ok'
 }, {
   permission: 'careplan:write',
@@ -34,19 +37,23 @@ export const PUT = createHandler(async (request: NextRequest, params, context) =
 export const DELETE = createHandler(async (request: NextRequest, params, context) => {
   const { id } = params
 
-  const whereConditions = [eq(carePackages.id, parseInt(id))]
-
-  // 如果不是超级管理员，添加机构过滤条件
-  if (context && !context.isSuperAdmin && context.organizationId) {
-    whereConditions.push(eq(carePackages.organizationId, context.organizationId))
+  // 先查询现有护理套餐信息
+  const [currentPackage] = await db.select().from(carePackages).where(eq(carePackages.id, parseInt(id))).limit(1)
+  if (!currentPackage) {
+    throw new Error('护理套餐不存在')
   }
 
-  const [packages] = await db.update(carePackages).set({
+  // 权限校验：非超级管理员只能操作自己机构的护理套餐
+  if (!context?.isSuperAdmin) {
+    if (currentPackage.organizationId !== Number(context?.organizationId)) {
+      throw new Error('无权限操作该护理套餐')
+    }
+  }
+
+  await db.update(carePackages).set({
     deleted: true
-  }).where(and(...whereConditions)).returning()
-  if (!packages) {
-    throw new Error('护理套餐不存在或无权限操作')
-  }
+  }).where(eq(carePackages.id, parseInt(id))).returning()
+
   return 'ok'
 }, {
   permission: 'careplan:write',

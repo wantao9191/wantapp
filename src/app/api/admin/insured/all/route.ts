@@ -99,7 +99,7 @@ export const GET = createHandler(async (request: NextRequest, params, context) =
   requireAuth: true
 })
 
-const cretateContent = async (contents: any[]) => {
+export const cretateContent = async (contents: any[]) => {
   // 收集所有任务 ID
   const allTaskIds = contents.flatMap(item => item.package?.tasks || []).filter((arr, index, self) => self.indexOf(arr) === index)
 

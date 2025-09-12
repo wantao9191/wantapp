@@ -118,7 +118,7 @@ export class HttpClient {
     }
   }
 
-  public configureMessage(options: { showMessage?: boolean; messageDuration?: number }): void {
+  public configureMessage(options: { showMessage?: boolean; messageDuration?: number; messageApi?: any }): void {
     this.errorHandler.updateConfig(options)
     if (options.showMessage !== undefined) {
       this.config.showMessage = options.showMessage
@@ -126,6 +126,10 @@ export class HttpClient {
     if (options.messageDuration !== undefined) {
       this.config.messageDuration = options.messageDuration
     }
+  }
+
+  public setMessageApi(messageApi: any): void {
+    this.errorHandler.setMessageApi(messageApi)
   }
 
   // Token management methods

@@ -153,7 +153,8 @@ export const schedulePlanCreateSchema = z.object({
     .refine((value) => {
       return !isNaN(value) && value > 0
     }, { message: '时长必须是大于0的数字' }),
-  description: z.string().optional(),
+  description: z.string().optional().nullable(),
+  status: z.number().optional().nullable(),
 }).refine((data) => {
   // 验证开始时间不能晚于结束时间
   const startTime = new Date(data.startTime)
@@ -174,6 +175,16 @@ export const schedulePlanCreateSchema = z.object({
 }, {
   message: '时长与时间范围不匹配',
   path: ['duration'],
+}).refine((data) => {
+  // 验证开始时间必须晚于今天（只允许明天及以后）
+  const startTime = new Date(data.startTime)
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  tomorrow.setHours(0, 0, 0, 0) // 设置为明天的开始时间
+  return startTime >= tomorrow
+}, {
+  message: '排班时间必须是明天及以后',
+  path: ['startTime'],
 })
 // 文件上传校验规则
 export const fileUploadSchema = z.object({

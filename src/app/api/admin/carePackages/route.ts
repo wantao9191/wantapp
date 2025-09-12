@@ -37,6 +37,7 @@ export const GET = createHandler(async (request: NextRequest, context?: HandlerC
       tasks: carePackages.tasks,
       description: carePackages.description,
       status: carePackages.status,
+      organizationId: carePackages.organizationId,
       createTime: carePackages.createTime
     })
       .from(carePackages)
@@ -57,11 +58,19 @@ export const GET = createHandler(async (request: NextRequest, context?: HandlerC
 
 export const POST = createHandler(async (request: NextRequest, context?: HandlerContext) => {
   const data = await request.json()
+  
+  // 处理机构ID逻辑
   if (context?.isSuperAdmin) {
-    throw new Error('超级管理员无权操作该护理套餐')
+    if (!data.organizationId) {
+      throw new Error('机构ID不能为空')
+    }
   } else {
-    data.organizationId = Number(context?.organizationId)
+    if (!context?.organizationId) {
+      throw new Error('用户机构信息缺失')
+    }
+    data.organizationId = Number(context.organizationId)
   }
+  
   const params = carePackageSchema.safeParse(data)
   if (!params.success) {
     throw new Error(params.error.errors[0].message)

@@ -1,4 +1,4 @@
-import { message } from 'antd'
+import { App } from 'antd'
 
 export class HttpError extends Error {
   public code: number
@@ -15,24 +15,38 @@ export class HttpError extends Error {
 export class HttpErrorHandler {
   private showMessage: boolean
   private messageDuration: number
+  private messageApi: any
 
-  constructor(showMessage: boolean = true, messageDuration: number = 3000) {
+  constructor(showMessage: boolean = true, messageDuration: number = 3000, messageApi?: any) {
     this.showMessage = showMessage
     this.messageDuration = messageDuration
+    this.messageApi = messageApi
   }
 
-  updateConfig(options: { showMessage?: boolean; messageDuration?: number }): void {
+  updateConfig(options: { showMessage?: boolean; messageDuration?: number; messageApi?: any }): void {
     if (options.showMessage !== undefined) {
       this.showMessage = options.showMessage
     }
     if (options.messageDuration !== undefined) {
       this.messageDuration = options.messageDuration
     }
+    if (options.messageApi !== undefined) {
+      this.messageApi = options.messageApi
+    }
+  }
+
+  setMessageApi(messageApi: any): void {
+    this.messageApi = messageApi
   }
 
   showErrorMessage(type: 'success' | 'error' | 'warning' | 'info', content: string): void {
     if (typeof window !== 'undefined' && this.showMessage) {
-      message[type](content, this.messageDuration / 1000)
+      if (this.messageApi) {
+        this.messageApi[type](content, this.messageDuration / 1000)
+      } else {
+        // 降级到 console 输出，避免警告
+        console[type === 'error' ? 'error' : 'log'](content)
+      }
     }
   }
 
