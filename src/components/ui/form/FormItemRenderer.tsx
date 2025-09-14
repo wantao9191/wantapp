@@ -19,7 +19,7 @@ import {
   ColorPickerItem,
   CustomItem,
   ApiSelectItem
-} from './Items'
+} from './items'
 
 interface FormItemRendererProps {
   config: FormItemConfig
