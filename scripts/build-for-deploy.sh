@@ -137,27 +137,36 @@ fi
 # 创建生产环境配置文件
 echo "⚙️  创建环境配置文件..."
 cat > "$BUILD_DIR/.env.production.local" << 'EOF'
-# 生产环境配置
+# 生产环境配置模板
 # 请根据实际情况修改以下配置
 
 # 数据库配置
 # 如果数据库在同一台服务器：使用 localhost
 # 如果数据库在独立服务器：使用内网IP地址
 # 如果使用云数据库：使用云服务商提供的域名
-DATABASE_URL="postgresql://postgres:!Wantao9191@localhost:5432/wantweb"
+DATABASE_URL="postgresql://postgres:!Wantao9191@localhost:5432/wantapp"
 
-# NextAuth 配置
-NEXTAUTH_SECRET="your-super-secret-key-change-this-to-random-string"
-# 可以使用域名或 IP 地址
-# 域名: https://your-domain.com
-# IP 地址: http://your-server-ip:3000 (注意：IP 地址通常使用 HTTP)
-NEXTAUTH_URL="http://your-server-ip:3000"
+# Next.js 配置
+NEXTAUTH_SECRET="5C345F277F4A2996678DBEE5751812AL"
+NEXTAUTH_URL="http://localhost:3000"
+# JWT 配置
+JWT_SECRET="v4xCufXu4s"
 
-# API 密钥
-API_SECRET_KEY="your-api-secret-key"
+# API 密钥（如果需要）
+API_SECRET_KEY="v4xCufXu4s"
+PORT=3000
+
 
 # 环境
 NODE_ENV="production"
+
+DATA_ENCRYPTION_KEY="6MtTCD3v4_rladjXFdBREdaW4O6T248JR7Dr3Wu4wY4"
+
+#文件上传 配置 
+CLOUD_DISK_PATH="/www/wwwroot/uploads"
+#UPLOAD_PATH=/www/wwwroot/uploads
+MAX_FILE_SIZE=104857600  # 100MB
+ALLOWED_FILE_TYPES="image/jpeg,image/png,image/gif,application/pdf,"
 EOF
 
 # 创建部署说明
@@ -216,15 +225,19 @@ pm2 save
 ```
 
 ### 7. 配置 Nginx
+
+#### 方案一：宝塔面板管理（推荐）
 ```bash
-# 复制 Nginx 配置
-cp nginx.conf /etc/nginx/sites-available/wantweb
+# 1. 登录宝塔面板
+# 2. 网站管理 → 找到您的网站
+# 3. 配置修改 → 复制下面的配置内容
+# 4. 保存并应用配置
+```
 
-# 编辑配置（修改域名和路径）
-vi /etc/nginx/sites-available/wantweb
-
-# 启用配置
-ln -s /etc/nginx/sites-available/wantweb /etc/nginx/sites-enabled/
+#### 方案二：直接修改配置文件
+```bash
+# 编辑宝塔面板的Nginx配置文件
+vi /www/server/panel/vhost/nginx/wantapp.cn.conf
 
 # 测试配置
 nginx -t
@@ -256,57 +269,6 @@ pm2 monit
 ```
 EOF
 
-# 创建 Nginx 配置模板
-echo "🌐 创建 Nginx 配置模板..."
-cat > "$BUILD_DIR/nginx.conf" << 'EOF'
-# Nginx 配置模板
-# 保存到 /etc/nginx/sites-available/wantweb
-
-server {
-    listen 80;
-    server_name your-domain.com;
-
-    # 静态文件缓存
-    location /_next/static/ {
-        alias /www/wwwroot/wantweb/.next/static/;
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-    }
-
-    # 公共静态文件
-    location /public/ {
-        alias /www/wwwroot/wantweb/public/;
-        expires 30d;
-        add_header Cache-Control "public";
-    }
-
-    # API 路由
-    location /api/ {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-    }
-
-    # 主应用
-    location / {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-EOF
 
 # 创建 PM2 配置
 echo "⚙️  创建 PM2 配置..."

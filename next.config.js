@@ -37,12 +37,15 @@ const nextConfig = {
     formats: ['image/webp', 'image/avif'],
   },
   
+  // 静态资源配置 - standalone模式不需要assetPrefix
+  // assetPrefix: process.env.NODE_ENV === 'production' ? '' : undefined,
+  
   // 环境变量
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
   },
   
-  // 输出配置 - 使用标准模式避免 Windows 权限问题
+  // 输出配置 - 禁用 standalone 模式避免 Windows 符号链接权限问题
   // output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
   
   // 完全禁用构建指示器

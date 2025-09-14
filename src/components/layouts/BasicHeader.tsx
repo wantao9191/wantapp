@@ -2,6 +2,7 @@
 import React from 'react'
 import { Breadcrumb } from 'antd'
 import { MenuFoldOutlined, MenuUnfoldOutlined, ReloadOutlined, ExpandOutlined, MoonFilled, SunFilled } from '@ant-design/icons'
+import { useRouter } from 'next/navigation'
 import { LayoutProps, ThemeProps } from '@/types'
 
 interface BasicHeaderProps extends LayoutProps, ThemeProps {
@@ -9,8 +10,11 @@ interface BasicHeaderProps extends LayoutProps, ThemeProps {
 }
 
 const BasicHeader = ({ collapsed, toggleCollapsed, toggleTheme, theme, isMobile = false }: BasicHeaderProps) => {
+  const router = useRouter()
+  
   const reload = () => {
-    window.location.reload()
+    // 使用Next.js路由刷新而不是强制页面刷新
+    router.refresh()
   }
   return (
     <div className='h-48px px-4 bg-white border-b-1 border-b-solid border-[#e6e6e6] '>

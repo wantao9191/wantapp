@@ -5,7 +5,7 @@ import { Form, Row, Col, Tooltip, Space } from 'antd'
 import { QuestionCircleOutlined } from '@ant-design/icons'
 import type { FormInstance } from 'antd/es/form'
 import type { FormConfig, FormItemConfig, FormContext } from '@/types/form-config'
-import FormItemRenderer from './Form/FormItemRenderer'
+import FormItemRenderer from './form/FormItemRenderer'
 import { removeUndefined } from '@/lib/utils'
 
 // 工具函数：解析函数参数

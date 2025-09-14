@@ -27,22 +27,19 @@ const AuthGuardInner: React.FC<AuthGuardProps> = ({ children }) => {
       // 登录页不做校验
       if (isLoginPage) {
         if (token) {
-          // setIsRedirecting(false)
-          await router.replace('/admin/index')
-          // 给路由跳转一点时间
-          setChecking(false)
-        } else {
-          setChecking(false)
+          // 使用push而不是replace，避免页面刷新
+          router.push('/admin/index')
         }
+        setChecking(false)
         return
       }
       
       // 读取前端可访问的 token（本地缓存或非 HttpOnly Cookie）
       if (!token || token === 'undefined') {
-        // setIsRedirecting(true)
         const search = window.location.search || ''
         const redirect = encodeURIComponent(pathname + search)
-        await router.replace(`/admin/login?redirect=${redirect}`)
+        // 使用push而不是replace，避免页面刷新
+        router.push(`/admin/login?redirect=${redirect}`)
         return
       }
       

@@ -6,8 +6,9 @@ export default function Index() {
   const router = useRouter()
   useEffect(() => {
     console.log('load...')
-    router.replace('/admin/login')
-  }, [])
+    // 使用push而不是replace，避免页面刷新
+    router.push('/admin/login')
+  }, [router])
   return (
     <Loading />
   )
