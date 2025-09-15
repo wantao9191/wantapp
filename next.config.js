@@ -46,7 +46,7 @@ const nextConfig = {
   },
   
   // 输出配置 - 禁用 standalone 模式避免 Windows 符号链接权限问题
-  // output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
+  output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
   
   // 完全禁用构建指示器
   devIndicators: {
