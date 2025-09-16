@@ -5,6 +5,8 @@ node_modules
 
 backups/
 
+ecosystem.config.js
+
 # Next.js
 .next/
 out/
