@@ -34,7 +34,7 @@ export default function RecordPage() {
   }
 
   const getOrganizationList = (params: Record<string, any>) => {
-    return http.get('/admin/roles', params)
+    return http.get('/admin/nurse', params)
   }
   const handleAdd = () => {
     setFormData(null)
