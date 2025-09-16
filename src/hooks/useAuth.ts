@@ -57,21 +57,14 @@ export const useAuth = () => {
   }
 
   const logout = async () => {
-    try {
-      const refreshToken = Cookies.get('refresh_token')
-      if (refreshToken) {
-        await http.post('/admin/auth/revoke', { refreshToken })
-      }
-    } catch (error) {
-      console.error('撤销令牌失败:', error)
-    } finally {
-      Cookies.remove('access_token')
-      Cookies.remove('refresh_token')
-      localStorage.removeItem('userInfo')
-      setUserInfo(null)
-      setIsLogin(false)
-      router.replace('/admin/login')
-    }
+    // 直接清除本地存储，不需要调用服务端接口
+    Cookies.remove('access_token')
+    Cookies.remove('refresh_token')
+    localStorage.clear()
+    sessionStorage.clear()
+    setUserInfo(null)
+    setIsLogin(false)
+    router.replace('/admin/login')
   }
   useEffect(() => {
     const userInfo = localStorage.getItem('userInfo')

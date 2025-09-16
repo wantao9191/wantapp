@@ -5,6 +5,7 @@ import BasicHeader from './BasicHeader'
 import BasicTabs from './BasicTabs'
 import { useSlider, useTheme, useTabs } from '@/hooks'
 import { http } from '@/lib/https'
+import { useAuth } from '@/hooks'
 
 interface BasicLayoutProps {
   children: React.ReactNode
@@ -14,12 +15,14 @@ const BasicLayout: React.FC<BasicLayoutProps> = ({ children }) => {
   const { collapsed, toggleCollapsed, menuList, currentMenu, setCurrentMenu, setMenuList } = useSlider()
   const { theme, toggleTheme } = useTheme()
   const { tabs, addTab, setTabs, removeTab } = useTabs()
+  const { userInfo } = useAuth()
   useEffect(() => {
     const getMenuList = async () => {
       const menuList = sessionStorage.getItem('menu_list')
       if (menuList) {
         const contents = JSON.parse(menuList).map((item: any) => ({
           ...item,
+          closeIcon: item.code !== 'home',
           slider: item.children?.find((child: any) => child.path === currentMenu) ? true : false
         }))
         setMenuList(contents)
@@ -29,8 +32,10 @@ const BasicLayout: React.FC<BasicLayoutProps> = ({ children }) => {
       const contents = res.data.contents.map((item: any) => ({
         key: item.id,
         ...item,
+        closeIcon: item.code !== 'home',
         slider: item.children?.find((child: any) => child.path === currentMenu) ? true : false
       }))
+      addTab(contents[0])
       sessionStorage.setItem('menu_list', JSON.stringify(contents))
       setMenuList(contents)
     }
@@ -59,6 +64,10 @@ const BasicLayout: React.FC<BasicLayoutProps> = ({ children }) => {
           theme={theme}
           toggleCollapsed={toggleCollapsed}
           toggleTheme={toggleTheme}
+          userInfo={userInfo}
+          menuList={menuList}
+          currentMenu={currentMenu}
+          addTab={addTab}
         />
         <BasicTabs addTab={addTab} currentMenu={currentMenu} menuList={menuList} removeTab={removeTab} tabs={tabs} />
         <div className='p-8px bg-#f5f5f5 flex-1 w-full overflow-x-hidden h-0 overflow-y-auto flex flex-col'>

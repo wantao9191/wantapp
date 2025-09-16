@@ -4,8 +4,8 @@ import { cookies } from 'next/headers'
 import { decryptJson } from '@/lib/crypto'
 import { loginSchema } from '@/lib/validations'
 import { db } from '@/db'
-import { users, roles, permissions } from '@/db/schema'
-import { eq, inArray } from 'drizzle-orm'
+import { users, organizations } from '@/db/schema'
+import { eq } from 'drizzle-orm'
 import { User } from '@/types'
 import { verifyPassword } from '@/lib/password'
 import { signAccessToken, signRefreshToken, AccessTokenPayload } from '@/lib/jwt'
@@ -34,10 +34,21 @@ export const POST = createHandler(async (request: NextRequest) => {
   if (captchaData.code !== code) {
     throw new Error('验证码错误')
   }
-  const user: User[] = await db.select().from(users).where(eq(users.username, username)).limit(1)
-  const userRoles = await db.select({
-    permissions: roles.permissions,
-  }).from(roles).where(inArray(roles.id, user[0]?.roles || []))
+  const user: User[] = await db.select({
+    id: users.id,
+    username: users.username,
+    password: users.password,
+    status: users.status,
+    name: users.name,
+    phone: users.phone,
+    createTime: users.createTime,
+    roles: users.roles,
+    email: users.email,
+    description: users.description,
+    deleted: users.deleted,
+    organizationId: users.organizationId,
+    organizationName: organizations.name,
+  }).from(users).leftJoin(organizations, eq(users.organizationId, organizations.id)).where(eq(users.username, username)).limit(1)
   const currentUser = user[0]
   if (!currentUser) {
     throw new Error('用户不存在')
@@ -51,7 +62,7 @@ export const POST = createHandler(async (request: NextRequest) => {
     throw new Error('用户已被禁用，请联系管理员')
   }
 
-  const { password: userPassword, ...userInfo } = currentUser
+  const { password: userPassword, deleted: _, description: __, status: ___, ...userInfo } = currentUser
   if (!(await verifyPassword(password, userPassword))) {
     throw new Error('密码错误')
   }

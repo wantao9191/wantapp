@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react'
 import { Tabs } from 'antd'
 import { LayoutProps } from '@/types'
 import { useRouter, usePathname } from 'next/navigation'
-import { useSlider } from '@/hooks/useSlider'
 const BasicTabs = ({ currentMenu, tabs, addTab, removeTab, menuList }: LayoutProps) => {
   const router = useRouter()
   const pathname = usePathname()
@@ -16,7 +15,7 @@ const BasicTabs = ({ currentMenu, tabs, addTab, removeTab, menuList }: LayoutPro
 
   // 处理关闭tab的逻辑
   const handleRemoveTab = (tabKey: string) => {
-    console.log(tabKey)
+    
     // 判断是否为当前激活的tab
     const isCurrentTab = tabKey === activeKey
     if (isCurrentTab && tabs && tabs.length > 1) {
@@ -28,8 +27,12 @@ const BasicTabs = ({ currentMenu, tabs, addTab, removeTab, menuList }: LayoutPro
         // 如果是第一个tab，跳转到下一个
         targetTab = tabs[1]
       } else if (currentIndex === tabs.length - 1) {
-        // 如果是最后一个tab，跳转到前一个
-        targetTab = tabs[currentIndex - 1]
+        if(tabs.length === 1){
+          // targetTab = tabs[0]
+        }else{
+          // 如果是最后一个tab，跳转到前一个
+          targetTab = tabs[currentIndex - 1]
+        }
       } else {
         // 如果是中间的tab，优先跳转到下一个
         targetTab = tabs[currentIndex + 1]
@@ -93,7 +96,7 @@ const BasicTabs = ({ currentMenu, tabs, addTab, removeTab, menuList }: LayoutPro
         }
       }
     }
-  }, [currentMenu])
+  }, [currentMenu,tabs])
 
   return (
     <div className='h-32px border-b-1 border-b-solid border-[#d9d9d9]'>

@@ -1,6 +1,6 @@
 'use client'
-import React, { useState } from 'react'
-import { Avatar, Popover, Modal } from 'antd'
+import React, { useEffect, useState } from 'react'
+import { Avatar, Popover, Modal, App } from 'antd'
 import { UserOutlined } from '@ant-design/icons'
 import { useRouter, usePathname } from 'next/navigation'
 import { LayoutProps } from '@/types'
@@ -15,7 +15,8 @@ const BasicAside = ({
   setMenuList,
   addTab
 }: LayoutProps) => {
-  const { userInfo } = useAuth()
+  const { modal } = App.useApp()
+  const { userInfo, logout } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
   const [visble, setVisble] = useState(false)
@@ -40,16 +41,35 @@ const BasicAside = ({
   }
   const onLogout = () => {
     setVisble(false)
-    Modal.confirm({
+    modal.confirm({
       title: '退出登录',
       content: '确定要退出登录吗？',
       cancelText: '取消',
       okText: '确认退出',
       onOk: () => {
-        
+        logout()
       }
     })
   }
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      // 检查点击是否在弹窗外部且不是触发按钮
+      if (visble &&
+        !target.closest('.user-popover') &&
+        !target.closest('.user-popover-trigger')) {
+        setVisble(false)
+      }
+    }
+
+    if (visble) {
+      document.addEventListener('click', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside)
+    }
+  }, [visble])
   // 子菜单
   const subContent = (item: any) => (
     item.children?.length ? (
@@ -86,7 +106,7 @@ const BasicAside = ({
       <div className='flex justify-between items-center px-2 py-3 relative'>
         {collapsed ? (
           <>
-            <div className='flex items-center gap-2 hover:bg-gray-50 px-1.5 py-1.5 rounded-lg transition-all duration-200 min-w-0 group ' onClick={onUserClick}>
+            <div className='user-popover-trigger flex items-center gap-2 hover:bg-gray-50 px-1.5 py-1.5 rounded-lg transition-all duration-200 min-w-0 group ' onClick={onUserClick}>
               <Avatar
                 className="shadow-sm"
                 icon={<UserOutlined />}
@@ -114,24 +134,41 @@ const BasicAside = ({
               />
             </div>
             {visble && (
-              <div className='absolute top-14 left-3.5 right-3.5 bg-#333 rounded-md p-4 flex flex-col items-center gap-2 text-white'>
-                <Avatar
-                  className="shadow-sm"
-                  icon={<UserOutlined />}
-                  size="large"
-                  style={{ backgroundColor: '#1890ff' }}
-                />
-                <div className="flex-1 min-w-0 text-center">
-                  <div className='text-xs font-semibold  truncate'>
+              <div className='user-popover absolute top-14 left-3.5 right-3.5 bg-gradient-to-br from-white to-gray-50 rounded-xl p-5 flex flex-col items-center gap-3 text-gray-800 shadow-xl border border-gray-200 backdrop-blur-sm animate-in fade-in-0 zoom-in-95 duration-200'>
+                {/* 用户头像 */}
+                <div className='relative'>
+                  <Avatar
+                    className="shadow-lg ring-2 ring-blue-100"
+                    icon={<UserOutlined />}
+                    size="large"
+                    style={{ backgroundColor: '#1890ff' }}
+                  />
+                  <div className='absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white'></div>
+                </div>
+
+                {/* 用户信息 */}
+                <div className="flex-1 min-w-0 text-center space-y-1">
+                  <div className='text-sm font-semibold text-gray-800 truncate'>
                     {userInfo?.name}
                   </div>
-                  <div className='text-xs  truncate'>
+                  <div className='text-xs text-gray-500 truncate'>
                     {userInfo?.username}
                   </div>
-
                 </div>
-                <div className='text-xs cursor-pointer' onClick={onLogout}>
-                 <AppIcon className='text-white text-xs' name="LogoutOutlined" /> 退出登录
+
+                {/* 分割线 */}
+                <div className='w-full h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent'></div>
+
+                {/* 退出按钮 */}
+                <div
+                  className='flex items-center gap-2 px-3 py-2 text-xs cursor-pointer rounded-lg bg-gray-100 hover:bg-red-50 hover:text-red-600 hover:border-red-200 border border-transparent transition-all duration-200 group w-full justify-center'
+                  onClick={onLogout}
+                >
+                  <AppIcon
+                    className='text-gray-500 group-hover:text-red-500 transition-colors duration-200'
+                    name="LogoutOutlined"
+                  />
+                  <span className='font-medium'>退出登录</span>
                 </div>
               </div>
             )}
