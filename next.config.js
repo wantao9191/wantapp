@@ -2,12 +2,12 @@
 const nextConfig = {
   // 外部包配置
   serverExternalPackages: ['postgres'],
-  
+
   // 跳过类型检查（生产构建时）
   typescript: {
     ignoreBuildErrors: process.env.NODE_ENV === 'production',
   },
-  
+
   // 实验性功能配置
   experimental: {
     // 确保 CSS 处理正常
@@ -19,39 +19,46 @@ const nextConfig = {
       serverComponentsHmrCache: false,
     }),
   },
-  
+
   // 开发环境内存模式配置
   ...(process.env.NODE_ENV === 'development' && {
     distDir: '.next-memory',
     generateBuildId: async () => 'dev-' + Date.now(),
   }),
-  
+
   // 优化打包
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
-  
+
   // 图片优化配置
   images: {
     domains: [],
     formats: ['image/webp', 'image/avif'],
   },
-  
-  // 静态资源配置 - standalone模式不需要assetPrefix
-  // assetPrefix: process.env.NODE_ENV === 'production' ? '' : undefined,
-  
+
+  // 静态资源配置 - 添加版本参数破坏缓存
+  generateBuildId: async () => {
+    return process.env.NODE_ENV === 'production'
+      ? `build-${Date.now()}`
+      : 'dev-' + Date.now()
+  },
+
   // 环境变量
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
   },
-  
-  // 输出配置 - 禁用 standalone 模式避免 Windows 符号链接权限问题
+
+  // 输出配置
   output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
-  
+
+  // 确保静态文件正确处理
+  trailingSlash: false,
+
   // 完全禁用构建指示器
   devIndicators: {
   },
-  
+
   // Webpack 配置
   webpack: (config, { isServer, dev }) => {
     // 基础配置
@@ -63,7 +70,7 @@ const nextConfig = {
         tls: false,
       }
     }
-    
+
     // 开发环境内存模式优化
     if (dev && process.env.NODE_ENV === 'development') {
       config.cache = false
@@ -74,7 +81,7 @@ const nextConfig = {
       }
       config.infrastructureLogging = { level: 'error' }
     }
-    
+
     return config
   },
 }
