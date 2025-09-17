@@ -36,10 +36,32 @@ function validateParams(params?: HandlerParams): boolean {
 
 // 检查处理器是否支持参数
 function supportsParams(handler: Function): boolean {
-  // 检查函数是否接受 params 参数
-  // 通过检查函数字符串表示来判断
-  const handlerStr = handler.toString()
-  return handlerStr.includes('params') || handlerStr.includes('(request, params')
+  // 更可靠的参数检测方法
+  try {
+    // 检查函数的参数数量
+    const paramCount = handler.length
+    
+    // Handler: (req, context?) - 1-2 个参数
+    // HandlerWithParams: (req, params, context?) - 2-3 个参数
+    // 如果参数数量 >= 2，说明支持 params 参数
+    if (paramCount >= 2) {
+      return true
+    }
+    
+    // 如果参数数量为 1，检查是否明确声明了 params 参数
+    if (paramCount === 1) {
+      const handlerStr = handler.toString()
+      return handlerStr.includes('params') && 
+             (handlerStr.includes('(request, params') || 
+              handlerStr.includes('(req, params'))
+    }
+    
+    return false
+  } catch (error) {
+    // 如果检测失败，使用字符串检测作为备选
+    const handlerStr = handler.toString()
+    return handlerStr.includes('params') || handlerStr.includes('(request, params')
+  }
 }
 
 // 修复 Next.js 15 类型兼容性
@@ -130,12 +152,19 @@ export function createHandler(arg: Handler | HandlerWithParams | Handlers, optio
       }
 
       if (hasParams && resolvedParams) {
-        if (supportsParams(handle)) {
+        // 尝试调用带参数的处理器
+        try {
           const data = await (handle as HandlerWithParams)(request, resolvedParams, authResult.context)
           if (data instanceof NextResponse) return data
           return ok(data)
-        } else {
-          return error('Handler does not support parameters', 500)
+        } catch (error: any) {
+          // 如果带参数调用失败，尝试不带参数调用
+          if (error.message?.includes('parameters') || error.message?.includes('params')) {
+            const data = await (handle as Handler)(request, authResult.context)
+            if (data instanceof NextResponse) return data
+            return ok(data)
+          }
+          throw error
         }
       } else {
         const data = await (handle as Handler)(request, authResult.context)
