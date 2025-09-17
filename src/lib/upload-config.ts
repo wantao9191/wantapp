@@ -151,15 +151,9 @@ export function isAllowedFileSize(size: number, config: UploadConfig = defaultUp
 
 // 生成文件访问URL
 export function generateFileUrl(filePath: string, config: UploadConfig = defaultUploadConfig): string {
-  if (config.useCloudStorage && config.storageDir) {
-    // 云硬盘存储：使用服务器IP直接访问
-    const baseUrl = config.storageDir.endsWith('/') ? config.storageDir.slice(0, -1) : config.storageDir
-    return `${baseUrl}/${filePath}`
-  } else {
-    // 本地文件URL（通过API访问）
-    const baseUrl = process.env.BASE_URL || '/api/files'
-    return `${baseUrl}/uploads/${filePath}`
-  }
+  // 本地文件URL（通过API访问）
+  const baseUrl = process.env.BASE_URL
+  return `${baseUrl}/uploads/${filePath}`
 }
 
 // 生成完整的文件访问URL（包含域名）
