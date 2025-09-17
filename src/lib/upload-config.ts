@@ -157,8 +157,8 @@ export function generateFileUrl(filePath: string, config: UploadConfig = default
     return `${baseUrl}/${filePath}`
   } else {
     // 本地文件URL（通过API访问）
-    const baseUrl = process.env.FILE_BASE_URL || '/api/files'
-    return `${baseUrl}/${filePath}`
+    const baseUrl = process.env.BASE_URL || '/api/files'
+    return `${baseUrl}/uploads/${filePath}`
   }
 }
 
