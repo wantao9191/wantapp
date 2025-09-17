@@ -1,8 +1,8 @@
 // 尝试加载 dotenv（如果可用）
 try {
   const dotenv = require('dotenv');
-  const envFile = process.env.NODE_ENV === 'production' 
-    ? '.env.production.local' 
+  const envFile = process.env.NODE_ENV === 'production'
+    ? '.env.production.local'
     : '.env.local';
   dotenv.config({ path: envFile });
 } catch (error) {
@@ -170,15 +170,15 @@ export function generateFullFileUrl(fileUrl: string, request?: Request): string 
   }
 
   // 获取请求的域名和协议
-  let baseUrl = ''
-  if (request) {
-    const url = new URL(request.url)
-    baseUrl = `${url.protocol}//${url.host}`
-  } else {
-    // 从环境变量获取，或使用默认值
-    baseUrl = process.env.BASE_URL || 'http://localhost:3000'
-  }
+  // let baseUrl = ''
+  // if (request) {
+  //   const url = new URL(request.url)
+  //   baseUrl = `${url.protocol}//${url.host}`
+  // } else {
+  //   // 从环境变量获取，或使用默认值
 
+  // }
+  const baseUrl = process.env.BASE_URL || 'http://localhost:3000'
   // 确保fileUrl以/开头
   const normalizedUrl = fileUrl.startsWith('/') ? fileUrl : `/${fileUrl}`
 
