@@ -1,5 +1,4 @@
 import Cookies from 'js-cookie'
-import { useRouter, usePathname } from 'next/navigation'
 
 export class TokenManager {
   private static ACCESS_TOKEN_KEY = 'access_token'
@@ -42,13 +41,17 @@ export class TokenManager {
     }
   }
 
-  toLogin() {
-    const router = useRouter()
-    const pathname = usePathname()
-    if (pathname.includes('/admin/login')) {
-      return
+  toLogin(): void {
+    if (typeof window !== 'undefined') {
+      this.clearToken()
+      localStorage.removeItem('userInfo')
+      sessionStorage.clear()
+      const pathname = window.location.pathname
+      if (pathname.includes('/admin/login')) {
+        return
+      }
+      window.location.href = `/admin/login?redirect=${encodeURIComponent(pathname)}`
     }
-    router.push(`/admin/login?redirect=${pathname}`)
   }
 
   async refreshAccessToken(baseURL: string): Promise<{ success: boolean; reason?: string }> {

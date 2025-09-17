@@ -60,7 +60,7 @@ export const useAuth = () => {
     // 直接清除本地存储，不需要调用服务端接口
     Cookies.remove('access_token')
     Cookies.remove('refresh_token')
-    localStorage.clear()
+    localStorage.removeItem('userInfo')
     sessionStorage.clear()
     setUserInfo(null)
     setIsLogin(false)
