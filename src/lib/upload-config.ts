@@ -182,5 +182,5 @@ export function generateFullFileUrl(fileUrl: string, request?: Request): string 
   // 确保fileUrl以/开头
   const normalizedUrl = fileUrl.startsWith('/') ? fileUrl : `/${fileUrl}`
 
-  return `${baseUrl}${normalizedUrl}/uploads`
+  return `${baseUrl}/uploads${normalizedUrl}`
 }
