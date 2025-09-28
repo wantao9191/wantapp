@@ -6,7 +6,8 @@ import { eq, and } from 'drizzle-orm'
 export const GET = createHandler(async (request: NextRequest) => {
   const data = await db.select({
     label: permissions.name,
-    value: permissions.id
+    value: permissions.id,
+    menuId: permissions.menuId
   })
     .from(permissions)
     .where(and(eq(permissions.deleted, false), eq(permissions.status, 1)))

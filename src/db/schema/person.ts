@@ -1,4 +1,4 @@
-import { pgTable, varchar, timestamp, integer, text, boolean, real } from 'drizzle-orm/pg-core';
+import { pgTable, varchar, timestamp, integer, text, boolean, real, json } from 'drizzle-orm/pg-core';
 import { files } from './files';
 import { organizations } from './systems';
 import { carePackages } from './care';
@@ -16,12 +16,15 @@ export const personInfo = pgTable('person_info', {
   credential: varchar('credential', { length: 50 }).notNull(),
   avatar: integer('avatar').references(() => files.id),
   organizationId: integer('organization_id').references(() => organizations.id),
-  type: varchar('type', { length: 50 }).notNull(), // nurse: 护理员, insured: 参保人, family: 家属
+  type: varchar('type', { length: 50 }).notNull(), // nurse: 护理员, insured: 参保人, family: 家属  
+  roles: json('roles').$type<number[]>(),
   description: text('description'),
   status: integer('status').default(1), // 0: 禁用, 1: 启用
   createTime: timestamp('create_time').defaultNow(),
   deleted: boolean('deleted').default(false),
   packageId: integer('package_id').references(() => carePackages.id),
+  packageStartDate: varchar('package_start_date', { length: 50 }),
+  packageEndDate: varchar('package_end_date', { length: 50 }),
   birthDate: varchar('birth_date', { length: 50 }),
   latitude: real('latitude'),
   longitude: real('longitude'),

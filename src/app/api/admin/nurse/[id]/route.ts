@@ -47,6 +47,7 @@ export const PUT = createHandler(async (request: NextRequest, params, context) =
     gender: gender || '',
     age: age || 0,
     birthDate: birthDate || null,
+    roles: [2],
   }
   await db.update(personInfo).set(insertData).where(eq(personInfo.id, parseInt(id))).returning()
 

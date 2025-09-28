@@ -66,6 +66,7 @@ export const menus = pgTable('menus', {
   status: integer('status').default(1), // 0: 禁用, 1: 启用
   createTime: timestamp('create_time').defaultNow(),
   deleted: boolean('deleted').default(false),
+  useType: varchar('use_type', { length: 50 }).default('manage'), // manage: 管理端, app: 移动端
 })
 // API权限表
 export const apiPermissions = pgTable('api_permissions', {

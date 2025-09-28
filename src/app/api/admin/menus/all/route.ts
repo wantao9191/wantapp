@@ -7,7 +7,7 @@ import { buildMenuTree } from '@/lib/utils'
 import { getUserRoles } from '@/lib/permissions'
 
 export const GET = createHandler(async (request: NextRequest, context?: { userId: number; organizationId?: number; isSuperAdmin?: boolean }) => {
-  const whereConditions = [eq(menus.deleted, false), eq(menus.status, 1)]
+  const whereConditions = [eq(menus.deleted, false), eq(menus.status, 1), eq(menus.useType, 'manage')]
   if (context && !context.isSuperAdmin && context.organizationId) {
     const userRoles = await getUserRoles(context.userId)
     whereConditions.push(inArray(menus.id, userRoles.flatMap(role => role.menus || [])))

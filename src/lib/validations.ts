@@ -124,9 +124,29 @@ export const personInfoSchema = z.object({
 export const insuredSchema = z.object({
   ...personInfoSchema.shape,
   packageId: z.number().min(1, { message: '请选择套餐' }),
+  packageStartDate: z.string().trim().min(1, { message: '请选择套餐开始时间' }),
+  packageEndDate: z.string().trim().min(1, { message: '请选择套餐结束时间' }),
   address: z.string().trim().min(2, { message: '地址至少2个字符' }).max(50, { message: '地址最多50个字符' }),
   latitude: z.number().min(-90, { message: '纬度必须在-90到90之间' }).max(90, { message: '纬度必须在-90到90之间' }).optional(),
   longitude: z.number().min(-180, { message: '经度必须在-180到180之间' }).max(180, { message: '经度必须在-180到180之间' }).optional(),
+}).refine((data) => {
+  // 验证开始时间必须晚于今天（只允许明天及以后）
+  const startTime = new Date(data.packageStartDate)
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  tomorrow.setHours(0, 0, 0, 0) // 设置为明天的开始时间
+  return startTime >= tomorrow
+}, {
+  message: '套餐开始时间必须是明天及以后',
+  path: ['packageStartDate'],
+}).refine((data) => {
+  // 验证开始时间不能晚于结束时间
+  const startTime = new Date(data.packageStartDate)
+  const endTime = new Date(data.packageEndDate)
+  return startTime < endTime
+}, {
+  message: '套餐开始时间不能晚于套餐结束时间',
+  path: ['packageStartDate'],
 })
 export const schedulePlanSchema = z.object({
   month: z.string().trim().min(1, { message: '请选择月份' }),

@@ -15,12 +15,12 @@ interface PermissionsProps {
 }
 
 interface MenuNode extends DataNode {
-  id: number
+  value: number
   code: string
   parentCode?: string
   permissions?: PermissionItem[]
   children?: MenuNode[]
-  name?: string
+  label?: string
   indeterminate?: boolean
   checkAll?: boolean
   checkedList?: number[]
@@ -40,6 +40,7 @@ const fetchMenuPermissions = async () => {
     http.get('/admin/menus/dicts'),
     http.get('/admin/permissions/dicts')
   ])
+
   return { menus, permissions }
 }
 
@@ -58,10 +59,10 @@ const Permissions: React.FC<PermissionsProps> = (props) => {
         if (menu.children?.length) {
           menu.children.map((child: MenuNode) => {
             child.permissions = permissions.data.contents
-              .filter((permission: PermissionItem) => permission.menuId === child.id)
+              .filter((permission: PermissionItem) => permission.menuId === child.value)
               .map((permission: PermissionItem) => ({
-                label: permission.name,
-                value: permission.id
+                label: permission.label,
+                value: permission.value
               }))
             child.checkedList = propsPermissions.filter((permission: number) => child.permissions?.find((p: PermissionItem) => p.value === permission))
             child.checkAll = child.checkedList.length === (child.permissions?.length || 0)
@@ -70,16 +71,14 @@ const Permissions: React.FC<PermissionsProps> = (props) => {
           })
         }
         menu.permissions = permissions.data.contents
-          .filter((permission: PermissionItem) => permission.menuId === menu.id)
+          .filter((permission: PermissionItem) => permission.menuId === menu.value)
           .map((permission: PermissionItem) => ({
-            label: permission.name,
-            value: permission.id
+            label: permission.label,
+            value: permission.value
           }))
         const hasCheckedList = menu.children?.filter(child => child.checkedList?.length ?? 0 > 0)
         return {
           ...menu,
-          label: menu.name,
-          value: menu.id,
           checkAll: menu.children?.every(child => child.checkAll),
           indeterminate: menu.children?.filter(child => child.checkAll).length !== menu.children?.length
             && (hasCheckedList?.length ?? 0) > 0
@@ -94,7 +93,7 @@ const Permissions: React.FC<PermissionsProps> = (props) => {
   // 父级菜单change
   const onCheckAllChange = (e: CheckboxChangeEvent, menu: MenuNode) => {
     setMenuTree(menuTree.map((item: MenuNode) => {
-      if (item.id === menu.id) {
+      if (item.value === menu.value) {
         item.children?.map((child: MenuNode) => {
           child.checkAll = e.target.checked
           child.checkedList = e.target.checked ? child.permissions?.map((permission: PermissionItem) => permission.value) || [] : []
@@ -109,7 +108,7 @@ const Permissions: React.FC<PermissionsProps> = (props) => {
     const updateMenuTree = (menus: MenuNode[]): MenuNode[] => {
       return menus.map((item: MenuNode) => {
         // 如果找到目标菜单，直接更新
-        if (item.id === targetMenu.id) {
+        if (item.value === targetMenu.value) {
           return {
             ...item,
             checkAll: e.target.checked,
@@ -120,7 +119,7 @@ const Permissions: React.FC<PermissionsProps> = (props) => {
         if (item.children && item.children.length > 0) {
           const updatedChildren = updateMenuTree(item.children)
           // 检查是否有子菜单被更新
-          const hasUpdatedChild = updatedChildren.some(child => child.id === targetMenu.id)
+          const hasUpdatedChild = updatedChildren.some(child => child.value === targetMenu.value)
           if (hasUpdatedChild) {
             const checkAll = updatedChildren?.every(child => child.checkAll)
             const indeterminate = updatedChildren?.filter(child => child.checkAll).length !== updatedChildren?.length
@@ -142,7 +141,7 @@ const Permissions: React.FC<PermissionsProps> = (props) => {
     const updateMenuTree = (menus: MenuNode[]): MenuNode[] => {
       return menus.map((item: MenuNode) => {
         // 如果找到目标菜单，直接更新
-        if (item.id === targetMenu.id) {
+        if (item.value === targetMenu.value) {
           const length = item.permissions?.length || 0
           return {
             ...item,
@@ -155,7 +154,7 @@ const Permissions: React.FC<PermissionsProps> = (props) => {
         if (item.children && item.children.length > 0) {
           const updatedChildren = updateMenuTree(item.children)
           // 检查是否有子菜单被更新
-          const hasUpdatedChild = updatedChildren.some(child => child.id === targetMenu.id)
+          const hasUpdatedChild = updatedChildren.some(child => child.value === targetMenu.value)
           if (hasUpdatedChild) {
             const checkAll = updatedChildren.every(child => (child.checkedList?.length || 0) === (child.permissions?.length || 0))
             const indeterminate = updatedChildren.some(child => (child.checkedList?.length || 0) > 0) && !checkAll
@@ -180,7 +179,7 @@ const Permissions: React.FC<PermissionsProps> = (props) => {
       nodes.forEach(node => {
         // 记录checkAll或indeterminate为true的菜单
         if (node.checkAll || node.indeterminate) {
-          selectedMenus.push(node.id)
+          selectedMenus.push(node.value)
         }
         // 如果有permissions且有checkedList，记录权限数据
         if (node.permissions && node.checkedList && node.checkedList.length > 0) {
@@ -216,18 +215,18 @@ const Permissions: React.FC<PermissionsProps> = (props) => {
     <Spin spinning={loading} tip="加载权限数据中...">
       <div className="flex flex-col bg-#fff rounded-4px p-12px">
         {menuTree.map((menu: MenuNode) => (
-          <div key={menu.id}>
+          <div key={menu.value}>
             <div className='flex'>
               <Checkbox checked={menu.checkAll} indeterminate={menu.indeterminate} onChange={(e) => onCheckAllChange(e, menu)}>
-                {menu.name}
+                {menu.label}
               </Checkbox>
             </div>
             <div className='flex flex-col ml-24px mt-6px'>
               {menu?.children?.map((child: MenuNode, index: number) => (
-                <div key={child.id}>
+                <div key={child.value}>
                   <div className={`${index === 0 ? '' : 'mt-6px'}`}>
-                    <Checkbox checked={child.checkAll} indeterminate={child.indeterminate} value={child.id} onChange={(e) => handleChange(e, child)}>
-                      {child.name}
+                    <Checkbox checked={child.checkAll} indeterminate={child.indeterminate} value={child.value} onChange={(e) => handleChange(e, child)}>
+                      {child.label}
                     </Checkbox>
                   </div>
                   <div className='mt-6px ml-24px'>

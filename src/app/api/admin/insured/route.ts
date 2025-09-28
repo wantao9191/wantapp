@@ -73,6 +73,8 @@ export const GET = createHandler(async (request: NextRequest, params, context) =
         createTime: personInfo.createTime,
         deleted: personInfo.deleted,
         packageId: personInfo.packageId,
+        packageStartDate: personInfo.packageStartDate,
+        packageEndDate: personInfo.packageEndDate,
         birthDate: personInfo.birthDate,
         organizationName: organizations.name,
         // 关联的护理套餐完整信息
@@ -144,6 +146,7 @@ export const POST = createHandler(async (request: NextRequest, context?: Handler
     gender: gender || '',
     age: age || 0,
     birthDate: birthDate || null,
+    roles: [4],
   }
 
   await db.insert(personInfo).values(insertData).returning()

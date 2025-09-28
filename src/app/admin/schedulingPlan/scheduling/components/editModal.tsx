@@ -464,7 +464,7 @@ export default function EditModal({
   return (
     <>
       <ConfigModal slots={{
-        body: formContent,
+        body:  formContent,
         footer: (
           <Space>
             <Button 
@@ -511,7 +511,7 @@ export default function EditModal({
           </Space>
         }
         width={800}
-        zIndex={1000}
+        zIndex={2000}
         onCancel={() => setOpenInsured(false)}
       >
         <InsuredModal onSelect={handleSelectInsured} />
@@ -537,7 +537,7 @@ export default function EditModal({
           </Space>
         }
         width={800}
-        zIndex={1000}
+        zIndex={2000}
         onCancel={() => setOpenNurse(false)}
       >
         <NurseModal onSelect={handleSelectNurse} />

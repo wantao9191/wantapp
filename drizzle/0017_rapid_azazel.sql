@@ -1,0 +1,1 @@
+ALTER TABLE "menus" ADD COLUMN "use_type" varchar(50) DEFAULT 'manage';

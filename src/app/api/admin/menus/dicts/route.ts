@@ -8,11 +8,14 @@ import { buildMenuTree } from '@/lib/utils'
 export const GET = createHandler(async (request: NextRequest) => {
   const data = await db.select({
     label: menus.name,
-    value: menus.id
+    value: menus.id,
+    parentCode: menus.parentCode,
+    code: menus.code
   })
     .from(menus)
     .where(and(eq(menus.deleted, false), eq(menus.status, 1)))
     .orderBy(menus.createTime)
+    console.log(data,'----')
   return { contents: buildMenuTree(data) }
 }, {
   requireAuth: true

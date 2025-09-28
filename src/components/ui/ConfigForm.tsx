@@ -5,7 +5,7 @@ import { Form, Row, Col, Tooltip, Space } from 'antd'
 import { QuestionCircleOutlined } from '@ant-design/icons'
 import type { FormInstance } from 'antd/es/form'
 import type { FormConfig, FormItemConfig, FormContext } from '@/types/form-config'
-import FormItemRenderer from './form/FormItemRenderer'
+import FormItemRenderer from './Form/FormItemRenderer'
 import { removeUndefined } from '@/lib/utils'
 
 // 工具函数：解析函数参数
@@ -24,10 +24,19 @@ const processFormData = (formData: any, items: FormItemConfig[]) => {
   const processedData = { ...formData }
   items.forEach(item => {
     if (Array.isArray(item.name)) {
-      // 如果name是数组，需要为每个字段复制值
-      const fieldValue = formData[item.name.join('_')] // 使用第一个字段作为主值
-      for (const key in fieldValue) {
-        processedData[key] = fieldValue[key]
+      // 如果name是数组，需要将数组值分解为各个字段
+      const fieldValue = formData[item.name.join('_')]
+      if (fieldValue) {
+        if (item.type === 'dateRange' && Array.isArray(fieldValue) && fieldValue.length === 2) {
+          // 日期范围：将数组值分别赋给两个字段
+          processedData[item.name[0]] = fieldValue[0]
+          processedData[item.name[1]] = fieldValue[1]
+        } else if (typeof fieldValue === 'object' && !Array.isArray(fieldValue)) {
+          // 对象值：直接展开到各个字段
+          for (const key in fieldValue) {
+            processedData[key] = fieldValue[key]
+          }
+        }
       }
       delete processedData[item.name.join('_')]
     }
@@ -61,12 +70,24 @@ const processInitialValues = (initialValues: any, items: FormItemConfig[]) => {
   const processedValues = { ...initialValues }
   items.forEach(item => {
     if (Array.isArray(item.name)) {
-      const values: any = {}
-      item.name.forEach(fieldName => {
-        values[fieldName] = processedValues[fieldName]
-        delete processedValues[fieldName]
-      })
-      processedValues[item.name.join('_')] = values
+      if (item.type === 'dateRange') {
+        // 日期范围：将两个字段值组合成数组
+        const startValue = processedValues[item.name[0]]
+        const endValue = processedValues[item.name[1]]
+        if (startValue || endValue) {
+          processedValues[item.name.join('_')] = [startValue, endValue]
+        }
+        delete processedValues[item.name[0]]
+        delete processedValues[item.name[1]]
+      } else {
+        // 其他类型：将各个字段值组合成对象
+        const values: any = {}
+        item.name.forEach(fieldName => {
+          values[fieldName] = processedValues[fieldName]
+          delete processedValues[fieldName]
+        })
+        processedValues[item.name.join('_')] = values
+      }
     }
     if (item.type === 'upload') {
       const fieldName = Array.isArray(item.name) ? item.name.join('_') : item.name

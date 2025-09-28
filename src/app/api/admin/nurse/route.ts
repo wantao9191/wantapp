@@ -128,6 +128,7 @@ export const POST = createHandler(async (request: NextRequest, context?: Handler
     gender: gender || '',
     age: age || 0,
     birthDate: birthDate || null,
+    roles: [3],
   }
 
   await db.insert(personInfo).values(insertData).returning()

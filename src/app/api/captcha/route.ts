@@ -3,6 +3,7 @@ import { createHandler } from '../_utils/handler'
 import { generateRandomString } from '@/lib/utils'
 import { cookies } from 'next/headers'
 import { encryptJson } from '@/lib/crypto'
+
 export const GET = createHandler(async (request: NextRequest) => {
   try {
     const captchaCode = Math.floor(1000 + Math.random() * 9000).toString()

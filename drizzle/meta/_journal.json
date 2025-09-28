@@ -113,6 +113,27 @@
       "when": 1757569261350,
       "tag": "0015_common_chameleon",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1759041768874,
+      "tag": "0016_complete_wolf_cub",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1759043622970,
+      "tag": "0017_rapid_azazel",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1759046927480,
+      "tag": "0018_bizarre_inertia",
+      "breakpoints": true
     }
   ]
 }

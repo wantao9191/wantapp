@@ -33,6 +33,14 @@ const useItems = () => {
       required: true,
     },
     {
+      label: '套餐有效时间',
+      name: ['packageStartDate', 'packageEndDate'],
+      type: 'dateRange',
+      placeholder: '请选择套餐有效时间',
+      required: true,
+      span: 24,
+    },
+    {
       label: '联系电话',
       name: 'mobile',
       type: 'input',
