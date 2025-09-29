@@ -4,7 +4,6 @@ import { mobileLoginSchema } from '@/lib/validations'
 import { db } from '@/db'
 import { personInfo, organizations } from '@/db/schema'
 import { eq } from 'drizzle-orm'
-import { PersonInfo } from '@/types/database'
 import { verifyPassword } from '@/lib/password'
 import { generateRandomString } from '@/lib/utils'
 import { getUserPermissions, isSuperAdmin } from '@/lib/permissions'
@@ -23,7 +22,7 @@ export const POST = createHandler(async (request: NextRequest) => {
     name: personInfo.name,
     mobile: personInfo.mobile,
     createTime: personInfo.createTime,
-    roles: personInfo.roles,
+    type: personInfo.type,
     description: personInfo.description,
     deleted: personInfo.deleted,
     organizationId: personInfo.organizationId,
@@ -59,10 +58,11 @@ export const POST = createHandler(async (request: NextRequest) => {
   // 构建JWT payload，包含完整权限信息
   const accessTokenPayload: AccessTokenPayload = {
     id: userInfo.id,
-    roles: userInfo.roles || [],
     permissions: userPermissions,
     organizationId: userInfo.organizationId,
-    isSuperAdmin: isAdmin
+    isSuperAdmin: isAdmin,
+    source: 'mobile',  // 明确标识为移动端token
+    userType: currentUser.type as 'nurse' | 'insured' | 'family'  // 移动端用户类型
   }
 
   // 生成访问令牌和刷新令牌
@@ -77,5 +77,6 @@ export const POST = createHandler(async (request: NextRequest) => {
     userInfo
   }
 }, {
-  requireAuth: false
+  requireAuth: false,
+  source: 'mobile'
 })

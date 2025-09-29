@@ -1,7 +1,7 @@
 // src/lib/auth-helper.ts - JWT直接解析版本
 
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyAccessToken, AccessTokenPayload } from '@/lib/jwt'
+import { verifyAccessToken, verifyAccessTokenForSource, AccessTokenPayload } from '@/lib/jwt'
 import { unauthorized, forbidden, error } from '@/app/api/_utils/response'
 
 /**
@@ -13,6 +13,8 @@ export interface UserContext {
   permissions: string[]  // 权限使用字符串形式，与API保持一致
   isSuperAdmin: boolean
   organizationId?: number | null
+  source?: 'admin' | 'mobile'  // token来源，默认为admin
+  userType?: 'admin' | 'nurse' | 'insured' | 'family'  // 用户类型
 }
 
 export interface UserContextResult {
@@ -56,7 +58,9 @@ export async function getUserContextFromJWT(request: NextRequest): Promise<UserC
         roles: payload.roles || [],
         permissions: payload.permissions || [],
         isSuperAdmin: payload.isSuperAdmin || false,
-        organizationId: payload.organizationId
+        organizationId: payload.organizationId,
+        source: payload.source,
+        userType: payload.userType
       }
     }
   } catch (error) {
@@ -229,40 +233,55 @@ export async function checkMultiplePermissions(
 }
 
 /**
- * 机构过滤辅助函数
- * 用于在API处理器中应用机构过滤逻辑
+ * 验证特定来源的token
  */
-export function applyOrganizationFilter(
-  context: { organizationId?: number; isSuperAdmin?: boolean } | undefined,
-  data: any,
-  organizationIdField: string = 'organizationId'
-): any {
-  // 如果没有上下文或用户是超级管理员，不进行过滤
-  if (!context || context.isSuperAdmin) {
-    return data
-  }
-
-  // 如果用户没有机构ID，返回空数据
-  if (!context.organizationId) {
-    return Array.isArray(data) ? [] : null
-  }
-
-  // 对数据进行机构过滤
-  if (Array.isArray(data)) {
-    return data.filter(item => {
-      if (typeof item === 'object' && item !== null) {
-        return item[organizationIdField] === context.organizationId
-      }
-      return false
-    })
-  } else if (typeof data === 'object' && data !== null) {
-    // 单个对象的情况
-    if (data[organizationIdField] !== context.organizationId) {
-      return null
+export async function getUserContextFromJWTForSource(
+  request: NextRequest, 
+  expectedSource: 'admin' | 'mobile'
+): Promise<UserContextResult> {
+  const token = extractTokenFromRequest(request)
+  if (!token) {
+    return {
+      success: false,
+      error: 'unauthorized'
     }
   }
 
-  return data
+  try {
+    const payload = await verifyAccessTokenForSource(token, expectedSource)
+
+    return {
+      success: true,
+      data: {
+        userId: payload.id,
+        roles: payload.roles || [],
+        permissions: payload.permissions || [],
+        isSuperAdmin: payload.isSuperAdmin || false,
+        organizationId: payload.organizationId,
+        source: payload.source,
+        userType: payload.userType
+      }
+    }
+  } catch (error) {
+    console.error('JWT verification failed:', error)
+    return {
+      success: false,
+      error: 'unauthorized'
+    }
+  }
+}
+
+/**
+ * 检查token来源是否匹配
+ */
+export function checkTokenSource(
+  context: UserContext | undefined,
+  expectedSource: 'admin' | 'mobile'
+): boolean {
+  if (!context) return false
+  // 如果context中没有source字段，默认为admin
+  const actualSource = context.source || 'admin'
+  return actualSource === expectedSource
 }
 
 /**

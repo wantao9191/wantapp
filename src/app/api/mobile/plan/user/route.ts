@@ -1,70 +1,33 @@
-import { NextRequest } from "next/server"
-import { createHandler, HandlerContext } from "../../_utils/handler"
-import { db } from "@/db"
-import { schedulePlans, personInfo, carePackages, organizations, careTasks } from "@/db/schema"
-import { eq, and, gte, lt, like } from "drizzle-orm"
+import { NextRequest } from 'next/server'
+import { createHandler, HandlerContext } from '@/app/api/_utils/handler'
+import { personInfo, schedulePlans, organizations, carePackages, careTasks } from '@/db/schema'
+import { db } from '@/db'
+import { eq, gte, lte, and } from 'drizzle-orm'
 import { alias } from "drizzle-orm/pg-core"
-import { schedulePlanSchema, schedulePlanCreateSchema } from "@/lib/validations"
-// import { cretateContent } from "../insured/all/route" // 已移除，使用本地实现
-export const GET = createHandler(async (request: NextRequest, params, context) => {
-  const { searchParams } = new URL(request.url)
-  const nurseName = searchParams.get('nurseName') || ''
-  const insuredName = searchParams.get('insuredName') || ''
-  const month = searchParams.get('month') // 格式: YYYY-MM
-  const organizationId = searchParams.get('organizationId')
-  // 构建基础查询条件
-  const whereConditions = [
-    eq(schedulePlans.deleted, false)
+import dayjs from 'dayjs'
+
+export const GET = createHandler(async (request: NextRequest, context?: HandlerContext) => {
+  const [user] = await db.select().from(personInfo).where(eq(personInfo.id, Number(context?.userId)))
+  if (!user) {
+    throw '用户不存在'
+  }
+  const todayStart = dayjs().startOf('month').toDate()
+  const todayEnd = dayjs().endOf('month').toDate()
+  const withCredentials = [
+    eq(schedulePlans.organizationId, Number(context?.organizationId)),
+    eq(schedulePlans.deleted, false),
+    eq(schedulePlans.status, 1),
+    gte(schedulePlans.startTime, todayStart),
+    lte(schedulePlans.endTime, todayEnd)
   ]
 
-  const dataParams = schedulePlanSchema.safeParse({
-    month,
-    organizationId: organizationId ? parseInt(organizationId) : undefined,
-    nurseName,
-    insuredName
-  })
-  if (!dataParams.success) {
-    throw new Error(dataParams.error.errors[0].message)
+  if (user.type === 'insured') {
+    withCredentials.push(eq(schedulePlans.insuredId, user.id))
+  } else if (user.type === 'nurse') {
+    withCredentials.push(eq(schedulePlans.nurseId, user.id))
   }
-  // 如果不是超级管理员，添加机构过滤条件
-  if (context?.isSuperAdmin) {
-    // 如果传入了机构ID参数，添加机构过滤条件
-    if (dataParams.data.organizationId) {
-      whereConditions.push(eq(schedulePlans.organizationId, dataParams.data.organizationId))
-    }
-  }
-
-  // 如果传入了月份参数，添加月份过滤条件
-  if (month) {
-    // 验证月份格式 (YYYY-MM)
-    const monthRegex = /^\d{4}-\d{2}$/
-    if (!monthRegex.test(month)) {
-      throw new Error('月份格式错误，请使用 YYYY-MM 格式')
-    }
-
-    // 计算月份的开始和结束时间
-    const year = parseInt(month.split('-')[0])
-    const monthNum = parseInt(month.split('-')[1])
-    const startOfMonth = new Date(year, monthNum - 1, 1)
-    const endOfMonth = new Date(year, monthNum, 1) // 下个月的第一天
-
-    // 添加月份过滤条件：startTime 在指定月份内
-    whereConditions.push(gte(schedulePlans.startTime, startOfMonth))
-    whereConditions.push(lt(schedulePlans.startTime, endOfMonth))
-  }
-
   const nurseInfo = alias(personInfo, 'nurseInfo')
   const insuredInfo = alias(personInfo, 'insuredInfo')
-
-  // 如果传入了护士姓名，添加护士姓名过滤条件
-  if (nurseName) {
-    whereConditions.push(like(nurseInfo.name, `%${nurseName}%`))
-  }
-
-  // 如果传入了被保险人姓名，添加被保险人姓名过滤条件
-  if (insuredName) {
-    whereConditions.push(like(insuredInfo.name, `%${insuredName}%`))
-  }
   // 构建查询，包含所有关联表的完整信息
   const data = await db
     .select({
@@ -141,39 +104,13 @@ export const GET = createHandler(async (request: NextRequest, params, context) =
     .leftJoin(insuredInfo, eq(schedulePlans.insuredId, insuredInfo.id))
     .leftJoin(nurseInfo, eq(schedulePlans.nurseId, nurseInfo.id))
     .leftJoin(carePackages, eq(schedulePlans.packageId, carePackages.id))
-    .where(and(...whereConditions)).orderBy(schedulePlans.startTime)
-  // 简化处理，直接返回数据
+    .where(and(...withCredentials)).orderBy(schedulePlans.startTime)
   const enrichedData = await createContent(data)
   return enrichedData
 }, {
-  permission: 'schedulingPlan:read',
+  permission: 'user:read',
   requireAuth: true,
-})
-
-export const POST = createHandler(async (request: NextRequest, context?: HandlerContext) => {
-  const data = await request.json()
-  if (context?.isSuperAdmin) {
-    if (!data.organizationId) {
-      throw new Error('机构ID不能为空')
-    }
-  } else {
-    data.organizationId = Number(context?.organizationId)
-  }
-  const dataParams = schedulePlanCreateSchema.safeParse(data)
-  if (!dataParams.success) {
-    throw new Error(dataParams.error.errors[0].message)
-  }
-  // 转换数据类型以匹配数据库模式
-  const insertData = {
-    ...dataParams.data,
-    startTime: new Date(dataParams.data.startTime),
-    endTime: new Date(dataParams.data.endTime)
-  }
-  await db.insert(schedulePlans).values(insertData).returning()
-  return 'ok'
-}, {
-  permission: 'schedulingPlan:write',
-  requireAuth: true,
+  source: 'mobile'  // 只允许移动端token
 })
 const createContent = async (contents: any[]) => {
   // 获取所有相关的 careTasks 信息
@@ -207,4 +144,4 @@ const createContent = async (contents: any[]) => {
     }
   })
   return contentsWithTaskNames
-}  
+}   

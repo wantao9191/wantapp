@@ -36,6 +36,8 @@ export type AccessTokenPayload = JWTPayload & {
   permissions?: string[]  // 权限字符串列表，如 ['user:read', 'menu:create']
   organizationId?: number | null // 新增：机构ID
   isSuperAdmin?: boolean  // 新增：超级管理员标识
+  source?: 'admin' | 'mobile'  // 新增：token来源标识，默认为admin
+  userType?: 'admin' | 'nurse' | 'insured' | 'family'  // 新增：用户类型
 }
 
 /**
@@ -48,7 +50,9 @@ export type AccessTokenPayload = JWTPayload & {
 export async function signAccessToken(payload: AccessTokenPayload, ACCESS_TOKEN_TTL?: number) {
   const secret = encoder().encode(getEnv('JWT_SECRET'))
   const issuer = process.env.JWT_ISSUER || 'my-fullstack-app'
-  const audience = process.env.JWT_AUDIENCE || 'api'
+  // 根据source字段设置不同的audience，默认为admin
+  const source = payload.source || 'admin'
+  const audience = source === 'mobile' ? 'mobile-api' : 'admin-api'
   const ttlSeconds = ACCESS_TOKEN_TTL || Number(process.env.ACCESS_TOKEN_TTL || 1800) // 30分钟
 
   return new SignJWT(payload)
@@ -70,7 +74,39 @@ export async function signAccessToken(payload: AccessTokenPayload, ACCESS_TOKEN_
 export async function verifyAccessToken(token: string) {
   const secret = encoder().encode(getEnv('JWT_SECRET'))
   const issuer = process.env.JWT_ISSUER || 'my-fullstack-app'
-  const audience = process.env.JWT_AUDIENCE || 'api'
+  
+  // 尝试两种audience，兼容新旧token
+  const audiences = ['admin-api', 'mobile-api', process.env.JWT_AUDIENCE || 'api']
+  
+  for (const audience of audiences) {
+    try {
+      const { payload } = await jwtVerify(token, secret, { issuer, audience })
+      return payload as AccessTokenPayload
+    } catch (error: any) {
+      // 如果这个audience不匹配，尝试下一个
+      if (error.code === 'ERR_JWT_CLAIM_VALIDATION_FAILED' && error.claim === 'aud') {
+        continue
+      }
+      // 其他错误直接抛出
+      throw error
+    }
+  }
+  
+  // 所有audience都不匹配
+  throw new Error('Invalid token audience')
+}
+
+/**
+ * 验证特定来源的访问令牌
+ * @param token 待校验的 JWT
+ * @param expectedSource 期望的token来源
+ * @returns 解码后的访问令牌负载
+ * @throws jose 错误（如过期、签名无效等）
+ */
+export async function verifyAccessTokenForSource(token: string, expectedSource: 'admin' | 'mobile') {
+  const secret = encoder().encode(getEnv('JWT_SECRET'))
+  const issuer = process.env.JWT_ISSUER || 'my-fullstack-app'
+  const audience = expectedSource === 'mobile' ? 'mobile-api' : 'admin-api'
   const { payload } = await jwtVerify(token, secret, { issuer, audience })
   return payload as AccessTokenPayload
 }

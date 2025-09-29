@@ -89,8 +89,8 @@ export default function Login() {
             <div className="card p-8">
               {/* 头部信息 */}
               <div className="text-center mb-6">
-                <div className="logo-container inline-flex items-center justify-center w-16 h-16 rounded-3xl mb-4 shadow-glow border border-primary-200/50">
-                  <img alt="logo" className="w-10 h-8 object-contain filter drop-shadow-sm" src="/logo.png" />
+                <div className="logo-container inline-flex items-center justify-center w-16 h-16 rounded-3xl mb-4 ">
+                  <img alt="logo" className="w-20 h-16 object-contain " src="/logo.png" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">欢迎回来</h2>
                 <p className="text-gray-500 text-sm">登录您的长护系统账户</p>

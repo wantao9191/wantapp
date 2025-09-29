@@ -45,7 +45,6 @@ export const PUT = createHandler(async (request: NextRequest, params, context) =
   permission: 'user:write',
   requireAuth: true,
   hasParams: true,
-  organizationFilter: true
 })
 
 export const DELETE = createHandler(async (request: NextRequest, params, context) => {
@@ -82,5 +81,4 @@ export const DELETE = createHandler(async (request: NextRequest, params, context
   permission: 'user:write',
   requireAuth: true,
   hasParams: true,
-  organizationFilter: true
 })

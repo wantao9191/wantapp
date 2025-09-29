@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { AccessTokenPayload, verifyAccessToken } from '@/lib/jwt'
+import { AccessTokenPayload, verifyAccessToken, verifyAccessTokenForSource } from '@/lib/jwt'
 // 公共API路径配置
 const PUBLIC_API_PATHS = [
   '/api/captcha',
   '/api/admin/login',
   '/api/admin/auth/login',
   '/api/admin/auth/refresh',
-  '/api/admin/auth/revoke'
+  '/api/admin/auth/revoke',
+  '/api/mobile/auth/login'  // 移动端登录接口
 ] as const
 
 // 检查是否为公共API
@@ -17,7 +18,15 @@ function isPublicApiPath(pathname: string): boolean {
 
 // 受保护 API 前缀（需要鉴权）
 function isProtectedApiPath(pathname: string): boolean {
-  return pathname.startsWith('/api/admin') && !isPublicApiPath(pathname)
+  return (pathname.startsWith('/api/admin') || pathname.startsWith('/api/mobile')) && !isPublicApiPath(pathname)
+}
+
+// 检测API类型（仅对受保护的API）
+function getApiType(pathname: string): 'admin' | 'mobile' | null {
+  if (isPublicApiPath(pathname)) return null // 公共API不需要类型检测
+  if (pathname.startsWith('/api/admin')) return 'admin'
+  if (pathname.startsWith('/api/mobile')) return 'mobile'
+  return null
 }
 
 // 设置CORS头
@@ -85,9 +94,18 @@ export async function middleware(request: NextRequest) {
     }
 
     const token = authHeader.slice(7)
+    const apiType = getApiType(pathname)
+    
     try {
-      // 只验证JWT有效性，不设置请求头
-      await verifyAccessToken(token)
+      if (apiType) {
+        // 根据API类型验证对应的token来源
+        await verifyAccessTokenForSource(token, apiType)
+        console.log(`[Auth] ${apiType} token verified for ${pathname}`)
+      } else {
+        // 其他API使用通用验证
+        await verifyAccessToken(token)
+        console.log(`[Auth] Generic token verified for ${pathname}`)
+      }
       
       // JWT验证通过，直接放行
       const response = NextResponse.next()
@@ -100,7 +118,9 @@ export async function middleware(request: NextRequest) {
       } else if (error.code === 'ERR_JWS_INVALID') {
         message = 'Invalid token format'
       } else if (error.code === 'ERR_JWT_CLAIM_VALIDATION_FAILED') {
-        message = 'Token validation failed'
+        message = apiType 
+          ? `Invalid token source. Expected: ${apiType}` 
+          : 'Token validation failed'
       }
 
       console.warn(`[Auth] Token verification failed for ${pathname}:`, error.message)

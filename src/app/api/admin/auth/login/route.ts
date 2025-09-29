@@ -83,6 +83,8 @@ export const POST = createHandler(async (request: NextRequest) => {
     permissions: userPermissions,
     organizationId: userInfo.organizationId,
     isSuperAdmin: isAdmin
+    // source默认为'admin'，无需显式设置
+    // userType默认为'admin'，无需显式设置
   }
 
   // 生成访问令牌和刷新令牌

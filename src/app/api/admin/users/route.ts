@@ -84,7 +84,6 @@ export const GET = createHandler(async (request: NextRequest, context?: { userId
 }, {
   permission: 'user:read',
   requireAuth: true,
-  organizationFilter: true
 })
 
 export const POST = createHandler(async (request: NextRequest, context?: { userId: number; organizationId?: number; isSuperAdmin?: boolean }) => {
@@ -117,5 +116,4 @@ export const POST = createHandler(async (request: NextRequest, context?: { userI
 }, {
   permission: 'user:create',
   requireAuth: true,
-  organizationFilter: true
 })
