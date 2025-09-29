@@ -2,9 +2,9 @@ import { createHandler } from '@/app/api/_utils/handler'
 import { NextRequest } from 'next/server'
 import { mobileLoginSchema } from '@/lib/validations'
 import { db } from '@/db'
-import { users, organizations } from '@/db/schema'
+import { personInfo, organizations } from '@/db/schema'
 import { eq } from 'drizzle-orm'
-import { User } from '@/types/database'
+import { PersonInfo } from '@/types/database'
 import { verifyPassword } from '@/lib/password'
 import { generateRandomString } from '@/lib/utils'
 import { getUserPermissions, isSuperAdmin } from '@/lib/permissions'
@@ -15,21 +15,20 @@ export const POST = createHandler(async (request: NextRequest) => {
     throw new Error(params.error.errors[0].message)
   }
   const { username, password } = params.data
-  const user: User[] = await db.select({
-    id: users.id, 
-    username: users.username,
-    password: users.password,
-    status: users.status,
-    name: users.name,
-    phone: users.phone,
-    createTime: users.createTime,
-    roles: users.roles,
-    email: users.email,
-    description: users.description,
-    deleted: users.deleted,
-    organizationId: users.organizationId,
+  const user = await db.select({
+    id: personInfo.id, 
+    username: personInfo.username,
+    password: personInfo.password,
+    status: personInfo.status,
+    name: personInfo.name,
+    mobile: personInfo.mobile,
+    createTime: personInfo.createTime,
+    roles: personInfo.roles,
+    description: personInfo.description,
+    deleted: personInfo.deleted,
+    organizationId: personInfo.organizationId,
     organizationName: organizations.name,
-  }).from(users).leftJoin(organizations, eq(users.organizationId, organizations.id)).where(eq(users.username, username)).limit(1)
+  }).from(personInfo).leftJoin(organizations, eq(personInfo.organizationId, organizations.id)).where(eq(personInfo.username, username)).limit(1)
   const currentUser = user[0]
   if (!currentUser) {
     throw new Error('用户不存在')
