@@ -1,6 +1,6 @@
 import { createHandler } from '@/app/api/_utils/handler'
 import { NextRequest } from 'next/server'
-import { loginSchema } from '@/lib/validations'
+import { mobileLoginSchema } from '@/lib/validations'
 import { db } from '@/db'
 import { users, organizations } from '@/db/schema'
 import { eq } from 'drizzle-orm'
@@ -10,13 +10,13 @@ import { generateRandomString } from '@/lib/utils'
 import { getUserPermissions, isSuperAdmin } from '@/lib/permissions'
 import { signAccessToken, AccessTokenPayload, signRefreshToken } from '@/lib/jwt'
 export const POST = createHandler(async (request: NextRequest) => {
-  const params = loginSchema.safeParse(await request.json())
+  const params = mobileLoginSchema.safeParse(await request.json())
   if (!params.success) {
     throw new Error(params.error.errors[0].message)
   }
   const { username, password } = params.data
   const user: User[] = await db.select({
-    id: users.id,
+    id: users.id, 
     username: users.username,
     password: users.password,
     status: users.status,

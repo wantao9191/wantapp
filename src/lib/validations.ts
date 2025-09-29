@@ -11,6 +11,10 @@ export const loginSchema = z.object({
   password: z.string().trim().min(1, { message: '请输入密码' }),
   code: z.string().trim().length(4, { message: '验证码为4位' }),
 })
+export const mobileLoginSchema = z.object({
+  username: z.string().trim().min(3, { message: '用户名至少3个字符' }).max(20, { message: '用户名最多20个字符' }),
+  password: z.string().trim().min(1, { message: '请输入密码' })
+})
 export const pageSchema = z.object({
   page: z.number().min(1, { message: '页码不能小于1' }),
   pageSize: z.number().min(1, { message: '每页条数不能小于1' }),
