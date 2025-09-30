@@ -282,9 +282,10 @@ export default function SchedulingPage() {
           footer={null}
           open={open}
           title={formData?.id ? '编辑排班计划' : '新增排班计划'}
-          width={600}
+          width={720}
           zIndex={1999}
           onCancel={() => setOpen(false)}
+          centered
         >
           <EditModal formData={formData} onCancel={() => setOpen(false)} onSubmit={onSubmit} />
         </Modal>
@@ -293,9 +294,10 @@ export default function SchedulingPage() {
           footer={null}
           open={checkOpen}
           title='查看排班计划'
-          width={600}
+          width={720}
           zIndex={1999}
           onCancel={() => setCheckOpen(false)}
+          centered
         >
           <CheckModal formData={formData} open={checkOpen} onCancel={() => setCheckOpen(false)} />
         </Modal>

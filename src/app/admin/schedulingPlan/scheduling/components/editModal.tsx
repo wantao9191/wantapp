@@ -493,6 +493,7 @@ export default function EditModal({
       <Modal
         className="rounded-lg"
         destroyOnHidden={true}
+        centered
         footer={
           <Space>
             <Button 
@@ -519,6 +520,7 @@ export default function EditModal({
       <Modal
         className="rounded-lg"
         destroyOnHidden={true}
+        centered
         footer={
           <Space>
             <Button 

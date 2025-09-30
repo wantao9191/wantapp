@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server"
 import { createHandler, HandlerContext } from "../../_utils/handler"
 import { db } from "@/db"
-import { schedulePlans, personInfo, carePackages, organizations, careTasks } from "@/db/schema"
+import { schedulePlans, personInfo, carePackages, organizations, careTasks, careRecords } from "@/db/schema"
 import { eq, and, gte, lt, like } from "drizzle-orm"
 import { alias } from "drizzle-orm/pg-core"
 import { schedulePlanSchema, schedulePlanCreateSchema } from "@/lib/validations"
@@ -105,6 +105,7 @@ export const GET = createHandler(async (request: NextRequest, params, context) =
         description: nurseInfo.description,
         createTime: nurseInfo.createTime,
         type: nurseInfo.type,
+        credential: nurseInfo.credential,
       },
 
       // 关联的被保险人完整信息
@@ -169,7 +170,8 @@ export const POST = createHandler(async (request: NextRequest, context?: Handler
     startTime: new Date(dataParams.data.startTime),
     endTime: new Date(dataParams.data.endTime)
   }
-  await db.insert(schedulePlans).values(insertData).returning()
+  const [schedulePlan] = await db.insert(schedulePlans).values(insertData).returning()
+  await db.insert(careRecords).values({ schedulePlanId: schedulePlan.id, organizationId: schedulePlan.organizationId })
   return 'ok'
 }, {
   permission: 'schedulingPlan:write',

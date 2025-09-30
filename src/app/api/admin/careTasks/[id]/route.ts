@@ -4,6 +4,7 @@ import { careTaskSchema } from "@/lib/validations"
 import { db } from "@/db"
 import { careTasks, files } from "@/db/schema"
 import { eq } from "drizzle-orm"
+
 export const PUT = createHandler(async (request: NextRequest, params, context) => {
   const { id } = params
   const parmas = careTaskSchema.safeParse(await request.json())
@@ -38,6 +39,7 @@ export const PUT = createHandler(async (request: NextRequest, params, context) =
   hasParams: true,
   permission: 'caretask:write'
 })
+
 export const DELETE = createHandler(async (request: NextRequest, params: { id: string }) => {
   const { id } = params
   const [careTask] = await db.update(careTasks).set({

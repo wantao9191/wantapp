@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { validateIdCard } from './utils'
+import { CareTaskLevel } from '@/types/enums'
 export const loginSchema = z.object({
   username: z.string()
     .trim()
@@ -79,7 +80,7 @@ export const careTaskSchema = z.object({
   audioId: z.number().min(1, { message: '请选择音频' }),
   minDuration: z.number().min(0, { message: '最小时长不能小于0' }),
   maxDuration: z.number().min(0, { message: '最大时长不能小于0' }),
-  level: z.string(),
+  level: z.nativeEnum(CareTaskLevel),
 }).refine((data) => {
   // 如果两个时长都提供了，验证 minDuration 不能超过 maxDuration
   if (data.minDuration !== undefined && data.maxDuration !== undefined) {
@@ -210,10 +211,27 @@ export const schedulePlanCreateSchema = z.object({
   message: '排班时间必须是明天及以后',
   path: ['startTime'],
 })
+// 护理记录校验规则
+export const careRecordSchema = z.object({
+  organizationId: z.number().min(1, { message: '请选择机构' }),
+  signInTime: z.string().optional(),
+  signOutTime: z.string().optional(),
+}).refine((data) => {
+  if (data.signInTime && data.signOutTime) {
+    // 验证开始时间不能晚于结束时间
+    const startTime = new Date(data.signInTime)
+    const endTime = new Date(data.signOutTime)
+    return startTime < endTime
+  }
+  return true
+}, {
+  message: '开始时间不能晚于结束时间',
+  path: ['signInTime'],
+})
 // 文件上传校验规则
 export const fileUploadSchema = z.object({
   name: z.string().trim().min(1, { message: '文件名不能为空' }).max(255, { message: '文件名过长' }),
-  size: z.number().min(1, { message: '文件大小不能为0' }).max(10 * 1024 * 1024, { message: '文件大小不能超过10MB' }),
+  size: z.number().min(1, { message: '文件大小不能为0' }).max(100 * 1024 * 1024, { message: '文件大小不能超过100MB' }),
   type: z.string().min(1, { message: '文件类型不能为空' }),
 })
 export type LoginSchema = z.infer<typeof loginSchema>
@@ -228,3 +246,4 @@ export type FileUploadSchema = z.infer<typeof fileUploadSchema>
 export type CarePackageSchema = z.infer<typeof carePackageSchema>
 export type InsuredSchema = z.infer<typeof insuredSchema>
 export type SchedulePlanSchema = z.infer<typeof schedulePlanSchema>
+export type CareRecordSchema = z.infer<typeof careRecordSchema>

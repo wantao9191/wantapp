@@ -97,6 +97,7 @@ export default function OrganizationsPage() {
         open={open}
         title={formData?.id ? '编辑护理任务' : '新增护理任务'}
         onCancel={() => setOpen(false)}
+        centered
       >
         <EditModal formData={formData} onCancel={() => setOpen(false)} onSubmit={onSubmit} />
       </Modal>

@@ -68,6 +68,7 @@ export default function OrganizationsPage() {
         open={open}
         title={formData?.id ? '编辑权限' : '新增权限'}
         onCancel={() => setOpen(false)}
+        centered
       >
         <EditModal formData={formData} onCancel={() => setOpen(false)} onSubmit={onSubmit} />
       </Modal>

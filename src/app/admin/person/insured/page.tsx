@@ -97,6 +97,7 @@ export default function InsuredPage() {
         open={open}
         title={formData?.id ? '编辑参保人' : '新增参保人'}
         onCancel={() => setOpen(false)}
+        centered
       >
         <EditModal formData={formData} onCancel={() => setOpen(false)} onSubmit={onSubmit} />
       </Modal>

@@ -8,7 +8,7 @@ interface ConfigModalProps {
 }
 export default function ConfigModal({ slots }: ConfigModalProps) {
   return (
-    <div className={`relative bg-gray-50 rounded-lg border border-gray-200 ${slots.height || 'h-400px'}`}>
+    <div className={`relative bg-gray-50 rounded-lg border border-gray-200 ${slots.height || 'h-500px'}`}>
       <div className='p-5 pb-20 overflow-y-auto h-full builterful-scrollbar'>
         {slots.body}
       </div>

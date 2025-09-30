@@ -97,6 +97,7 @@ export default function NursePage() {
         open={open}
         title={formData?.id ? '编辑护理员' : '新增护理员'}
         onCancel={() => setOpen(false)}
+        centered
       >
         <EditModal formData={formData} onCancel={() => setOpen(false)} onSubmit={onSubmit} />
       </Modal>
