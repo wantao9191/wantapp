@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server"
 import { createHandler, HandlerContext } from "../../_utils/handler"
+import { enrichSchedulePlanPackageWithTaskNames } from "../../_utils/tasks-helper"
 import { db } from "@/db"
-import { careRecords, schedulePlans, personInfo, carePackages, organizations, careTasks } from "@/db/schema"
+import { careRecords, schedulePlans, personInfo, carePackages, organizations } from "@/db/schema"
 import { eq, and, count } from "drizzle-orm"
 import { alias } from "drizzle-orm/pg-core"
 import { pageSchema, careRecordSchema } from "@/lib/validations"
@@ -162,8 +163,11 @@ export const GET = createHandler(async (request: NextRequest, context?: HandlerC
   // 查询总数
   const totalResult = await db.select({ count: count() }).from(careRecords).where(and(...whereConditions))
 
+  // 使用统一的工具函数添加任务名称
+  const enrichedContents = await enrichSchedulePlanPackageWithTaskNames(contents)
+
   // 转换枚举值为标签
-  const transformedContents = contents.map(item => ({
+  const transformedContents = enrichedContents.map(item => ({
     ...item,
     status: CareRecordStatusLabels[((item.status as number) ?? 0) as keyof typeof CareRecordStatusLabels],
     alertStatus: CareRecordAlertStatusLabels[((item.alertStatus as number) ?? 0) as keyof typeof CareRecordAlertStatusLabels],
@@ -174,51 +178,4 @@ export const GET = createHandler(async (request: NextRequest, context?: HandlerC
 }, {
   permission: 'schedulingRecord:read',
   requireAuth: true
-})
-
-/**
- * 增强护理套餐的任务信息，将任务 ID 转换为任务名称
- */
-async function enrichPackageTasks(contents: any[]) {
-  // 获取所有相关的 careTasks 信息
-  const taskIds = [...new Set(contents.flatMap(item => 
-    item.schedulePlan?.package?.tasks || []
-  ))]
-
-  let taskMap: Record<number, string> = {}
-  if (taskIds.length > 0) {
-    const tasks = await db.select({
-      id: careTasks.id,
-      name: careTasks.name
-    })
-      .from(careTasks)
-      .where(and(
-        eq(careTasks.deleted, false),
-        eq(careTasks.status, 1)
-      ))
-
-    taskMap = tasks.reduce((acc, task) => {
-      acc[task.id] = task.name
-      return acc
-    }, {} as Record<number, string>)
-  }
-
-  // 为每个 carePackage 添加 tasks 名称
-  return contents.map(item => {
-    if (item.schedulePlan?.package?.tasks) {
-      return {
-        ...item,
-        schedulePlan: {
-          ...item.schedulePlan,
-          package: {
-            ...item.schedulePlan.package,
-            tasks: item.schedulePlan.package.tasks.map((taskId: number) => 
-              taskMap[taskId] || `任务${taskId}`
-            )
-          }
-        }
-      }
-    }
-    return item
-  })
-}  
+})  

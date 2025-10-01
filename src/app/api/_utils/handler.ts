@@ -6,8 +6,8 @@ import { ok, error, unauthorized } from './response'
 import { checkPermission, getUserContextWithErrorType, getUserContextFromJWTForSource, checkTokenSource } from '@/lib/auth-helper'
 
 // 修复类型定义：适配 Next.js App Router 的参数传递方式
-export type HandlerWithParams = (req: NextRequest, params: { id: string }, context?: { userId: number; organizationId?: number; isSuperAdmin?: boolean }) => Promise<any> | any
-export type Handler = (req: NextRequest, context?: { userId: number; organizationId?: number; isSuperAdmin?: boolean }) => Promise<any> | any
+export type HandlerWithParams = (req: NextRequest, params: { id: string }, context?: { userId: number; organizationId?: number; isSuperAdmin?: boolean; userType?: 'admin' | 'nurse' | 'insured' | 'family' }) => Promise<any> | any
+export type Handler = (req: NextRequest, context?: { userId: number; organizationId?: number; isSuperAdmin?: boolean; userType?: 'admin' | 'nurse' | 'insured' | 'family' }) => Promise<any> | any
 export type Handlers = Partial<Record<'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', Handler | HandlerWithParams>>
 
 export interface HandlerOptions {
@@ -21,6 +21,7 @@ export interface HandlerContext {
   userId: number
   organizationId?: number
   isSuperAdmin?: boolean
+  userType?: 'admin' | 'nurse' | 'insured' | 'family'
 }
 
 export interface HandlerParams {
@@ -233,7 +234,8 @@ async function checkAuth(request: NextRequest, permission?: string, requireAuth 
     context: {
       userId: userContext.userId,
       organizationId: userContext.organizationId ?? undefined,
-      isSuperAdmin: userContext.isSuperAdmin
+      isSuperAdmin: userContext.isSuperAdmin,
+      userType: userContext.userType
     },
     error: null
   }

@@ -15,19 +15,15 @@ interface CheckModalProps {
 
 export default function CheckModal({ onCancel, formData }: CheckModalProps) {
   const [formItems, setFormItems] = useState<any>(null)
+  const [tasks, setTasks] = useState<any>([])
   const { statusMap } = useDict()
   const getTasks = async (id: string) => {
     const res = await http.get(`/admin/carePackages/${id}/tasks`)
-    setFormItems({
-      ...formItems,
-      tasks: res.data
-    })
-    console.log(res, 'res')
+    setTasks(res.data)
   }
   useEffect(() => {
-    console.log(formData, 'formData')
-    setFormItems(formData)
     getTasks(formData?.schedulePlan?.package?.id)
+    setFormItems(formData)
   }, [formData])
 
   const checkContent = (
@@ -179,7 +175,7 @@ export default function CheckModal({ onCancel, formData }: CheckModalProps) {
           </Descriptions.Item>
           <Descriptions.Item className="font-medium" label="护理服务" span={2}>
             <Space wrap>
-              {formItems?.tasks?.map((task: any) => (
+              {tasks?.map((task: any) => (
                 <Tag
                   key={task.id}
                   className="px-3 py-1 rounded-full text-sm font-medium"

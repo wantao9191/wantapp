@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server"
 import { createHandler, HandlerContext } from "../../_utils/handler"
+import { getTaskMap } from "../../_utils/tasks-helper"
 import { db } from "@/db"
-import { carePackages, careTasks } from "@/db/schema"
+import { carePackages } from "@/db/schema"
 import { eq, and, count, like } from "drizzle-orm"
 import { pageSchema, carePackageSchema } from "@/lib/validations"
 import { paginatedSimple } from "../../_utils/response"
@@ -48,8 +49,15 @@ export const GET = createHandler(async (request: NextRequest, context?: HandlerC
     db.select({ count: count() }).from(carePackages).where(and(...whereConditions))
   ])
 
-  // 获取所有相关的 careTasks 信息
-  const contentsWithTaskNames = await createContent(contents)
+  // 使用统一的工具函数获取任务名称，同时保留原始的 tasks ID 数组
+  const taskIds = [...new Set(contents.flatMap(item => item.tasks || []))]
+  const taskMap = await getTaskMap(taskIds)
+
+  const contentsWithTaskNames = contents.map(item => ({
+    ...item,
+    taskNames: (item.tasks || []).map(taskId => taskMap[taskId] || `任务${taskId}`)
+  }))
+
   return paginatedSimple(contentsWithTaskNames, pageParams.data.page, pageParams.data.pageSize, totalResult[0]?.count || 0)
 }, {
   permission: 'careplan:read',
@@ -58,7 +66,7 @@ export const GET = createHandler(async (request: NextRequest, context?: HandlerC
 
 export const POST = createHandler(async (request: NextRequest, context?: HandlerContext) => {
   const data = await request.json()
-  
+
   // 处理机构ID逻辑
   if (context?.isSuperAdmin) {
     if (!data.organizationId) {
@@ -70,7 +78,7 @@ export const POST = createHandler(async (request: NextRequest, context?: Handler
     }
     data.organizationId = Number(context.organizationId)
   }
-  
+
   const params = carePackageSchema.safeParse(data)
   if (!params.success) {
     throw new Error(params.error.errors[0].message)
@@ -81,33 +89,3 @@ export const POST = createHandler(async (request: NextRequest, context?: Handler
   permission: 'careplan:write',
   requireAuth: true
 })
-
-const createContent = async (contents: any[]) => {
-  // 获取所有相关的 careTasks 信息
-  const taskIds = [...new Set(contents.flatMap(item => item.tasks || []))]
-
-  let taskMap: Record<number, string> = {}
-  if (taskIds.length > 0) {
-    const tasks = await db.select({
-      id: careTasks.id,
-      name: careTasks.name
-    })
-      .from(careTasks)
-      .where(and(
-        eq(careTasks.deleted, false),
-        eq(careTasks.status, 1)
-      ))
-
-    taskMap = tasks.reduce((acc, task) => {
-      acc[task.id] = task.name
-      return acc
-    }, {} as Record<number, string>)
-  }
-
-  // 为每个 carePackage 添加 tasks 名称
-  const contentsWithTaskNames = contents.map(item => ({
-    ...item,
-    taskNames: (item.tasks || []).map((taskId: number) => taskMap[taskId] || `任务${taskId}`)
-  }))
-  return contentsWithTaskNames
-}

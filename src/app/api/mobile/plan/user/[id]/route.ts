@@ -1,32 +1,39 @@
 import { NextRequest } from 'next/server'
 import { createHandler, HandlerContext } from '@/app/api/_utils/handler'
-import { enrichPackagesWithTaskNames } from '@/app/api/_utils/tasks-helper'
+import { enrichPackageWithTaskNames } from '@/app/api/_utils/tasks-helper'
 import { personInfo, schedulePlans, organizations, carePackages } from '@/db/schema'
 import { db } from '@/db'
-import { eq, gte, lte, and } from 'drizzle-orm'
-import { alias } from "drizzle-orm/pg-core"
-import dayjs from 'dayjs'
+import { eq, and } from 'drizzle-orm'
+import { alias } from 'drizzle-orm/pg-core'
 
-export const GET = createHandler(async (request: NextRequest, context?: HandlerContext) => {
-  const todayStart = dayjs().startOf('month').toDate()
-  const todayEnd = dayjs().endOf('month').toDate()
-  const withCredentials = [
-    eq(schedulePlans.organizationId, Number(context?.organizationId)),
-    eq(schedulePlans.deleted, false),
-    eq(schedulePlans.status, 1),
-    gte(schedulePlans.startTime, todayStart),
-    lte(schedulePlans.endTime, todayEnd)
-  ]
+export const GET = createHandler(async (request: NextRequest, params: any, context?: HandlerContext) => {
+  const { id } = params
+  const planId = parseInt(id)
 
-  if (context?.userType === 'insured') {
-    withCredentials.push(eq(schedulePlans.insuredId, context?.userId))
-  } else if (context?.userType === 'nurse') {
-    withCredentials.push(eq(schedulePlans.nurseId, context?.userId))
+  if (isNaN(planId)) {
+    throw new Error('无效的排班计划ID')
   }
+
   const nurseInfo = alias(personInfo, 'nurseInfo')
   const insuredInfo = alias(personInfo, 'insuredInfo')
-  // 构建查询，包含所有关联表的完整信息
-  const data = await db
+
+  // 构建查询条件
+  const whereConditions = [
+    eq(schedulePlans.id, planId),
+    eq(schedulePlans.deleted, false),
+    eq(schedulePlans.status, 1),
+    eq(schedulePlans.organizationId, Number(context?.organizationId))
+  ]
+
+  // 根据用户类型添加权限过滤
+  if (context?.userType === 'insured') {
+    whereConditions.push(eq(schedulePlans.insuredId, context?.userId))
+  } else if (context?.userType === 'nurse') {
+    whereConditions.push(eq(schedulePlans.nurseId, context?.userId))
+  }
+
+  // 查询排班计划详情，包含所有关联信息
+  const [plan] = await db
     .select({
       // 排班计划基本信息
       id: schedulePlans.id,
@@ -101,13 +108,20 @@ export const GET = createHandler(async (request: NextRequest, context?: HandlerC
     .leftJoin(insuredInfo, eq(schedulePlans.insuredId, insuredInfo.id))
     .leftJoin(nurseInfo, eq(schedulePlans.nurseId, nurseInfo.id))
     .leftJoin(carePackages, eq(schedulePlans.packageId, carePackages.id))
-    .where(and(...withCredentials)).orderBy(schedulePlans.startTime)
-  
+    .where(and(...whereConditions))
+    .limit(1)
+
+  if (!plan) {
+    throw new Error('排班计划不存在或无权访问')
+  }
+
   // 使用统一的工具函数添加任务名称
-  const enrichedData = await enrichPackagesWithTaskNames(data)
-  return enrichedData
+  const enrichedPlan = await enrichPackageWithTaskNames(plan)
+
+  return enrichedPlan
 }, {
   permission: 'user:read',
   requireAuth: true,
+  hasParams: true,
   source: 'mobile'  // 只允许移动端token
-})   
+})

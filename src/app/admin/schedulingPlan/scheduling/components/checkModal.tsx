@@ -97,7 +97,7 @@ export default function CheckModal({ open, onCancel, formData }: CheckModalProps
                   className="px-3 py-1 rounded-full text-sm font-medium"
                   color="blue"
                 >
-                  {task.name}
+                  {task}
                 </Tag>
               )) || <Text className="text-gray-400">无</Text>}
             </Space>

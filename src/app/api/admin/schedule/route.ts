@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server"
 import { createHandler, HandlerContext } from "../../_utils/handler"
+import { enrichPackagesWithTaskNames } from "../../_utils/tasks-helper"
 import { db } from "@/db"
-import { schedulePlans, personInfo, carePackages, organizations, careTasks, careRecords } from "@/db/schema"
+import { schedulePlans, personInfo, carePackages, organizations, careRecords } from "@/db/schema"
 import { eq, and, gte, lt, like } from "drizzle-orm"
 import { alias } from "drizzle-orm/pg-core"
 import { schedulePlanSchema, schedulePlanCreateSchema } from "@/lib/validations"
@@ -143,8 +144,9 @@ export const GET = createHandler(async (request: NextRequest, params, context) =
     .leftJoin(nurseInfo, eq(schedulePlans.nurseId, nurseInfo.id))
     .leftJoin(carePackages, eq(schedulePlans.packageId, carePackages.id))
     .where(and(...whereConditions)).orderBy(schedulePlans.startTime)
-  // 简化处理，直接返回数据
-  const enrichedData = await createContent(data)
+  
+  // 使用统一的工具函数添加任务名称
+  const enrichedData = await enrichPackagesWithTaskNames(data)
   return enrichedData
 }, {
   permission: 'schedulingPlan:read',
@@ -176,37 +178,4 @@ export const POST = createHandler(async (request: NextRequest, context?: Handler
 }, {
   permission: 'schedulingPlan:write',
   requireAuth: true,
-})
-const createContent = async (contents: any[]) => {
-  // 获取所有相关的 careTasks 信息
-  const taskIds = [...new Set(contents.flatMap(item => item.package.tasks || []))]
-
-  let taskMap: Record<number, string> = {}
-  if (taskIds.length > 0) {
-    const tasks = await db.select({
-      id: careTasks.id,
-      name: careTasks.name
-    })
-      .from(careTasks)
-      .where(and(
-        eq(careTasks.deleted, false),
-        eq(careTasks.status, 1)
-      ))
-
-    taskMap = tasks.reduce((acc, task) => {
-      acc[task.id] = task.name
-      return acc
-    }, {} as Record<number, string>)
-  }
-  // 为每个 carePackage 添加 tasks 名称
-  const contentsWithTaskNames = contents.map(item => {
-    return {
-      ...item,
-      package: {
-        ...item.package,
-        tasks: (item.package.tasks || []).map((taskId: number) => taskMap[taskId] || `任务${taskId}`)
-      }
-    }
-  })
-  return contentsWithTaskNames
-}  
+})  

@@ -160,6 +160,13 @@ export default function SchedulingPage() {
     )
   }
   const dateCellRender = (value: Dayjs) => {
+    // 只显示当月的日期，隐藏其他月份的日期
+    const isCurrentMonth = value.isSame(currentDate, 'month')
+    
+    if (!isCurrentMonth) {
+      return null
+    }
+    
     const listData: any = getListData(value);
     return (
       <div className="h-[calc(100%-24px)] flex flex-col justify-center items-center gap-1">
