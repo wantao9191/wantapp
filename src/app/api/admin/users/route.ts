@@ -7,7 +7,7 @@ import { eq, and, like, count, inArray } from 'drizzle-orm'
 import { paginatedSimple } from '../../_utils/response'
 import bcrypt from 'bcryptjs'
 export const GET = createHandler(async (request: NextRequest, context?: { userId: number; organizationId?: number; isSuperAdmin?: boolean }) => {
-  const { searchParams } = new URL(request.url)
+  const searchParams = request.nextUrl.searchParams
   const page = searchParams.get('page')
   const pageSize = searchParams.get('pageSize')
   const name = searchParams.get('name') || ''

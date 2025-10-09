@@ -12,7 +12,7 @@ const DEFAULT_PAGE = 1
 const DEFAULT_TYPE = 'insured'
 
 export const GET = createHandler(async (request: NextRequest, params, context) => {
-  const { searchParams } = new URL(request.url)
+  const searchParams = request.nextUrl.searchParams
   const name = searchParams.get('name') || ''
   const page = searchParams.get('page') || DEFAULT_PAGE.toString()
   const pageSize = searchParams.get('pageSize') || DEFAULT_PAGE_SIZE.toString()

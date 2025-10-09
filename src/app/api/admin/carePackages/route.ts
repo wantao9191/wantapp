@@ -7,7 +7,7 @@ import { eq, and, count, like } from "drizzle-orm"
 import { pageSchema, carePackageSchema } from "@/lib/validations"
 import { paginatedSimple } from "../../_utils/response"
 export const GET = createHandler(async (request: NextRequest, context?: HandlerContext) => {
-  const { searchParams } = new URL(request.url)
+  const searchParams = request.nextUrl.searchParams
   const page = searchParams.get('page') || '1'
   const pageSize = searchParams.get('pageSize') || '10'
   const name = searchParams.get('name') || ''

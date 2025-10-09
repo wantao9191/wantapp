@@ -8,11 +8,11 @@ import { count } from "drizzle-orm"
 import { eq, like, and } from "drizzle-orm"
 
 export const GET = createHandler(async (request: NextRequest) => {
-  const url = new URL(request.url)
-  const page = url.searchParams.get('page') || '1'
-  const pageSize = url.searchParams.get('pageSize') || '10'
-  const status = url.searchParams.get('status')
-  const name = url.searchParams.get('name') || ''
+  const searchParams = request.nextUrl.searchParams
+  const page = searchParams.get('page') || '1'
+  const pageSize = searchParams.get('pageSize') || '10'
+  const status = searchParams.get('status')
+  const name = searchParams.get('name') || ''
   const pageParams = pageSchema.safeParse({ page: Number(page), pageSize: Number(pageSize) })
   if (!pageParams.success) {
     throw new Error(pageParams.error.errors[0].message)

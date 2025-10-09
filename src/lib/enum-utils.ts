@@ -90,22 +90,24 @@ export const isValidStatus = {
  */
 export const statusTransitions = {
   careRecord: {
-    [CareRecordStatus.NOT_STARTED]: [CareRecordStatus.SIGNED_IN],
+    [CareRecordStatus.NOT_STARTED]: [
+      CareRecordStatus.SIGNED_IN,
+      CareRecordStatus.LEAVE,
+      CareRecordStatus.CANCELLED,
+      CareRecordStatus.POSTPONED,
+    ],
     [CareRecordStatus.SIGNED_IN]: [CareRecordStatus.IN_SERVICE, CareRecordStatus.COMPLETED],
     [CareRecordStatus.IN_SERVICE]: [CareRecordStatus.COMPLETED],
     [CareRecordStatus.COMPLETED]: [], // 终态
+    [CareRecordStatus.LEAVE]: [], // 终态
+    [CareRecordStatus.CANCELLED]: [], // 终态
+    [CareRecordStatus.POSTPONED]: [CareRecordStatus.NOT_STARTED], // 可以恢复到未开始
   },
   careRecordAlert: {
     [CareRecordAlertStatus.NORMAL]: [
-      CareRecordAlertStatus.LEAVE,
-      CareRecordAlertStatus.CANCELLED,
-      CareRecordAlertStatus.POSTPONED,
       CareRecordAlertStatus.LATE,
       CareRecordAlertStatus.EARLY_LEAVE,
     ],
-    [CareRecordAlertStatus.LEAVE]: [CareRecordAlertStatus.NORMAL],
-    [CareRecordAlertStatus.CANCELLED]: [CareRecordAlertStatus.NORMAL],
-    [CareRecordAlertStatus.POSTPONED]: [CareRecordAlertStatus.NORMAL],
     [CareRecordAlertStatus.LATE]: [CareRecordAlertStatus.NORMAL],
     [CareRecordAlertStatus.EARLY_LEAVE]: [CareRecordAlertStatus.NORMAL],
   },

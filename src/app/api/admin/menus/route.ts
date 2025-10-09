@@ -8,7 +8,7 @@ import { paginatedSimple } from '../../_utils/response'
 import { buildMenuTree } from '@/lib/utils'
 
 export const GET = createHandler(async (request: NextRequest) => {
-  const { searchParams } = new URL(request.url)
+  const searchParams = request.nextUrl.searchParams
   const page = searchParams.get('page')
   const pageSize = searchParams.get('pageSize')
   const name = searchParams.get('name') || ''

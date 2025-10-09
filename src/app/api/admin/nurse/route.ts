@@ -15,7 +15,7 @@ const DEFAULT_PAGE_SIZE = 10
 const DEFAULT_PAGE = 1
 const DEFAULT_TYPE = 'nurse'
 export const GET = createHandler(async (request: NextRequest, params, context) => {
-  const { searchParams } = new URL(request.url)
+  const searchParams = request.nextUrl.searchParams
   const name = searchParams.get('name') || ''
   const status = searchParams.get('status') || ''
   const page = searchParams.get('page') || DEFAULT_PAGE.toString()

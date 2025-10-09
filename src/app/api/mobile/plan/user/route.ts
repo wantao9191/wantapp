@@ -1,15 +1,19 @@
 import { NextRequest } from 'next/server'
 import { createHandler, HandlerContext } from '@/app/api/_utils/handler'
 import { enrichPackagesWithTaskNames } from '@/app/api/_utils/tasks-helper'
-import { personInfo, schedulePlans, organizations, carePackages } from '@/db/schema'
+import { personInfo, schedulePlans, organizations, carePackages, careRecords } from '@/db/schema'
 import { db } from '@/db'
 import { eq, gte, lte, and } from 'drizzle-orm'
 import { alias } from "drizzle-orm/pg-core"
 import dayjs from 'dayjs'
 
 export const GET = createHandler(async (request: NextRequest, context?: HandlerContext) => {
-  const todayStart = dayjs().startOf('month').toDate()
-  const todayEnd = dayjs().endOf('month').toDate()
+  const searchParams = request.nextUrl.searchParams
+  const startTime = searchParams.get('startTime')
+  const endTime = searchParams.get('endTime')
+  const recordStatus = searchParams.get('recordStatus') // 护理记录状态过滤参数
+  const todayStart = startTime ? dayjs(startTime).startOf('day').toDate() : dayjs().startOf('day').toDate()
+  const todayEnd = endTime ? dayjs(endTime).endOf('day').toDate() : dayjs().endOf('day').toDate()
   const withCredentials = [
     eq(schedulePlans.organizationId, Number(context?.organizationId)),
     eq(schedulePlans.deleted, false),
@@ -22,6 +26,11 @@ export const GET = createHandler(async (request: NextRequest, context?: HandlerC
     withCredentials.push(eq(schedulePlans.insuredId, context?.userId))
   } else if (context?.userType === 'nurse') {
     withCredentials.push(eq(schedulePlans.nurseId, context?.userId))
+  }
+
+  // 如果指定了护理记录状态，添加过滤条件
+  if (recordStatus !== null && recordStatus !== undefined && recordStatus !== '') {
+    withCredentials.push(eq(careRecords.status, Number(recordStatus)))
   }
   const nurseInfo = alias(personInfo, 'nurseInfo')
   const insuredInfo = alias(personInfo, 'insuredInfo')
@@ -95,14 +104,27 @@ export const GET = createHandler(async (request: NextRequest, context?: HandlerC
         description: carePackages.description,
         createTime: carePackages.createTime
       },
+
+      // 关联的护理记录状态（移动端需要显示执行状态）
+      record: {
+        id: careRecords.id,
+        status: careRecords.status,
+        alertStatus: careRecords.alertStatus,
+        signInTime: careRecords.signInTime,
+        signOutTime: careRecords.signOutTime,
+      },
     })
     .from(schedulePlans)
     .leftJoin(organizations, eq(schedulePlans.organizationId, organizations.id))
     .leftJoin(insuredInfo, eq(schedulePlans.insuredId, insuredInfo.id))
     .leftJoin(nurseInfo, eq(schedulePlans.nurseId, nurseInfo.id))
     .leftJoin(carePackages, eq(schedulePlans.packageId, carePackages.id))
+    .leftJoin(careRecords, and(
+      eq(careRecords.schedulePlanId, schedulePlans.id),
+      eq(careRecords.deleted, false)
+    ))
     .where(and(...withCredentials)).orderBy(schedulePlans.startTime)
-  
+
   // 使用统一的工具函数添加任务名称
   const enrichedData = await enrichPackagesWithTaskNames(data)
   return enrichedData

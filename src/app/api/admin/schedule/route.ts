@@ -8,7 +8,7 @@ import { alias } from "drizzle-orm/pg-core"
 import { schedulePlanSchema, schedulePlanCreateSchema } from "@/lib/validations"
 // import { cretateContent } from "../insured/all/route" // 已移除，使用本地实现
 export const GET = createHandler(async (request: NextRequest, params, context) => {
-  const { searchParams } = new URL(request.url)
+  const searchParams = request.nextUrl.searchParams
   const nurseName = searchParams.get('nurseName') || ''
   const insuredName = searchParams.get('insuredName') || ''
   const month = searchParams.get('month') // 格式: YYYY-MM

@@ -67,8 +67,8 @@ export const careRecords = pgTable('care_records', {
   signInPhoto: integer('sign_in_photo'),
   signOutPhoto: integer('sign_out_photo'),
   description: text('description'),
-  status: integer('status').default(CareRecordStatus.NOT_STARTED), // 0: 未开始, 1: 已签到，2：服务中，3：已签退/服务结束
-  alertStatus: integer('alert_status').default(CareRecordAlertStatus.NORMAL), //0: 无异常，1: 请假, 2: 取消服务，3：推迟服务，4：迟到，5：早退
+  status: integer('status').default(CareRecordStatus.NOT_STARTED), // 0: 未开始, 1: 已签到, 2: 服务中, 3: 已签退/服务结束, 4: 请假, 5: 取消服务, 6: 推迟服务
+  alertStatus: integer('alert_status').default(CareRecordAlertStatus.NORMAL), // 0: 无异常, 1: 迟到, 2: 早退
   createTime: timestamp('create_time').defaultNow(),
   deleted: boolean('deleted').default(false),
 });

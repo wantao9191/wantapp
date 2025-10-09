@@ -10,6 +10,12 @@ export enum CareRecordStatus {
   IN_SERVICE = 2,
   /** 已签退/服务结束 */
   COMPLETED = 3,
+  /** 请假 */
+  LEAVE = 4,
+  /** 取消服务 */
+  CANCELLED = 5,
+  /** 推迟服务 */
+  POSTPONED = 6,
 }
 
 /**
@@ -18,16 +24,10 @@ export enum CareRecordStatus {
 export enum CareRecordAlertStatus {
   /** 无异常 */
   NORMAL = 0,
-  /** 请假 */
-  LEAVE = 1,
-  /** 取消服务 */
-  CANCELLED = 2,
-  /** 推迟服务 */
-  POSTPONED = 3,
   /** 迟到 */
-  LATE = 4,
+  LATE = 1,
   /** 早退 */
-  EARLY_LEAVE = 5,
+  EARLY_LEAVE = 2,
 }
 
 /**
@@ -101,13 +101,13 @@ export const CareRecordStatusLabels = {
   [CareRecordStatus.SIGNED_IN]: '已签到',
   [CareRecordStatus.IN_SERVICE]: '服务中',
   [CareRecordStatus.COMPLETED]: '已签退/服务结束',
+  [CareRecordStatus.LEAVE]: '请假',
+  [CareRecordStatus.CANCELLED]: '取消服务',
+  [CareRecordStatus.POSTPONED]: '推迟服务',
 } as const;
 
 export const CareRecordAlertStatusLabels = {
   [CareRecordAlertStatus.NORMAL]: '无异常',
-  [CareRecordAlertStatus.LEAVE]: '请假',
-  [CareRecordAlertStatus.CANCELLED]: '取消服务',
-  [CareRecordAlertStatus.POSTPONED]: '推迟服务',
   [CareRecordAlertStatus.LATE]: '迟到',
   [CareRecordAlertStatus.EARLY_LEAVE]: '早退',
 } as const;

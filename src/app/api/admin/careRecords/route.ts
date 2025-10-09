@@ -10,7 +10,7 @@ import { paginatedSimple } from "../../_utils/response"
 import { CareRecordStatusLabels,CareRecordAlertStatusLabels } from "@/types/enums"
 
 export const GET = createHandler(async (request: NextRequest, context?: HandlerContext) => {
-  const { searchParams } = new URL(request.url)
+  const searchParams = request.nextUrl.searchParams
   const page = searchParams.get('page') || '1'
   const pageSize = searchParams.get('pageSize') || '10'
   const pageParams = pageSchema.safeParse({ page: Number(page), pageSize: Number(pageSize) })

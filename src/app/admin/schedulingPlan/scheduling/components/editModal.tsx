@@ -87,9 +87,7 @@ export default function EditModal({
 
       }else {
         form.setFieldsValue({ ...rest, status: 1 })
-
       }
-      
     }
   }, [formData, form])
   const handleAddInsured = () => {
@@ -99,6 +97,7 @@ export default function EditModal({
     setOpenNurse(true)
   }
   const handleSelectInsured = (record: any) => {
+    console.log(record, 'record')
     form.setFieldsValue({
       insuredId: record.id,
       packageId: record.package?.id,
@@ -289,7 +288,7 @@ export default function EditModal({
                         className="px-3 py-1 rounded-full text-sm font-medium"
                         color="blue"
                       >
-                        {task}
+                        {task?.name ?? task}
                       </Tag>
                     )) || <Text className="text-gray-400">无</Text>}
                   </Space>

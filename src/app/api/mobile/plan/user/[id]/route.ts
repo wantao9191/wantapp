@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 import { createHandler, HandlerContext } from '@/app/api/_utils/handler'
 import { enrichPackageWithTaskNames } from '@/app/api/_utils/tasks-helper'
-import { personInfo, schedulePlans, organizations, carePackages } from '@/db/schema'
+import { personInfo, schedulePlans, organizations, carePackages, careRecords } from '@/db/schema'
 import { db } from '@/db'
 import { eq, and } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/pg-core'
@@ -115,10 +115,36 @@ export const GET = createHandler(async (request: NextRequest, params: any, conte
     throw new Error('排班计划不存在或无权访问')
   }
 
+  // 查询关联的护理记录（移动端需要显示执行状态）
+  const [record] = await db
+    .select({
+      id: careRecords.id,
+      status: careRecords.status,
+      alertStatus: careRecords.alertStatus,
+      signInTime: careRecords.signInTime,
+      signOutTime: careRecords.signOutTime,
+      signInLocation: careRecords.signInLocation,
+      signOutLocation: careRecords.signOutLocation,
+      description: careRecords.description,
+    })
+    .from(careRecords)
+    .where(
+      and(
+        eq(careRecords.schedulePlanId, planId),
+        eq(careRecords.deleted, false),
+        eq(careRecords.organizationId, Number(context?.organizationId))
+      )
+    )
+    .limit(1)
+
   // 使用统一的工具函数添加任务名称
   const enrichedPlan = await enrichPackageWithTaskNames(plan)
 
-  return enrichedPlan
+  // 添加护理记录状态信息
+  return {
+    ...enrichedPlan,
+    record: record || null, // 如果记录不存在则返回 null
+  }
 }, {
   permission: 'user:read',
   requireAuth: true,
