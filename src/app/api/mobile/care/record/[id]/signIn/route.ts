@@ -18,6 +18,7 @@ export const POST = createHandler(async (request: NextRequest, params: any, cont
   const validationResult = careRecordSignInSchema.safeParse(body)
   
   if (!validationResult.success) {
+    console.log(validationResult.error)
     throw validationResult.error.errors[0].message
   }
 

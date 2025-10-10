@@ -116,7 +116,10 @@ export function createHandler(arg: Handler | HandlerWithParams | Handlers, optio
         }
       } catch (e: any) {
         console.error('API Error:', e)
-        return error(e?.message || 'Internal Server Error', e?.status || 500)
+        // 处理字符串错误或 Error 对象
+        const message = typeof e === 'string' ? e : (e?.message || 'Internal Server Error')
+        const status = e?.status || 500
+        return error(message, status)
       }
     }
   }
@@ -174,7 +177,10 @@ export function createHandler(arg: Handler | HandlerWithParams | Handlers, optio
       }
     } catch (e: any) {
       console.error('API Error:', e)
-      return error(e?.message || 'Internal Server Error', e?.status || 500)
+      // 处理字符串错误或 Error 对象
+      const message = typeof e === 'string' ? e : (e?.message || 'Internal Server Error')
+      const status = e?.status || 500
+      return error(message, status)
     }
   }
 }
