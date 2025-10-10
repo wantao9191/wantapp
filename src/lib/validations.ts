@@ -228,6 +228,27 @@ export const careRecordSchema = z.object({
   message: '开始时间不能晚于结束时间',
   path: ['signInTime'],
 })
+
+// 护理记录签到校验规则
+export const careRecordSignInSchema = z.object({
+  signInPhoto: z.number().min(1, { message: '请上传签到照片' }),
+  signInLocationAddress: z.string().trim().min(1, { message: '无定位信息' }),
+  latitude: z.number().min(-90).max(90, { message: '纬度必须在-90到90之间' }),
+  longitude: z.number().min(-180).max(180, { message: '经度必须在-180到180之间' }),
+  accuracy: z.number().optional(), // GPS精度（米）
+  timestamp: z.number().min(0, { message: '定位时间戳不能为空' }), // 前端获取位置的时间戳
+  locationSource: z.enum(['gps', 'network', 'hybrid']).optional(), // 定位来源
+})
+// 护理记录签退校验规则
+export const careRecordSignOutSchema = z.object({
+  signOutPhoto: z.number().min(1, { message: '请上传签退照片' }),
+  signOutLocationAddress: z.string().trim().min(1, { message: '无定位信息' }),
+  latitude: z.number().min(-90).max(90, { message: '纬度必须在-90到90之间' }),
+  longitude: z.number().min(-180).max(180, { message: '经度必须在-180到180之间' }),
+  accuracy: z.number().optional(),
+  timestamp: z.number().min(0, { message: '定位时间戳不能为空' }),
+  locationSource: z.enum(['gps', 'network', 'hybrid']).optional(),
+})
 // 文件上传校验规则
 export const fileUploadSchema = z.object({
   name: z.string().trim().min(1, { message: '文件名不能为空' }).max(255, { message: '文件名过长' }),
@@ -247,3 +268,5 @@ export type CarePackageSchema = z.infer<typeof carePackageSchema>
 export type InsuredSchema = z.infer<typeof insuredSchema>
 export type SchedulePlanSchema = z.infer<typeof schedulePlanSchema>
 export type CareRecordSchema = z.infer<typeof careRecordSchema>
+export type CareRecordSignInSchema = z.infer<typeof careRecordSignInSchema>
+export type CareRecordSignOutSchema = z.infer<typeof careRecordSignOutSchema>

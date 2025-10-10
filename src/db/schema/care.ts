@@ -63,9 +63,11 @@ export const careRecords = pgTable('care_records', {
   signInTime: timestamp('sign_in_time'),
   signOutTime: timestamp('sign_out_time'),
   signInLocation: varchar('sign_in_location', { length: 255 }),
+  signInLocationAddress: varchar('sign_in_location_address', { length: 255 }),
   signOutLocation: varchar('sign_out_location', { length: 255 }),
   signInPhoto: integer('sign_in_photo'),
   signOutPhoto: integer('sign_out_photo'),
+  signOutLocationAddress: varchar('sign_out_location_address', { length: 255 }),
   description: text('description'),
   status: integer('status').default(CareRecordStatus.NOT_STARTED), // 0: 未开始, 1: 已签到, 2: 服务中, 3: 已签退/服务结束, 4: 请假, 5: 取消服务, 6: 推迟服务
   alertStatus: integer('alert_status').default(CareRecordAlertStatus.NORMAL), // 0: 无异常, 1: 迟到, 2: 早退
