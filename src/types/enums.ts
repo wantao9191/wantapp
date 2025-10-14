@@ -28,6 +28,8 @@ export enum CareRecordAlertStatus {
   LATE = 1,
   /** 早退 */
   EARLY_LEAVE = 2,
+  /** 早到 */
+  EARLY_SIGN_IN = 3,
 }
 
 /**
@@ -110,6 +112,7 @@ export const CareRecordAlertStatusLabels = {
   [CareRecordAlertStatus.NORMAL]: '无异常',
   [CareRecordAlertStatus.LATE]: '迟到',
   [CareRecordAlertStatus.EARLY_LEAVE]: '早退',
+  [CareRecordAlertStatus.EARLY_SIGN_IN]: '早到',
 } as const;
 
 export const CareTaskStatusLabels = {

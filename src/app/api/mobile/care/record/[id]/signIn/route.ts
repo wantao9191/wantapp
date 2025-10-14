@@ -7,7 +7,7 @@ import { CareRecordStatus, CareRecordAlertStatus } from "@/types/enums"
 import dayjs from "@/lib/dayjs-config"
 import { careRecordSignInSchema } from "@/lib/validations"
 import { validateSignInLocation } from "@/lib/geo-utils"
-
+import { ok } from "@/app/api/_utils/response"
 export const POST = createHandler(async (request: NextRequest, params: any, context?: HandlerContext) => {
   const { id } = params
   const recordId = parseInt(id)
@@ -119,12 +119,14 @@ export const POST = createHandler(async (request: NextRequest, params: any, cont
 
     // 如果超过开始时间30分钟，无法打卡
     if (diffMinutes > 30) {
-      throw `签到时间已超过计划开始时间30分钟，无法打卡。计划开始时间：${startTime.format('YYYY-MM-DD HH:mm')}`
+      // throw `签到时间已超过计划开始时间30分钟，无法打卡。计划开始时间：${startTime.format('YYYY-MM-DD HH:mm')}`
+      alertStatus = CareRecordAlertStatus.EARLY_SIGN_IN
     }
 
     // 如果在开始时间之前超过30分钟，也无法打卡
     if (diffMinutes < -30) {
-      throw `签到时间早于计划开始时间30分钟以上，无法打卡。计划开始时间：${startTime.format('YYYY-MM-DD HH:mm')}`
+      // throw `签到时间早于计划开始时间30分钟以上，无法打卡。计划开始时间：${startTime.format('YYYY-MM-DD HH:mm')}`
+      alertStatus = CareRecordAlertStatus.EARLY_SIGN_IN
     }
 
     // 如果迟到（超过开始时间但在30分钟内），标记为迟到
@@ -143,17 +145,16 @@ export const POST = createHandler(async (request: NextRequest, params: any, cont
     alertStatus: alertStatus,
   }).where(eq(careRecords.id, recordId))
 
-  const message = alertStatus === CareRecordAlertStatus.LATE ? '签到成功，但已迟到' : '签到成功'
+  const message = alertStatus === CareRecordAlertStatus.LATE ? '签到成功，但已迟到' : alertStatus === CareRecordAlertStatus.EARLY_SIGN_IN ? '签到成功，但已早到' : '签到成功'
 
-  return {
+  return ok({
     id: careRecord.id,
     schedulePlanId: careRecord.schedulePlanId,
     signInTime: signInTime,
     signInLocationAddress: signInLocationAddress,
     status: CareRecordStatus.SIGNED_IN,
-    alertStatus: alertStatus,
-    message: message
-  }
+    alertStatus: alertStatus
+  }, message)
 }, {
   requireAuth: true,
   hasParams: true,
