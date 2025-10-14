@@ -105,13 +105,23 @@ export const GET = createHandler(async (request: NextRequest, context?: HandlerC
         createTime: carePackages.createTime
       },
 
-      // 关联的护理记录状态（移动端需要显示执行状态）
+      // 关联的护理记录完整信息（移动端需要显示执行状态和详细信息）
       record: {
         id: careRecords.id,
-        status: careRecords.status,
-        alertStatus: careRecords.alertStatus,
+        schedulePlanId: careRecords.schedulePlanId,
+        startServiceTime: careRecords.startServiceTime,
+        endServiceTime: careRecords.endServiceTime,
         signInTime: careRecords.signInTime,
         signOutTime: careRecords.signOutTime,
+        signInLocation: careRecords.signInLocation,
+        signInLocationAddress: careRecords.signInLocationAddress,
+        signOutLocation: careRecords.signOutLocation,
+        signOutLocationAddress: careRecords.signOutLocationAddress,
+        signInPhoto: careRecords.signInPhoto,
+        signOutPhoto: careRecords.signOutPhoto,
+        description: careRecords.description,
+        alertStatus: careRecords.alertStatus,
+        status: careRecords.status,
       },
     })
     .from(schedulePlans)

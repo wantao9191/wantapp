@@ -115,17 +115,24 @@ export const GET = createHandler(async (request: NextRequest, params: any, conte
     throw new Error('排班计划不存在或无权访问')
   }
 
-  // 查询关联的护理记录（移动端需要显示执行状态）
+  // 查询关联的护理记录完整信息（移动端需要显示执行状态和详细信息）
   const [record] = await db
     .select({
       id: careRecords.id,
-      status: careRecords.status,
-      alertStatus: careRecords.alertStatus,
+      schedulePlanId: careRecords.schedulePlanId,
+      startServiceTime: careRecords.startServiceTime,
+      endServiceTime: careRecords.endServiceTime,
       signInTime: careRecords.signInTime,
       signOutTime: careRecords.signOutTime,
       signInLocation: careRecords.signInLocation,
+      signInLocationAddress: careRecords.signInLocationAddress,
       signOutLocation: careRecords.signOutLocation,
+      signOutLocationAddress: careRecords.signOutLocationAddress,
+      signInPhoto: careRecords.signInPhoto,
+      signOutPhoto: careRecords.signOutPhoto,
       description: careRecords.description,
+      alertStatus: careRecords.alertStatus,
+      status: careRecords.status,
     })
     .from(careRecords)
     .where(

@@ -16,7 +16,7 @@ export const POST = createHandler(async (request: NextRequest, params: any, cont
   // 解析并验证请求体
   const body = await request.json()
   const validationResult = careRecordSignInSchema.safeParse(body)
-  
+
   if (!validationResult.success) {
     console.log(validationResult.error)
     throw validationResult.error.errors[0].message
@@ -79,7 +79,7 @@ export const POST = createHandler(async (request: NextRequest, params: any, cont
     // 获取参保人的位置信息用于地理围栏验证
     if (carePlan.insuredId) {
       const [insured] = await db.select().from(personInfo).where(eq(personInfo.id, carePlan.insuredId))
-      
+
       if (!insured) {
         throw '未找到参保人信息，请联系管理员'
       }
@@ -90,7 +90,7 @@ export const POST = createHandler(async (request: NextRequest, params: any, cont
         // 前端传来的是 GCJ-02 坐标（火星坐标系）
         // 数据库存储的也是 GCJ-02 坐标
         // 因此可以直接进行距离计算，无需转换
-        
+
         const locationValidation = validateSignInLocation({
           signInLat: latitude,              // 前端 GCJ-02 纬度
           signInLon: longitude,             // 前端 GCJ-02 经度
@@ -136,25 +136,18 @@ export const POST = createHandler(async (request: NextRequest, params: any, cont
   }
 
   // 更新护理记录（包含位置信息）
-  await db.update(careRecords).set({
+  const [updatedRecord] = await db.update(careRecords).set({
     signInTime: signInTime,
     signInLocationAddress: signInLocationAddress,
     signInLocation: `${latitude},${longitude}`,
     signInPhoto: signInPhoto,
     status: CareRecordStatus.SIGNED_IN,
     alertStatus: alertStatus,
-  }).where(eq(careRecords.id, recordId))
+  }).where(eq(careRecords.id, recordId)).returning()
 
   const message = alertStatus === CareRecordAlertStatus.LATE ? '签到成功，但已迟到' : alertStatus === CareRecordAlertStatus.EARLY_SIGN_IN ? '签到成功，但已早到' : '签到成功'
 
-  return ok({
-    id: careRecord.id,
-    schedulePlanId: careRecord.schedulePlanId,
-    signInTime: signInTime,
-    signInLocationAddress: signInLocationAddress,
-    status: CareRecordStatus.SIGNED_IN,
-    alertStatus: alertStatus
-  }, message)
+  return ok(updatedRecord, message)
 }, {
   requireAuth: true,
   hasParams: true,

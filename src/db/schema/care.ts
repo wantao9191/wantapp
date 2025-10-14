@@ -60,6 +60,8 @@ export const careRecords = pgTable('care_records', {
   id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
   schedulePlanId: integer('schedule_plan_id').references(() => schedulePlans.id),
   organizationId: integer('organization_id').references(() => organizations.id),
+  startServiceTime: timestamp('start_service_time'),
+  endServiceTime: timestamp('end_service_time'),
   signInTime: timestamp('sign_in_time'),
   signOutTime: timestamp('sign_out_time'),
   signInLocation: varchar('sign_in_location', { length: 255 }),
